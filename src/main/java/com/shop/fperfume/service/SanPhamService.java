@@ -1,13 +1,12 @@
 package com.shop.fperfume.service;
 
-import com.shop.fperfume.entity.DungTich;
-import com.shop.fperfume.entity.LoaiNuocHoa;
-import com.shop.fperfume.entity.SanPham;
+import com.shop.fperfume.entity.*;
 import com.shop.fperfume.model.request.SanPhamRequest;
 import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.model.response.SanPhamResponse;
 import com.shop.fperfume.repository.*;
 import com.shop.fperfume.util.MapperUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,8 +50,39 @@ public class SanPhamService {
         SanPham sanPham = MapperUtils.map(sanPhamRequest, SanPham.class);
 
         DungTich dungTich = dungTichRepository.findById(sanPhamRequest.getIdDungTich()).orElseThrow(() -> new RuntimeException("Không tìm thấy dung tích với ID: " + sanPhamRequest.getIdDungTich()));
+        LoaiNuocHoa loaiNuocHoa = loaiNuocHoaRepository.findById(sanPhamRequest.getIdLoaiNuocHoa()).orElseThrow(() -> new RuntimeException("Không tìm thấy loại nước hoa với ID: " + sanPhamRequest.getIdLoaiNuocHoa()));
+        ThuongHieu thuongHieu = thuongHieuRepository.findById(sanPhamRequest.getIdThuongHieu()).orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + sanPhamRequest.getIdThuongHieu()));
+        XuatXu xuatXu = xuatXuRepository.findById(sanPhamRequest.getIdXuatXu()).orElseThrow(() -> new RuntimeException("Không tìm thấy xuất xứ với ID: " + sanPhamRequest.getIdXuatXu()));
+
         sanPham.setDungTich(dungTich);
+        sanPham.setLoaiNuocHoa(loaiNuocHoa);
+        sanPham.setThuongHieu(thuongHieu);
+        sanPham.setXuatXu(xuatXu);
 
         sanPhamRepository.save(sanPham);
     }
+
+    @Transactional
+    public void updateSanPham(Long id, SanPhamRequest sanPhamRequest){
+        SanPham sanPham = sanPhamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
+
+        MapperUtils.mapToExisting(sanPhamRequest, sanPham);
+
+        sanPham.setDungTich(dungTichRepository.findById(sanPhamRequest.getIdDungTich())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy dung tích với ID: " + sanPhamRequest.getIdDungTich())));
+        sanPham.setLoaiNuocHoa(loaiNuocHoaRepository.findById(sanPhamRequest.getIdLoaiNuocHoa())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại nước hoa với ID: " + sanPhamRequest.getIdLoaiNuocHoa())));
+        sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamRequest.getIdThuongHieu())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + sanPhamRequest.getIdThuongHieu())));
+        sanPham.setXuatXu(xuatXuRepository.findById(sanPhamRequest.getIdXuatXu())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xuất xứ với ID: " + sanPhamRequest.getIdXuatXu())));
+
+        sanPhamRepository.save(sanPham);
+    }
+
+    public void deleteSanPham(Long id){
+        sanPhamRepository.deleteById(id);
+    }
+
 }
