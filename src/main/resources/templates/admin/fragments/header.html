@@ -1,0 +1,47 @@
+<!--<div class="header mb-3" th:fragment="header" xmlns:th="http://www.thymeleaf.org">-->
+
+<!--</div>-->
+<div class="header mb-3 shadow-sm bg-white rounded py-3 px-4 d-flex justify-content-between align-items-center"
+     th:fragment="header"
+     xmlns:th="http://www.thymeleaf.org">
+
+    <!-- Logo + Tên web -->
+    <div class="d-flex align-items-center gap-2">
+        <img th:src="@{/admin/assets/static/images/logo/logoVinFan.png}" alt="Logo" style="height: 45px;">
+        <h4 class="m-0 fw-bold text-primary">F Perfume Admin</h4>
+    </div>
+
+    <!-- Thanh tìm kiếm -->
+    <form class="d-none d-md-flex align-items-center" style="width: 300px;">
+        <input type="text" class="form-control form-control-sm rounded-pill" placeholder="Tìm kiếm...">
+    </form>
+
+    <!-- Nút bên phải -->
+    <div class="d-flex align-items-center gap-3">
+        <!-- Thông báo -->
+        <button class="btn btn-light position-relative">
+            <i class="bi bi-bell fs-5"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+        </button>
+
+        <!-- Hồ sơ cá nhân -->
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+               id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+<!--                <img th:src="@{/admin/assets/static/images/avatar/default-avatar.png}"-->
+<!--                     alt="User" width="36" height="36" class="rounded-circle me-2">-->
+<!--                <strong th:text="${#authentication.name}">Admin</strong>-->
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser">
+                <li><a class="dropdown-item" href="#">Trang cá nhân</a></li>
+                <li><a class="dropdown-item" href="#">Cài đặt</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/logout}" method="post" class="m-0">
+                        <button type="submit" class="dropdown-item text-danger">Đăng xuất</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

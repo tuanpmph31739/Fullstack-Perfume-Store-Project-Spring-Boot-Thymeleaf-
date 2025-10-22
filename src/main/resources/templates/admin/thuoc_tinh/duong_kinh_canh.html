@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{/admin/fragments/head :: head}"></head>
+<body>
+<!-- Site wrapper -->
+<div class="wrapper">
+    <!-- Sidebar -->
+    <div>
+        <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
+    </div>
+    <!-- Main-->
+    <div id="main">
+        <header th:replace="/admin/fragments/header :: header"></header>
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Đường kính cánh</h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first">
+                        <div class="card" style="position: absolute; top: 10px; right: 10px; width: 100px;">
+                            <div class="dropdown">
+                                <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: none; border: none; color: inherit; text-decoration: none;">
+                                    <img th:src="@{${nhanVienInfo.hinhAnh}}" alt="Avatar" class="rounded-circle" width="60" height="60">
+                                </button>
+                                <ul class="dropdown-menu" style="background-color: #f8f9fa; border-color: #ccc;">
+                                    <li>
+                                        <div class="dropdown-item" style="color: #333;">
+                                            <strong>Thông tin nhân viên</strong><br>
+                                            Tên: <span th:text="${nhanVienInfo.ten}"></span><br>
+                                            Email: <span th:text="${nhanVienInfo.email}"></span><br>
+                                            Chức vụ: <span th:text="${nhanVienInfo.chucVu.viTri}"></span>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li style="text-align: center">
+                                        <form th:action="@{/logout}" method="post">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bi bi-box-arrow-right"></i> Đăng Xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-content">
+            <!--        dữ liệu thực hiện trong seccion-->
+            <section class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <form method="get" action="/admin/thuoc-tinh/duong-kinh-canh/view" th:object="${listDuongKinhCanh}" style="padding-bottom: 20px">
+                            <div class="row">
+                                <div class="col-5">
+                                    <input type="number" id="searchInput" class="form-control" name="ten_duong_kinh_canh"
+                                           placeholder="Nhập đường kính cánh..." th:value="${param.ten_duong_kinh_canh}">
+                                </div>
+                                <div class="col-5">
+                                    <select id="trangThai" name="trang_thai" class="form-select">
+                                        <option value="" th:selected="${trang_thai == null}">Tất cả trạng thái</option>
+                                        <option value="true" th:selected="${trang_thai == true}">Hoạt động</option>
+                                        <option value="false" th:selected="${trang_thai == false}">Không hoạt động</option>
+                                    </select>
+                                </div>
+                                <div class="col-2">
+                                    <button class="btn btn-primary" type="submit" id="sbmt">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalThemMoi">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div th:if="${#lists.isEmpty(listTT.content)}" class="d-flex flex-column justify-content-center align-items-center" style="height: 400px;">
+                        <img src="https://shop.nebulacare.in/Content/Images/nodata.jpg" style="max-height: 400px;">
+                    </div>
+                    <div th:if="${!#lists.isEmpty(listTT.content)}" class="card-body">
+                        <table class="table table-striped table-bordered dataTable-table" id="table1">
+                            <thead>
+                            <tr>
+                                <th data-sortable="" style="width: 20%;">
+                                    <a href="#" class="dataTable-sorter">STT</a>
+                                </th>
+                                <th data-sortable="" style="width: 30%;">
+                                    <a href="#" class="dataTable-sorter">Tên Đường kính cánh</a>
+                                </th>
+                                <th data-sortable="" style="width: 30%;">
+                                    <a href="#" class="dataTable-sorter">Trạng thái</a>
+                                </th>
+                                <th data-sortable="" style="width: 20%;">
+                                    <a href="#" class="dataTable-sorter">Hành động</a>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tt, iter : ${listTT.content}" th:data-id="${tt.id}">
+                                <td style="text-align: center" th:text="${(listTT.number * listTT.size) + iter.index + 1}"></td>
+                                <td th:text="${tt.ten}"></td>
+                                <td style="text-align: center">
+                                    <span th:if="${tt.trang_thai}" class="badge bg-light-success">Hoạt động</span>
+                                    <span th:unless="${tt.trang_thai}" class="badge bg-light-danger"> Không hoạt động</span>
+                                </td>
+                                <td style="text-align: center">
+                                    <button class="btn btn-primary thayDoiTrangThai" th:attr="data-id=${tt.id}">
+                                        <i class="bi bi-arrow-left-right"></i>
+                                    </button>
+                                    <button class="btn btn-warning hienThiThongTinModal" th:attr="data-id=${tt.id}" data-bs-toggle="modal" data-bs-target="#modalChinhSua">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="dataTable-bottom">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                <!-- Nút Trang đầu -->
+                                <li class="page-item" th:classappend="${listTT.first ? 'disabled' : ''}">
+                                    <a class="page-link"
+                                       th:href="@{'/admin/thuoc-tinh/duong-kinh-canh/view?page=0&ten_duong_kinh_canh=' + ${ten_duong_kinh_canh} + '&trang_thai=' + ${trang_thai} + '&maxPrice=' + ${maxPrice}}"
+                                       aria-label="Trang đầu">
+                                        <span aria-hidden="true">««</span>
+                                        <span class="sr-only">Trang đầu</span>
+                                    </a>
+                                </li>
+                                <!-- trang trước -->
+                                <li class="page-item" th:classappend="${listTT.first ? 'disabled' : ''}">
+                                    <a class="page-link"
+                                       th:href="@{'/admin/thuoc-tinh/duong-kinh-canh/view?page=' + ${listTT.number - 1} + '&ten_duong_kinh_canh=' + ${ten_duong_kinh_canh} + '&trang_thai=' + ${trang_thai}}"
+                                       aria-label="Previous" th:if="${!listTT.first}">
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="sr-only">Trang trước</span>
+                                    </a>
+                                </li>
+                                <!-- số trang -->
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, listTT.number - 2), T(java.lang.Math).min(listTT.totalPages - 1, listTT.number + 2))}"
+                                    th:classappend="${i == listTT.number ? 'active' : ''}">
+                                    <a class="page-link"
+                                       th:href="@{'/admin/thuoc-tinh/duong-kinh-canh/view?page=' + ${i >= 0 ? i : 0} +  '&ten_duong_kinh_canh=' + ${ten_duong_kinh_canh} + '&trang_thai=' + ${trang_thai}}"
+                                       th:text="${i + 1}"></a>
+                                </li>
+                                <!-- trang sau -->
+                                <li class="page-item" th:classappend="${listTT.last ? 'disabled' : ''}">
+                                    <a class="page-link"
+                                       th:href="@{'/admin/thuoc-tinh/duong-kinh-canh/view?page=' + ${listTT.number + 1} + '&ten_duong_kinh_canh=' + ${ten_duong_kinh_canh} + '&trang_thai=' + ${trang_thai}}"
+                                       aria-label="Next" th:if="${!listTT.last}">
+                                        <span aria-hidden="true">&raquo;</span>
+                                        <span class="sr-only">Trang sau</span>
+                                    </a>
+                                </li>
+                                <!-- Trang cuối -->
+                                <li class="page-item" th:classappend="${listTT.last ? 'disabled' : ''}">
+                                    <a class="page-link"
+                                       th:href="@{'/admin/thuoc-tinh/duong-kinh-canh/view?page=' + ${listTT.totalPages - 1} + '&ten_duong_kinh_canh=' + ${ten_duong_kinh_canh} + '&trang_thai=' + ${trang_thai}}"
+                                       aria-label="Trang cuối">
+                                        <span aria-hidden="true">»»</span>
+                                        <span class="sr-only">Trang cuối</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <!--    thêm-->
+    <div class="modal fade" id="modalThemMoi" tabindex="-1" aria-labelledby="modalThemMoiLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalThemMoiLabel">Thêm Mới Đường kính cánh (cm)</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="addDuongKinhCanh" method="post" action="/admin/thuoc-tinh/duong-kinh-canh/addDuongKinhCanh">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="ten_duong_kinh_canh" name="ten_duong_kinh_canh" placeholder="Nhập số đường kính cánh">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-success">
+                                <i class="bi bi-floppy"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--    chỉnh sửa-->
+    <div class="modal fade" id="modalChinhSua" tabindex="-1" aria-labelledby="modalChinhSuaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalChinhSuaLabel">Chỉnh sửa đường kính cánh (cm)</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="updateKieuQuat" method="post" action="/admin/thuoc-tinh/duong-kinh-canh/update">
+                        <input type="hidden" id="duongKinhCanhId" name="id">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="ten_duong_kinh_canhUpdate" name="ten_duong_kinh_canh_update" placeholder="Nhập số đường kính cánh mới">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-outline-success">
+                                <i class="bi bi-floppy"></i> Lưu
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">
+                                <i class="bi bi-x"></i> Hủy
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer-->
+    <div>
+        <footer th:replace="/admin/fragments/footer :: footer"></footer>
+    </div>
+</div>
+<div>
+    <script th:replace="/admin/fragments/script :: script"></script>
+    <!--    đổi trạng thái-->
+    <script>
+        $(document).on('click', '.thayDoiTrangThai', function () {
+            const id = $(this).data('id');
+
+            Swal.fire({
+                title: 'Bạn có chắc muốn đổi trạng thái?',
+                text: "Thao tác này sẽ thay đổi trạng thái đường kính cánh!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/admin/thuoc-tinh/duong-kinh-canh/doi-trang-thai/${id}`,
+                        type: 'POST',
+                        success: function () {
+                            Swal.fire({
+                                toast: true,
+                                icon: 'success',
+                                title: 'Đường kính cánh thay đổi trạng thái thành công.',
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 1000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                toast: true,
+                                icon: 'error',
+                                title: xhr.responseText,  // Thông báo lỗi trả về từ controller
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <!--    THông báo thêm-->
+    <script>
+        $('#addDuongKinhCanh').on('submit', function (e) {
+            e.preventDefault();
+
+            const ten_duong_kinh_canh = $('#ten_duong_kinh_canh').val();
+
+            $.ajax({
+                url: '/admin/thuoc-tinh/duong-kinh-canh/addDuongKinhCanh',
+                type: 'POST',
+                data: { ten_duong_kinh_canh: ten_duong_kinh_canh },
+                success: function (response) {
+                    Swal.fire({
+                        toast: true,
+                        icon: 'success',
+                        title: response, // Thông báo thành công từ server
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        toast: true,
+                        icon: 'error',
+                        title: xhr.responseText, // Thông báo lỗi trả về từ controller
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                }
+            });
+        });
+    </script>
+    <!--    lấy thoogn tin để cập nhật-->
+    <script>
+        $(document).on('click', '.hienThiThongTinModal', function () {
+            const id = $(this).data('id');
+            console.log("ID lấy được:", id);
+            $('#duongKinhCanhId').val(id); // Gắn ID vào input ẩn trong form
+
+            $.ajax({
+                url: `/admin/thuoc-tinh/duong-kinh-canh/detail/${id}`,
+                type: 'GET',
+                success: function (response) {
+                    console.log("Response:", response);
+                    $('#duongKinhCanhId').val(response.id);
+                    $('#ten_duong_kinh_canhUpdate').val(response.ten);
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Không thể lấy thông tin chi tiết đường kính cánh.',
+                        text: xhr.responseText
+                    });
+                }
+            });
+        });
+    </script>
+    <!--    cap nhật-->
+    <script>
+        $('#updateKieuQuat').on('submit', function (e) {
+            e.preventDefault(); // Ngăn submit mặc định của form
+
+            const duongKinhCanhId = $('#duongKinhCanhId').val();
+            const ten_duong_kinh_canh = $('#ten_duong_kinh_canhUpdate').val();
+
+            $.ajax({
+                url: `/admin/thuoc-tinh/duong-kinh-canh/update`,
+                type: 'POST',
+                data: {
+                    id: duongKinhCanhId,
+                    ten_duong_kinh_canh_update: ten_duong_kinh_canh
+                },
+                success: function (response) {
+                    Swal.fire({
+                        toast: true,
+                        icon: 'success',
+                        title: response, // Thông báo thành công từ server
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        toast: true,
+                        icon: 'error',
+                        title: xhr.responseText, // Thông báo lỗi từ server
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

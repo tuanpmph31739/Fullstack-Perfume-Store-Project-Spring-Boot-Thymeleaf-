@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/fragments/head :: head" xmlns:th="http://www.thymeleaf.org">
+</head>
+<body>
+<!-- Site wrapper -->
+<div class="wrapper">
+    <!-- Sidebar -->
+    <div>
+        <aside th:replace="/admin/fragments/sidebar :: sidebar" ></aside>
+    </div>
+
+    <!-- Main-->
+    <div id="main">
+        <header th:replace="/admin/fragments/header :: header"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Thuộc tính</h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first">
+                        <div class="card" style="position: absolute; top: 10px; right: 10px; width: 100px;">
+                            <div class="dropdown">
+                                <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: none; border: none; color: inherit; text-decoration: none;">
+                                    <img th:src="@{${nhanVienInfo.hinhAnh}}" alt="Avatar" class="rounded-circle" width="60" height="60">
+                                </button>
+                                <ul class="dropdown-menu" style="background-color: #f8f9fa; border-color: #ccc;">
+                                    <li>
+                                        <div class="dropdown-item" style="color: #333;">
+                                            <strong>Thông tin nhân viên</strong><br>
+                                            Tên: <span th:text="${nhanVienInfo.ten}"></span><br>
+                                            Email: <span th:text="${nhanVienInfo.email}"></span><br>
+                                            Chức vụ: <span th:text="${nhanVienInfo.chucVu.viTri}"></span>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li style="text-align: center">
+                                        <form th:action="@{/logout}" method="post">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bi bi-box-arrow-right"></i> Đăng Xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://us.123rf.com/450wm/winwinartlab/winwinartlab2402/winwinartlab240200058/229814316-electric-fans-air-circulation-climate-equipment-different-types-of-cooling-appliances-for-home.jpg?ver=6" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Kiểu Quạt</h4>
+                                    <a href="/admin/thuoc-tinh/kieu-quat/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://i.pinimg.com/736x/c8/21/8c/c8218c9113720f30aa747cc3fd26b95f.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Màu sắc</h4>
+                                    <a href="/admin/thuoc-tinh/mau-sac/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://i.pinimg.com/736x/be/72/b6/be72b64ecc3131387fea43f97c023cd6.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Công suất</h4>
+                                    <a href="/admin/thuoc-tinh/cong-suat/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://ecpvn.com/wp-content/uploads/2022/12/brand-image-1.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Hãng</h4>
+                                    <a href="/admin/thuoc-tinh/hang/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://www.rapiddirect.com/wp-content/uploads/2021/11/metal-strength-chart-featured-image.webp" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Chất liệu khung</h4>
+                                    <a href="/admin/thuoc-tinh/chat-lieu-khung/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://i.pinimg.com/736x/6a/f7/88/6af788889ac875a87e7cd14aea4ba784.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Chất liệu cánh</h4>
+                                    <a href="/admin/thuoc-tinh/chat-lieu-canh/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://img.freepik.com/premium-vector/doodle-wind-illustration-vector-handrawn-style_607987-242.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Chế độ gió</h4>
+                                    <a href="/admin/thuoc-tinh/che-do-gio/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://img.freepik.com/premium-vector/ruler-icon-icon_1076610-104531.jpg?w=740" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Chiều cao</h4>
+                                    <a href="/admin/thuoc-tinh/chieu-cao/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://m.media-amazon.com/images/I/91hl+KYxMcL._SL1500_.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Đế quạt</h4>
+                                    <a href="/admin/thuoc-tinh/de-quat/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://www.thegioiic.com/upload/large/28609.jpg" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Đường kính cánh</h4>
+                                    <a href="/admin/thuoc-tinh/duong-kinh-canh/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="card shadow" style="border: 2px solid #EEE8AA; background-color: #FFEFD5;">
+                                <img style="height: 200px" src="https://down-vn.img.susercontent.com/file/ab136fd1e15cf5890fcbc91179153be5" class="card-img-top" alt="ảnh công suất">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title" style="color: #B0C4DE; font-weight: bold;">Nút bấm</h4>
+                                    <a href="/admin/thuoc-tinh/nut-bam/view" class="btn btn-warning w-100">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <!-- Footer-->
+    <div>
+        <footer th:replace="/admin/fragments/footer :: footer"></footer>
+    </div>
+</div>
+<div>
+    <script th:replace="/admin/fragments/script :: script"></script>
+</div>
+<script>
+</script>
+</body>
+</html>
