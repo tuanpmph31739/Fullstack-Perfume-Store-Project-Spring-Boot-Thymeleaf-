@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -26,7 +27,7 @@ public class SanPhamRequest {
 
     private String moTa;
 
-    private String hinhAnh;
+    private MultipartFile hinhAnh;
 
     private Boolean trangThai;
 
@@ -37,5 +38,7 @@ public class SanPhamRequest {
     private Long idDungTich;
 
     private Long idLoaiNuocHoa;
+
+    private Long idMuaThichHop;
 
 }

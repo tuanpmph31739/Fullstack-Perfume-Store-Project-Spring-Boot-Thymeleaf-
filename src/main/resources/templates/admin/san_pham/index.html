@@ -3,10 +3,8 @@
 <head th:replace="~{/admin/fragments/head :: head}"></head>
 <body>
 <div class="wrapper">
-    <!-- Sidebar -->
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
-    <!-- Main -->
     <div id="main">
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
@@ -25,7 +23,6 @@
             </div>
         </div>
 
-        <!-- Nội dung trang -->
         <div class="page-content">
             <section class="row">
                 <div class="card">
@@ -42,19 +39,22 @@
                                 <th>Dung tích</th>
                                 <th>Loại</th>
                                 <th>Thương hiệu</th>
-                                <th>Xuất xứ</th>
+                                <th>Số lượng tồn</th>
                                 <th>Hành động</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="sp, iterStat : ${listSanPham}">
+
+                            <tr th:each="sp, iterStat : ${page.data}">
+
                                 <td th:text="${iterStat.count}"></td>
                                 <td th:text="${sp.tenNuocHoa}"></td>
-                                <td th:text="${#numbers.formatDecimal(sp.gia, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
-                                <td th:text="${sp.dungTich != null ? sp.dungTich.tenDungTich : '---'}"></td>
-                                <td th:text="${sp.loaiNuocHoa != null ? sp.loaiNuocHoa.tenLoai : '---'}"></td>
-                                <td th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : '---'}"></td>
-                                <td th:text="${sp.xuatXu != null ? sp.xuatXu.tenNuoc : '---'}"></td>
+                                <td th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+                                <td th:text="${sp.soMl != null ? sp.soMl + ' ml' : '---'}"></td>
+                                <td th:text="${sp.tenLoai ?: '---'}"></td>
+                                <td th:text="${sp.tenThuongHieu ?: '---'}"></td>
+                                <td th:text="${sp.soLuongTon ?: '---'}"></td>
+
                                 <td>
                                     <a th:href="@{/admin/san-pham/edit/{id}(id=${sp.id})}" class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil"></i>
@@ -66,19 +66,41 @@
                                 </td>
                             </tr>
                             </tbody>
-
                         </table>
+
+                        <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
+                            <ul class="pagination justify-content-center">
+
+                                <li class="page-item" th:classappend="${page.currentPage == 0} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/san-pham(page=${page.currentPage})}"> Previous
+                                    </a>
+                                </li>
+
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(1, page.totalPage)}"
+                                    th:classappend="${i == page.currentPage + 1} ? 'active'"> <a class="page-link"
+                                                                                                 th:href="@{/admin/san-pham(page=${i})}"
+                                                                                                 th:text="${i}">
+                                </a>
+                                </li>
+
+                                <li class="page-item" th:classappend="${page.currentPage + 1 >= page.totalPage} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/san-pham(page=${page.currentPage + 2})}"> Next
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- Footer -->
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
     </div>
 </div>
 
-<!-- Script -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 </body>
 </html>

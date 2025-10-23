@@ -57,4 +57,8 @@ public class SanPham {
     @ManyToOne
     @JoinColumn(name = "IdLoai", referencedColumnName = "Id")
     private LoaiNuocHoa loaiNuocHoa;
+
+    @ManyToOne
+    @JoinColumn(name = "IdMuaThichHop", referencedColumnName = "Id")
+    private MuaThichHop muaThichHop;
 }
