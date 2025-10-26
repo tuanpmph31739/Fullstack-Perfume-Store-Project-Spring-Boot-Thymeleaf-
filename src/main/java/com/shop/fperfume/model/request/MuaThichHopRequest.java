@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -16,4 +18,8 @@ public class MuaThichHopRequest {
     private String tenMua;
 
     private String moTa;
+
+    private LocalDate ngayTao;
+
+    private LocalDate ngaySua;
 }

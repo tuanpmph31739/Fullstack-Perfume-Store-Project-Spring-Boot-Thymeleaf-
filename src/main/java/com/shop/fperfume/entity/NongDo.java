@@ -1,32 +1,36 @@
 package com.shop.fperfume.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@Entity
+import java.time.LocalDate;
+
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "CuaHang")
-public class CuaHang {
-
+@Setter
+@Getter
+@Entity
+@Table(name = "NongDo")
+public class NongDo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "Ma")
-    private String maCh;
+    private String maNongDo;
 
     @Column(name = "Ten")
-    private String tenCh;
+    private String tenNongDo;
 
-    @Column(name = "DiaChi")
-    private String diaChi;
+    @Column(name = "MoTa")
+    private String moTaNongDo;
 
+    @Column(name = "NgayTao")
+    private LocalDate ngayTao;
+
+    @Column(name = "NgaySua")
+    private LocalDate ngaySua;
 }
-

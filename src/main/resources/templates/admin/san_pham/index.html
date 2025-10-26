@@ -12,7 +12,7 @@
             <div class="page-title">
                 <div class="row">
                     <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Quản lý sản phẩm</h3>
+                        <h3>Quản lý Sản phẩm</h3>
                     </div>
                     <div class="col-12 col-md-6 order-md-2 order-first text-end">
                         <a th:href="@{/admin/san-pham/add}" class="btn btn-primary">
@@ -27,68 +27,62 @@
             <section class="row">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Danh sách sản phẩm</h5>
+                        <h5>Danh sách Sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-striped">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Tên sản phẩm</th>
-                                <th>Giá</th>
-                                <th>Dung tích</th>
-                                <th>Loại</th>
-                                <th>Thương hiệu</th>
-                                <th>Số lượng tồn</th>
-                                <th>Hành động</th>
+                                <th>Loại (Giới tính)</th> <th>Thương hiệu</th> <th>Nhóm hương</th> <th>Mùa</th> <th>Hành động</th>
                             </tr>
                             </thead>
                             <tbody>
-
                             <tr th:each="sp, iterStat : ${page.data}">
 
-                                <td th:text="${iterStat.count}"></td>
+                                <td th:text="${(page.currentPage - 1) * page.size + iterStat.index + 1}"></td>
+
+
                                 <td th:text="${sp.tenNuocHoa}"></td>
-                                <td th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
-                                <td th:text="${sp.soMl != null ? sp.soMl + ' ml' : '---'}"></td>
+
                                 <td th:text="${sp.tenLoai ?: '---'}"></td>
+
                                 <td th:text="${sp.tenThuongHieu ?: '---'}"></td>
-                                <td th:text="${sp.soLuongTon ?: '---'}"></td>
+
+                                <td th:text="${sp.tenNhomHuong ?: '---'}"></td>
+
+                                <td th:text="${sp.tenMua ?: '---'}"></td>
 
                                 <td>
-                                    <a th:href="@{/admin/san-pham/edit/{id}(id=${sp.id})}" class="btn btn-warning btn-sm">
+                                    <a th:href="@{/admin/san-pham/edit/{id}(id=${sp.id})}" class="btn btn-warning btn-sm" title="Sửa sản phẩm gốc">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a th:href="@{/admin/san-pham/delete/{id}(id=${sp.id})}" class="btn btn-danger btn-sm"
-                                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
+                                    <a th:href="@{/admin/san-pham/delete/{id}(id=${sp.id})}" class="btn btn-danger btn-sm" title="Xóa sản phẩm gốc"
+                                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này và tất cả biến thể của nó?')">
                                         <i class="bi bi-trash"></i>
                                     </a>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/list/{sanPhamId}(sanPhamId=${sp.id})}" class="btn btn-info btn-sm" title="Quản lý biến thể">
+                                        <i class="bi bi-list-ul"></i> </a>
                                 </td>
                             </tr>
+                            <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
+                                <td colspan="7" class="text-center">Không có sản phẩm nào.</td> </tr>
                             </tbody>
                         </table>
 
                         <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
                             <ul class="pagination justify-content-center">
-
                                 <li class="page-item" th:classappend="${page.currentPage == 0} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/admin/san-pham(page=${page.currentPage})}"> Previous
-                                    </a>
+                                    <a class="page-link" th:href="@{/admin/san-pham(page=${page.currentPage})}">Previous</a>
                                 </li>
-
                                 <li class="page-item"
                                     th:each="i : ${#numbers.sequence(1, page.totalPage)}"
-                                    th:classappend="${i == page.currentPage + 1} ? 'active'"> <a class="page-link"
-                                                                                                 th:href="@{/admin/san-pham(page=${i})}"
-                                                                                                 th:text="${i}">
-                                </a>
+                                    th:classappend="${i == page.currentPage + 1} ? 'active'">
+                                    <a class="page-link" th:href="@{/admin/san-pham(page=${i})}" th:text="${i}"></a>
                                 </li>
-
                                 <li class="page-item" th:classappend="${page.currentPage + 1 >= page.totalPage} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/admin/san-pham(page=${page.currentPage + 2})}"> Next
-                                    </a>
+                                    <a class="page-link" th:href="@{/admin/san-pham(page=${page.currentPage + 2})}">Next</a>
                                 </li>
                             </ul>
                         </nav>

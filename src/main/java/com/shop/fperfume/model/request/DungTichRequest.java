@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -14,4 +16,8 @@ public class DungTichRequest {
     private String maDungTich;
 
     private Integer soMl;
+
+    private LocalDate ngayTao;
+
+    private LocalDate ngaySua;
 }

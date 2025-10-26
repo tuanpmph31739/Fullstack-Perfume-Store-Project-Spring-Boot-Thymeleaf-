@@ -6,21 +6,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
+import java.time.LocalDate;
+
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
+@Getter
 @Entity
-@Table(name= "ChucVu")
-public class ChucVu {
-
+@Table(name = "NhomHuong")
+public class NhomHuong {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "Ma")
-    private String maCv;
+    private String maNhomHuong;
 
-    @Column(name = "Ten")
-    private String tenCv;
+    @Column(name = "TenNhomHuong")
+    private String tenNhomHuong;
+
+    @Column(name = "NgayTao")
+    private LocalDate ngayTao;
+
+    @Column(name = "NgaySua")
+    private LocalDate ngaySua;
 }

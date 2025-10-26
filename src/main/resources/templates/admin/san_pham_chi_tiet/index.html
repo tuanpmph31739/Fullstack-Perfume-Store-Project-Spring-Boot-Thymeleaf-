@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Quản lý Chi tiết Sản phẩm</h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first text-end">
+                        <a th:href="@{/admin/san-pham/add}" class="btn btn-primary"> <i class="bi bi-plus-circle"></i> Thêm sản phẩm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Danh sách Chi tiết Sản phẩm</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Ảnh</th> <th>Tên sản phẩm (Gốc)</th>
+                                <th>SKU</th> <th>Giá bán</th>
+                                <th>Dung tích</th>
+                                <th>Nồng độ</th> <th>Tồn kho</th> <th>Trạng thái</th> <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="sp, iterStat : ${page.data}">
+
+                                <td th:text="${(page.currentPage * page.size) + iterStat.count}"
+                                    th:if="${page.metaDataAvailable}"></td>
+                                <td th:text="${iterStat.count}" th:unless="${page.metaDataAvailable}"></td>
+
+                                <td>
+                                    <img th:if="${sp.hinhAnh != null}"
+                                         th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                         alt="Ảnh SP" style="max-width: 50px; max-height: 50px;">
+                                    <span th:unless="${sp.hinhAnh != null}">---</span>
+                                </td>
+
+                                <td th:text="${sp.tenSanPham ?: '---'}"></td>
+
+                                <td th:text="${sp.maSKU ?: '---'}"></td>
+
+                                <td th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+
+                                <td th:text="${sp.soMl != null ? sp.soMl + ' ml' : '---'}"></td>
+
+                                <td th:text="${sp.tenNongDo ?: '---'}"></td>
+
+                                <td th:text="${sp.soLuongTon != null ? sp.soLuongTon : '0'}"></td>
+
+                                <td>
+                                     <span th:if="${sp.trangThai != null}">
+                                        <span th:if="${sp.trangThai}" class="badge bg-success">Đang bán</span>
+                                        <span th:unless="${sp.trangThai}" class="badge bg-secondary">Ngừng bán</span>
+                                     </span>
+                                    <span th:unless="${sp.trangThai != null}">---</span>
+                                </td>
+
+                                <td>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${sp.id})}" class="btn btn-warning btn-sm" title="Sửa chi tiết">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${sp.id})}" class="btn btn-danger btn-sm" title="Xóa chi tiết"
+                                       onclick="return confirm('Bạn có chắc muốn xóa chi tiết sản phẩm này?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <a th:href="@{/admin/san-pham/view/{id}(id=${sp.idSanPham})}" class="btn btn-info btn-sm" title="Xem sản phẩm gốc">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
+                                <td colspan="10" class="text-center">Không có chi tiết sản phẩm nào.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item" th:classappend="${page.currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/admin/san-pham-chi-tiet(page=${page.currentPage})}">Previous</a>
+                                </li>
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(1, page.totalPage)}"
+                                    th:classappend="${i == page.currentPage + 1} ? 'active'">
+                                    <a class="page-link" th:href="@{/admin/san-pham-chi-tiet(page=${i})}" th:text="${i}"></a>
+                                </li>
+                                <li class="page-item" th:classappend="${page.currentPage + 1 >= page.totalPage} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/admin/san-pham-chi-tiet(page=${page.currentPage + 2})}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

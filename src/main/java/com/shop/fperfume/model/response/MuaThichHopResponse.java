@@ -4,6 +4,8 @@ import com.shop.fperfume.entity.MuaThichHop;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Setter
 @Getter
 public class MuaThichHopResponse {
@@ -16,10 +18,17 @@ public class MuaThichHopResponse {
 
     private String moTa;
 
+    private LocalDate ngayTao;
+
+    private LocalDate ngaySua;
+
+
     public MuaThichHopResponse(MuaThichHop mth) {
         this.id = mth.getId();
         this.maMua = mth.getMaMua();
         this.tenMua = mth.getTenMua();
         this.moTa = mth.getMoTa();
+        this.ngayTao = mth.getNgayTao();
+        this.ngaySua = mth.getNgaySua();
     }
 }

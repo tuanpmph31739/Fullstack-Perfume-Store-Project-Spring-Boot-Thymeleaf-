@@ -1,5 +1,6 @@
 package com.shop.fperfume.controller;
 
+import com.shop.fperfume.entity.SanPham;
 import com.shop.fperfume.model.request.SanPhamRequest;
 import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.model.response.SanPhamResponse;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/san-pham")
@@ -17,58 +19,72 @@ public class SanPhamController {
     private SanPhamService sanPhamService;
 
     @Autowired
-    private DungTichService  dungTichService;
+    private LoaiNuocHoaService loaiNuocHoaService;
 
     @Autowired
-    private LoaiNuocHoaService  loaiNuocHoaService;
+    private ThuongHieuService thuongHieuService;
 
     @Autowired
-    private ThuongHieuService   thuongHieuService;
-
-    @Autowired
-    private XuatXuService  xuatXuService;
+    private XuatXuService xuatXuService;
 
     @Autowired
     private MuaThichHopService muaThichHopService;
 
+//    @Autowired
+//    private NhomHuongService nhomHuongService;
 
+    private final int PAGE_SIZE = 5;
+
+    /**
+     * Hiển thị danh sách sản phẩm gốc (phân trang)
+     */
     @GetMapping
     public String index(Model model,
                         @RequestParam(name = "page", defaultValue = "1") Integer pageNo) {
-
-        int pageSize = 5;
-        PageableObject<SanPhamResponse> pageObject = sanPhamService.paging(pageNo, pageSize);
+        PageableObject<SanPhamResponse> pageObject = sanPhamService.paging(pageNo, PAGE_SIZE);
         model.addAttribute("page", pageObject);
+        model.addAttribute("page.metaDataAvailable", true);
+        model.addAttribute("page.size", PAGE_SIZE);
         return "admin/san_pham/index";
     }
 
+    /**
+     * Hiển thị form thêm mới sản phẩm gốc
+     */
     @GetMapping("/add")
     public String viewAdd(Model model) {
         model.addAttribute("sanPhamRequest", new SanPhamRequest());
-        model.addAttribute("listDungTich", dungTichService.getDungTich());
-        model.addAttribute("listLoaiNuocHoa",  loaiNuocHoaService.getLoaiNuocHoa());
-        model.addAttribute("listThuongHieu", thuongHieuService.getThuongHieu());
-        model.addAttribute("listXuatXu", xuatXuService.getAllXuatXu());
-        model.addAttribute("listMuaThichHop", muaThichHopService.getMuaThichHop());
+        loadBaseProductDropdownData(model);
         return "admin/san_pham/add";
     }
 
+    /**
+     * Xử lý thêm mới sản phẩm gốc (Không try-catch)
+     */
     @PostMapping("/save")
-    public String add(@ModelAttribute("sanPhamRequest") SanPhamRequest request) {
+    public String add(@ModelAttribute("sanPhamRequest") SanPhamRequest request,
+                      RedirectAttributes redirectAttributes) { // Bỏ Model
+
+        // Bỏ try-catch, gọi service trực tiếp
         sanPhamService.addSanPham(request);
+        redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm gốc thành công!");
+
+        // Nếu có lỗi, exception sẽ được ném ra và xử lý bởi GlobalExceptionHandler (hoặc Spring mặc định)
+
         return "redirect:/admin/san-pham";
     }
 
+    /**
+     * Hiển thị form chỉnh sửa sản phẩm gốc (Không try-catch)
+     */
     @GetMapping("/edit/{id}")
-    public String viewEdit(@PathVariable Long id, Model model) {
+    public String viewEdit(@PathVariable("id") Long id, Model model) {
         model.addAttribute("sanPhamRequest", sanPhamService.getById(id));
-        model.addAttribute("listDungTich", dungTichService.getDungTich());
-        model.addAttribute("listLoaiNuocHoa", loaiNuocHoaService.getLoaiNuocHoa());
-        model.addAttribute("listThuongHieu", thuongHieuService.getThuongHieu());
-        model.addAttribute("listXuatXu", xuatXuService.getAllXuatXu());
-        model.addAttribute("listMuaThichHop", muaThichHopService.getMuaThichHop());
+        loadBaseProductDropdownData(model);
         return "admin/san_pham/edit";
+
     }
+
 
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute("sanPhamRequest") SanPhamRequest request) {
@@ -76,10 +92,25 @@ public class SanPhamController {
         return "redirect:/admin/san-pham";
     }
 
+
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
+    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+
         sanPhamService.deleteSanPham(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công!");
+
         return "redirect:/admin/san-pham";
     }
-}
 
+    /**
+     * Hàm tiện ích để load dữ liệu cho các dropdown
+     */
+    private void loadBaseProductDropdownData(Model model) {
+        model.addAttribute("listLoaiNuocHoa", loaiNuocHoaService.getLoaiNuocHoa());
+        model.addAttribute("listThuongHieu", thuongHieuService.getThuongHieu());
+        model.addAttribute("listXuatXu", xuatXuService.getAllXuatXu());
+        model.addAttribute("listMuaThichHop", muaThichHopService.getMuaThichHop());
+//        model.addAttribute("listNhomHuong", nhomHuongService.getAll());
+    }
+
+}

@@ -21,45 +21,20 @@
                         <h5>Thông tin sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{/admin/san-pham/save}" method="post" th:object="${sanPhamRequest}" enctype="multipart/form-data">
+                        <form th:action="@{/admin/san-pham/save}" method="post"
+                              th:object="${sanPhamRequest}" enctype="multipart/form-data">
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Tên nước hoa</label>
-                                    <input type="text" class="form-control" th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
+                                    <input type="text" class="form-control"
+                                           th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
                                 </div>
 
-                                <div class="col-md-3">
-                                    <label class="form-label">Giá nhập</label>
-                                    <input type="number" class="form-control" th:field="*{giaNhap}" min="0" required>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label">Giá bán</label>
-                                    <input type="number" class="form-control" th:field="*{giaBan}" min="0" required>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Số lượng tồn</label>
-                                    <input type="number" class="form-control" th:field="*{soLuongTon}" min="0" required>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Dung tích</label>
-                                    <select class="form-select" th:field="*{idDungTich}" required>
-                                        <option value="">-- Chọn dung tích --</option>
-                                        <option th:each="dt : ${listDungTich}"
-                                                th:value="${dt.id}"
-                                                th:text="${dt.soMl + ' ml'}"></option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label">Loại nước hoa</label>
                                     <select class="form-select" th:field="*{idLoaiNuocHoa}" required>
-                                        <option value="">-- Chọn loại --</option>
+                                        <option value="">-- Chọn loại nước hoa --</option>
                                         <option th:each="loai : ${listLoaiNuocHoa}"
                                                 th:value="${loai.id}"
                                                 th:text="${loai.tenLoai}"></option>
@@ -100,21 +75,19 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Mô tả</label>
-                                <textarea class="form-control" th:field="*{moTa}" rows="3"></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Hình ảnh</label>
-                                <input type="file" class="form-control" th:field="*{hinhAnh}">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Trạng thái</label>
-                                <select class="form-select" th:field="*{trangThai}">
-                                    <option value="true">Đang bán</option>
-                                    <option value="false">Ngừng bán</option>
+                                <label class="form-label">Nhóm hương</label>
+                                <select class="form-select" th:field="*{idNhomHuong}">
+                                    <option value="">-- Chọn nhóm hương --</option>
+                                    <option th:each="nh : ${listNhomHuong}"
+                                            th:value="${nh.id}"
+                                            th:text="${nh.tenNhomHuong}"></option>
                                 </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả</label>
+                                <textarea class="form-control" th:field="*{moTa}" rows="3"
+                                          placeholder="Nhập mô tả chi tiết..."></textarea>
                             </div>
 
                             <div class="text-end">

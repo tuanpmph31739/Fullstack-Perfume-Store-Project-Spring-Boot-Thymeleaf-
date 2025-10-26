@@ -8,14 +8,16 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @AllArgsConstructor
-@Getter
-@Setter
 @NoArgsConstructor
-public class LoaiNuocHoaRequest {
+@Setter
+@Getter
+public class NongDoRequest {
 
-    private String tenLoai;
+    private String maNongDo;
 
-    private String moTaLoai;
+    private String tenNongDo;
+
+    private String moTaNongDo;
 
     private LocalDate ngayTao;
 
