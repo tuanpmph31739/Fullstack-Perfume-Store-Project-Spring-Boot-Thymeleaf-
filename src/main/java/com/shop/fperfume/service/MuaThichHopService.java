@@ -22,7 +22,7 @@ public class MuaThichHopService {
 
     public MuaThichHopResponse getMuaThichHopById(Long id) {
         MuaThichHop muaThichHop = muaThichHopRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy muàn thích hợp với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mùa thích hợp với ID: " + id));
         return new MuaThichHopResponse(muaThichHop);
     }
 }

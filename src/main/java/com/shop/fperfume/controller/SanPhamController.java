@@ -30,14 +30,12 @@ public class SanPhamController {
     @Autowired
     private MuaThichHopService muaThichHopService;
 
-//    @Autowired
-//    private NhomHuongService nhomHuongService;
+    @Autowired
+    private NhomHuongService nhomHuongService;
 
     private final int PAGE_SIZE = 5;
 
-    /**
-     * Hiển thị danh sách sản phẩm gốc (phân trang)
-     */
+
     @GetMapping
     public String index(Model model,
                         @RequestParam(name = "page", defaultValue = "1") Integer pageNo) {
@@ -48,9 +46,7 @@ public class SanPhamController {
         return "admin/san_pham/index";
     }
 
-    /**
-     * Hiển thị form thêm mới sản phẩm gốc
-     */
+
     @GetMapping("/add")
     public String viewAdd(Model model) {
         model.addAttribute("sanPhamRequest", new SanPhamRequest());
@@ -58,25 +54,19 @@ public class SanPhamController {
         return "admin/san_pham/add";
     }
 
-    /**
-     * Xử lý thêm mới sản phẩm gốc (Không try-catch)
-     */
+
     @PostMapping("/save")
     public String add(@ModelAttribute("sanPhamRequest") SanPhamRequest request,
-                      RedirectAttributes redirectAttributes) { // Bỏ Model
+                      RedirectAttributes redirectAttributes) {
 
-        // Bỏ try-catch, gọi service trực tiếp
         sanPhamService.addSanPham(request);
         redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm gốc thành công!");
 
-        // Nếu có lỗi, exception sẽ được ném ra và xử lý bởi GlobalExceptionHandler (hoặc Spring mặc định)
 
         return "redirect:/admin/san-pham";
     }
 
-    /**
-     * Hiển thị form chỉnh sửa sản phẩm gốc (Không try-catch)
-     */
+
     @GetMapping("/edit/{id}")
     public String viewEdit(@PathVariable("id") Long id, Model model) {
         model.addAttribute("sanPhamRequest", sanPhamService.getById(id));
@@ -102,15 +92,12 @@ public class SanPhamController {
         return "redirect:/admin/san-pham";
     }
 
-    /**
-     * Hàm tiện ích để load dữ liệu cho các dropdown
-     */
     private void loadBaseProductDropdownData(Model model) {
         model.addAttribute("listLoaiNuocHoa", loaiNuocHoaService.getLoaiNuocHoa());
         model.addAttribute("listThuongHieu", thuongHieuService.getThuongHieu());
         model.addAttribute("listXuatXu", xuatXuService.getAllXuatXu());
         model.addAttribute("listMuaThichHop", muaThichHopService.getMuaThichHop());
-//        model.addAttribute("listNhomHuong", nhomHuongService.getAll());
+        model.addAttribute("listNhomHuong", nhomHuongService.getNhomHuong());
     }
 
 }
