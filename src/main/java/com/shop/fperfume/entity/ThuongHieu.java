@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -22,4 +24,10 @@ public class ThuongHieu {
 
     @Column(name = "Ten")
     private String tenThuongHieu;
+
+    @Column(name = "NgayTao")
+    private LocalDate ngayTao;
+
+    @Column(name = "NgaySua")
+    private LocalDate ngaySua;
 }

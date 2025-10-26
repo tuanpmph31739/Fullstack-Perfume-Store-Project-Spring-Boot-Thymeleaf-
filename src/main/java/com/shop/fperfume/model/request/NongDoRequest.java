@@ -1,0 +1,25 @@
+package com.shop.fperfume.model.request;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+public class NongDoRequest {
+
+    private String maNongDo;
+
+    private String tenNongDo;
+
+    private String moTaNongDo;
+
+    private LocalDate ngayTao;
+
+    private LocalDate ngaySua;
+}

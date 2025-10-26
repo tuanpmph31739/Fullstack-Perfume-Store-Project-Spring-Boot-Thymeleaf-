@@ -24,23 +24,8 @@ public class SanPham {
     @Column(name = "TenNuocHoa")
     private String tenNuocHoa;
 
-    @Column(name = "SoLuongTon")
-    private Integer soLuongTon;
-
-    @Column(name = "GiaNhap")
-    private BigDecimal giaNhap;
-
-    @Column(name = "GiaBan")
-    private BigDecimal giaBan;
-
     @Column(name = "MoTa")
     private String moTa;
-
-    @Column(name = "HinhAnh")
-    private String hinhAnh;
-
-    @Column(name = "TrangThai")
-    private Boolean trangThai;
 
     @ManyToOne
     @JoinColumn(name = "IdThuongHieu", referencedColumnName = "Id")
@@ -51,10 +36,14 @@ public class SanPham {
     private XuatXu xuatXu;
 
     @ManyToOne
-    @JoinColumn(name = "IdDungTich", referencedColumnName = "Id")
-    private DungTich dungTich;
-
-    @ManyToOne
     @JoinColumn(name = "IdLoai", referencedColumnName = "Id")
     private LoaiNuocHoa loaiNuocHoa;
+
+    @ManyToOne
+    @JoinColumn(name = "IdMuaThichHop", referencedColumnName = "Id")
+    private MuaThichHop muaThichHop;
+
+    @ManyToOne
+    @JoinColumn(name = "IdNhomHuong", referencedColumnName = "Id")
+    private NhomHuong nhomHuong;
 }
