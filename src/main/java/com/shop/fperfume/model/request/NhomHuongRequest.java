@@ -1,5 +1,6 @@
 package com.shop.fperfume.model.request;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,14 +9,14 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @AllArgsConstructor
-@Getter
-@Setter
 @NoArgsConstructor
-public class LoaiNuocHoaRequest {
+@Setter
+@Getter
+public class NhomHuongRequest {
 
-    private String tenLoai;
+    private String maNhomHuong;
 
-    private String moTaLoai;
+    private String tenNhomHuong;
 
     private LocalDate ngayTao;
 

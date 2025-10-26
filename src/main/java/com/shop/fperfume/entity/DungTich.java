@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -23,4 +25,10 @@ public class DungTich {
 
     @Column(name = "SoMl")
     private Integer soMl;
+
+    @Column(name = "NgayTao")
+    private LocalDate ngayTao;
+
+    @Column(name = "NgaySua")
+    private LocalDate ngaySua;
 }
