@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chi tiết Sản phẩm Gốc</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="m-0">Thông tin chung</h5>
+                        <a th:href="@{/admin/san-pham/edit/{id}(id=${sanPham.id})}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i> Sửa thông tin chung
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <strong>Tên nước hoa:</strong>
+                                <p th:text="${sanPham.tenNuocHoa}">Bleu de Chanel</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Thương hiệu:</strong>
+                                <p th:text="${sanPham.tenThuongHieu}">Chanel</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Loại (Giới tính):</strong>
+                                <p th:text="${sanPham.tenLoai}">Nam</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Xuất xứ:</strong>
+                                <p th:text="${sanPham.tenXuatXu ?: '---'}">Pháp</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Nhóm hương:</strong>
+                                <p th:text="${sanPham.tenNhomHuong ?: '---'}">Hương Gỗ</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Mùa thích hợp:</strong>
+                                <p th:text="${sanPham.tenMua ?: '---'}">Mùa Lạnh</p>
+                            </div>
+                            <div class="col-12">
+                                <strong>Mô tả:</strong>
+                                <p th:text="${sanPham.moTa ?: 'Không có mô tả.'}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="row">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="m-0">Danh sách Biến thể (SKUs)</h5>
+                        <a th:href="@{/admin/san-pham-chi-tiet/add(sanPhamId=${sanPham.id})}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Thêm biến thể mới
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>SKU</th>
+                                <th>Dung tích</th>
+                                <th>Nồng độ</th>
+                                <th>Giá bán</th>
+                                <th>Tồn kho</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ct : ${listChiTiet}">
+                                <td>
+                                    <img th:if="${ct.hinhAnh != null}"
+                                         th:src="@{'/images/uploads/' + ${ct.hinhAnh}}"
+                                         alt="Ảnh" style="max-width: 50px; max-height: 50px;">
+                                </td>
+                                <td th:text="${ct.maSKU}">CHA_BLEU_100_EDP</td>
+                                <td th:text="${ct.soMl != null ? ct.soMl + ' ml' : '---'}">100 ml</td>
+                                <td th:text="${ct.tenNongDo ?: '---'}">Eau de Parfum</td>
+                                <td th:text="${#numbers.formatDecimal(ct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">3.500.000 ₫</td>
+                                <td th:text="${ct.soLuongTon}">50</td>
+                                <td>
+                                    <span th:if="${ct.trangThai}" class="badge bg-success">Đang bán</span>
+                                    <span th:unless="${ct.trangThai}" class="badge bg-secondary">Ngừng bán</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${ct.id})}" class="btn btn-warning btn-sm" title="Sửa biến thể">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${ct.id})}" class="btn btn-danger btn-sm" title="Xóa biến thể"
+                                       onclick="return confirm('Bạn có chắc muốn xóa biến thể này?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${listChiTiet == null or #lists.isEmpty(listChiTiet)}">
+                                <td colspan="8" class="text-center">Sản phẩm này chưa có biến thể nào.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

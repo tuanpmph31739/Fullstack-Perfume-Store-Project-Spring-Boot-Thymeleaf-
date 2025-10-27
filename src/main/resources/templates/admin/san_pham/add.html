@@ -1,34 +1,40 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{/admin/fragments/head :: head}"></head>
 <body>
 <div class="wrapper">
-    <!-- Sidebar -->
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
-    <!-- Main -->
     <div id="main">
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
         <div class="page-heading">
-            <h3>Thêm sản phẩm mới</h3>
+            <h3>Thêm dòng sản phẩm mới</h3>
         </div>
 
         <div class="page-content">
             <section class="row">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Thông tin sản phẩm</h5>
+                        <h5>Thông tin dòng sản phẩm</h5>
                     </div>
                     <div class="card-body">
                         <form th:action="@{/admin/san-pham/save}" method="post"
                               th:object="${sanPhamRequest}" enctype="multipart/form-data">
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Tên nước hoa</label>
                                     <input type="text" class="form-control"
                                            th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('tenNuocHoa')}"
+                                         th:errors="*{tenNuocHoa}"></div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -39,6 +45,9 @@
                                                 th:value="${loai.id}"
                                                 th:text="${loai.tenLoai}"></option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idLoaiNuocHoa')}"
+                                         th:errors="*{idLoaiNuocHoa}"></div>
                                 </div>
                             </div>
 
@@ -51,6 +60,9 @@
                                                 th:value="${thh.id}"
                                                 th:text="${thh.tenThuongHieu}"></option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idThuongHieu')}"
+                                         th:errors="*{idThuongHieu}"></div>
                                 </div>
 
                                 <div class="col-md-4">
@@ -61,6 +73,9 @@
                                                 th:value="${xx.id}"
                                                 th:text="${xx.tenXuatXu}"></option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idXuatXu')}"
+                                         th:errors="*{idXuatXu}"></div>
                                 </div>
 
                                 <div class="col-md-4">
@@ -71,6 +86,9 @@
                                                 th:value="${mth.id}"
                                                 th:text="${mth.tenMua}"></option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idMuaThichHop')}"
+                                         th:errors="*{idMuaThichHop}"></div>
                                 </div>
                             </div>
 
@@ -82,6 +100,9 @@
                                             th:value="${nh.id}"
                                             th:text="${nh.tenNhomHuong}"></option>
                                 </select>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('idNhomHuong')}"
+                                     th:errors="*{idNhomHuong}"></div>
                             </div>
 
                             <div class="mb-3">
@@ -92,7 +113,7 @@
 
                             <div class="text-end">
                                 <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Quay lại</a>
-                                <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+                                <button type="submit" class="btn btn-primary">Lưu dòng sản phẩm</button>
                             </div>
 
                         </form>

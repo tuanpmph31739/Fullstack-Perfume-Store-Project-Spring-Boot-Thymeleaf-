@@ -1,12 +1,11 @@
 package com.shop.fperfume.model.request;
 
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,11 +13,12 @@ import java.time.LocalDate;
 @Getter
 public class NhomHuongRequest {
 
+    private Long id;
+
+    @NotBlank(message = "Mã nhóm hương không được để trống")
     private String maNhomHuong;
 
+    @NotBlank(message = "Tên nhóm hương không được để trống")
     private String tenNhomHuong;
 
-    private LocalDate ngayTao;
-
-    private LocalDate ngaySua;
 }

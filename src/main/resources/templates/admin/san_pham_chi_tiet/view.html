@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chi tiết sản phẩm chi tiết</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>Mã SKU:</strong> <span th:text="${sanPhamChiTietResponse.maSKU}"></span></p>
+                        <p><strong>Số lượng tồn:</strong> <span th:text="${sanPhamChiTietResponse.soLuongTon}"></span></p>
+                        <p><strong>Giá nhập:</strong> <span th:text="${#numbers.formatDecimal(sanPhamChiTietResponse.giaNhap, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span></p>
+                        <p><strong>Giá bán:</strong> <span th:text="${#numbers.formatDecimal(sanPhamChiTietResponse.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span></p>
+                        <p><strong>Sản phẩm:</strong> <span th:text="${sanPhamChiTietResponse.tenSanPham}"></span></p>
+                        <p><strong>Dung tích:</strong> <span th:text="${sanPhamChiTietResponse.soMl}"></span></p>
+                        <p><strong>Nồng độ:</strong> <span th:text="${sanPhamChiTietResponse.tenNongDo}"></span></p>
+                        <p><strong>Trạng thái:</strong>
+                            <span th:if="${sanPhamChiTietResponse.trangThai}" class="badge bg-success">Đang bán</span>
+                            <span th:unless="${sanPhamChiTietResponse.trangThai}" class="badge bg-secondary">Ngừng bán</span>
+                        </p>
+                        <p><strong>Hình ảnh:</strong></p>
+                        <img th:if="${sanPhamChiTietResponse.hinhAnh != null}"
+                             th:src="@{'/images/uploads/' + ${sanPhamChiTietResponse.hinhAnh}}"
+                             alt="Ảnh sản phẩm" style="max-width: 200px; max-height: 200px;">
+                        <span th:unless="${sanPhamChiTietResponse.hinhAnh != null}">---</span>
+
+                        <div class="mt-3">
+                            <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-secondary">Quay lại</a>
+                            <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${sanPhamChiTietResponse.id})}" class="btn btn-primary">Chỉnh sửa</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

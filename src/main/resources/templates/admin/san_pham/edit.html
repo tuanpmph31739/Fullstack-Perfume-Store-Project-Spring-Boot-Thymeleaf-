@@ -9,14 +9,14 @@
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
         <div class="page-heading">
-            <h3>Chỉnh sửa sản phẩm</h3>
+            <h3>Chỉnh sửa dòng sản phẩm</h3>
         </div>
 
         <div class="page-content">
             <section class="row">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Thông tin sản phẩm</h5>
+                        <h5>Thông tin dòng sản phẩm</h5>
                     </div>
 
                     <div class="card-body">
@@ -24,19 +24,24 @@
                               method="post"
                               th:object="${sanPhamRequest}">
 
-                            <!-- Tên nước hoa -->
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
                             <div class="mb-3">
                                 <label class="form-label">Tên nước hoa</label>
                                 <input type="text" class="form-control" th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('tenNuocHoa')}"
+                                     th:errors="*{tenNuocHoa}"></div>
                             </div>
 
-                            <!-- Mô tả -->
                             <div class="mb-3">
                                 <label class="form-label">Mô tả</label>
                                 <textarea class="form-control" th:field="*{moTa}" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
                             </div>
 
-                            <!-- Thương hiệu - Xuất xứ - Loại -->
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Thương hiệu</label>
@@ -47,6 +52,9 @@
                                                 th:text="${th.tenThuongHieu}">
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idThuongHieu')}"
+                                         th:errors="*{idThuongHieu}"></div>
                                 </div>
 
                                 <div class="col-md-4">
@@ -58,6 +66,9 @@
                                                 th:text="${xx.tenXuatXu}">
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idXuatXu')}"
+                                         th:errors="*{idXuatXu}"></div>
                                 </div>
 
                                 <div class="col-md-4">
@@ -69,10 +80,12 @@
                                                 th:text="${loai.tenLoai}">
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idLoaiNuocHoa')}"
+                                         th:errors="*{idLoaiNuocHoa}"></div>
                                 </div>
                             </div>
 
-                            <!-- Nhóm hương - Mùa -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Nhóm hương</label>
@@ -83,6 +96,9 @@
                                                 th:text="${nh.tenNhomHuong}">
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idNhomHuong')}"
+                                         th:errors="*{idNhomHuong}"></div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -94,13 +110,15 @@
                                                 th:text="${m.tenMua}">
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idMuaThichHop')}"
+                                         th:errors="*{idMuaThichHop}"></div>
                                 </div>
                             </div>
 
-                            <!-- Nút -->
                             <div class="text-end">
                                 <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Quay lại</a>
-                                <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
+                                <button type="submit" class="btn btn-primary">Cập nhật dòng sản phẩm</button>
                             </div>
 
                         </form>

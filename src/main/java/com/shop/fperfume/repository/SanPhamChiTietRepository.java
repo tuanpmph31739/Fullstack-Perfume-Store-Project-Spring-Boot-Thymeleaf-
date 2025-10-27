@@ -71,4 +71,5 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
     // Bạn có thể thêm các phương thức truy vấn tùy chỉnh khác ở đây nếu cần.
 
+    Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
 }

@@ -1,13 +1,16 @@
 import isDesktop from '../helper/isDesktop'
 
+// === THÊM DÒNG NÀY ===
+// Khóa để lưu trạng thái trong localStorage
+const STATE_KEY = 'sidebarState';
 
 /**
  * Calculate nested children height in sidebar menu
-* @param {HTMLElement} el 
-*/
+ * @param {HTMLElement} el
+ */
 const calculateChildrenHeight = (el, deep = false) => {
   const children = el.children
-  
+
   let height = 0
   for(let i = 0; i < el.childElementCount; i++) {
     const child = children[i]
@@ -22,7 +25,7 @@ const calculateChildrenHeight = (el, deep = false) => {
         height += childrenHeight
       }
     }
-    
+
   }
   el.style.setProperty('--submenu-height', height + 'px')
   return height
@@ -46,14 +49,14 @@ class Sidebar {
   init() {
     // add event listener to sidebar
     document
-      .querySelectorAll(".burger-btn")
-      .forEach((el) => el.addEventListener("click", this.toggle.bind(this)))
+        .querySelectorAll(".burger-btn")
+        .forEach((el) => el.addEventListener("click", this.toggle.bind(this)))
     document
-      .querySelectorAll(".sidebar-hide")
-      .forEach((el) => el.addEventListener("click", this.toggle.bind(this)))
+        .querySelectorAll(".sidebar-hide")
+        .forEach((el) => el.addEventListener("click", this.toggle.bind(this)))
     window.addEventListener("resize", this.onResize.bind(this))
 
-    
+
     const toggleSubmenu = (el) => {
       if (el.classList.contains("submenu-open")) {
         el.classList.remove('submenu-open')
@@ -61,32 +64,30 @@ class Sidebar {
       } else {
         el.classList.remove("submenu-closed")
         el.classList.add("submenu-open")
-      } 
+      }
     }
-
-    
 
 
     let sidebarItems = document.querySelectorAll(".sidebar-item.has-sub")
     for (var i = 0; i < sidebarItems.length; i++) {
       let sidebarItem = sidebarItems[i]
-      
+
       sidebarItems[i]
-        .querySelector(".sidebar-link")
-        .addEventListener("click", (e) => {
-          e.preventDefault()
-          let submenu = sidebarItem.querySelector(".submenu")
-          toggleSubmenu(submenu)
-        })
-      
-      
+          .querySelector(".sidebar-link")
+          .addEventListener("click", (e) => {
+            e.preventDefault()
+            let submenu = sidebarItem.querySelector(".submenu")
+            toggleSubmenu(submenu)
+          })
+
+
       // If submenu has submenu
-      const submenuItems = sidebarItem.querySelectorAll('.submenu-item.has-sub') 
+      const submenuItems = sidebarItem.querySelectorAll('.submenu-item.has-sub')
       submenuItems.forEach(item => {
         item.addEventListener('click', () => {
           const submenuLevelTwo = item.querySelector('.submenu')
           toggleSubmenu(submenuLevelTwo)
-          
+
           // Pass second .submenu
           const height = calculateChildrenHeight(item.parentElement, true)
 
@@ -97,31 +98,44 @@ class Sidebar {
     // Perfect Scrollbar Init
     if (typeof PerfectScrollbar == "function") {
       const container = document.querySelector(".sidebar-wrapper")
-      const ps = new PerfectScrollbar(container, {
-        wheelPropagation: false,
-      })
+      if (container) { // Thêm kiểm tra null
+        const ps = new PerfectScrollbar(container, {
+          wheelPropagation: false,
+        });
+      }
     }
 
     // Scroll into active sidebar
     setTimeout(() => {
-      this.forceElementVisibility(document.querySelector(".sidebar-item.active"))
+      const activeItem = document.querySelector(".sidebar-item.active");
+      if (activeItem) { // Thêm kiểm tra null
+        this.forceElementVisibility(activeItem);
+      }
     }, 300)
 
   }
 
-  
-
-  
 
   /**
    * On Sidebar Rezise Event
+   * === ĐÃ SỬA LOGIC NÀY ===
    */
   onResize() {
     if (isDesktop(window)) {
-      this.sidebarEL.classList.add("active")
-      this.sidebarEL.classList.remove("inactive")
+      // Khi resize về DESKTOP, khôi phục trạng thái đã lưu
+      const savedState = localStorage.getItem(STATE_KEY);
+      if (savedState === 'inactive') {
+        this.sidebarEL.classList.add("inactive");
+        this.sidebarEL.classList.remove("active");
+      } else {
+        this.sidebarEL.classList.add("active");
+        this.sidebarEL.classList.remove("inactive");
+      }
+
     } else {
+      // Khi resize về MOBILE, luôn đóng (theo logic gốc)
       this.sidebarEL.classList.remove("active")
+      this.sidebarEL.classList.add("inactive"); // Thêm inactive cho nhất quán
     }
 
     // reset
@@ -143,21 +157,34 @@ class Sidebar {
 
   /**
    * Show Sidebar
+   * === ĐÃ SỬA LOGIC NÀY ===
    */
   show() {
     this.sidebarEL.classList.add("active")
     this.sidebarEL.classList.remove("inactive")
     this.createBackdrop()
     this.toggleOverflowBody()
+
+    // === THÊM VÀO: Lưu trạng thái MỞ ===
+    if (isDesktop(window)) {
+      localStorage.setItem(STATE_KEY, 'active');
+    }
   }
 
   /**
    * Hide Sidebar
+   * === ĐÃ SỬA LOGIC NÀY ===
    */
   hide() {
     this.sidebarEL.classList.remove("active")
+    this.sidebarEL.classList.add("inactive") // Thêm class 'inactive'
     this.deleteBackdrop()
     this.toggleOverflowBody()
+
+    // === THÊM VÀO: Lưu trạng thái ĐÓNG ===
+    if (isDesktop(window)) {
+      localStorage.setItem(STATE_KEY, 'inactive');
+    }
   }
 
   /**
@@ -197,19 +224,20 @@ class Sidebar {
   }
 
   isElementInViewport(el) {
+    if (!el) return false; // Thêm kiểm tra null
     var rect = el.getBoundingClientRect()
 
     return (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <=
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <=
         (window.innerHeight || document.documentElement.clientHeight) &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     )
   }
 
   forceElementVisibility(el) {
-    if (!this.isElementInViewport(el)) {
+    if (el && !this.isElementInViewport(el)) { // Thêm kiểm tra null
       el.scrollIntoView(false)
     }
   }
@@ -220,22 +248,34 @@ class Sidebar {
 let sidebarEl = document.getElementById("sidebar")
 
 /**
-   * On First Load
-   */
+ * On First Load
+ * === ĐÃ SỬA LOGIC NÀY ===
+ */
 const onFirstLoad = (sidebarEL) => {
-  if(!sidebarEl) return
+  if(!sidebarEl) return;
+
+  const savedState = localStorage.getItem(STATE_KEY); // Đọc trạng thái đã lưu
+
   if (isDesktop(window)) {
-    sidebarEL.classList.add("active")
-    sidebarEL.classList.add('sidebar-desktop')
+    sidebarEL.classList.add('sidebar-desktop');
+
+    // Áp dụng trạng thái đã lưu thay vì ép 'active'
+    if (savedState === 'inactive') {
+      sidebarEL.classList.add('inactive'); // Thêm 'inactive'
+      sidebarEL.classList.remove('active'); // Xóa 'active'
+    } else {
+      sidebarEL.classList.add('active'); // Mặc định là 'active'
+      sidebarEL.classList.remove('inactive'); // Xóa 'inactive'
+    }
   }
 
-  // Get submenus size
+  // Get submenus size (giữ nguyên logic)
   let submenus = document.querySelectorAll(".sidebar-item.has-sub .submenu")
   for (var i = 0; i < submenus.length; i++) {
     let submenu = submenus[i]
     const sidebarItem = submenu.parentElement
     const height = submenu.clientHeight
-    
+
     if(sidebarItem.classList.contains('active')) submenu.classList.add('submenu-open')
     else submenu.classList.add('submenu-closed')
     setTimeout(() => {
