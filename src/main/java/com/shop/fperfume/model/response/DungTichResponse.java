@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -17,9 +18,9 @@ public class DungTichResponse {
 
     private Integer soMl;
 
-    private LocalDate ngayTao;
+    private LocalDateTime ngayTao;
 
-    private LocalDate ngaySua;
+    private LocalDateTime ngaySua;
 
     public DungTichResponse(DungTich dt) {
         this.id = dt.getId();

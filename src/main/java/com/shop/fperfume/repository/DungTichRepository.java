@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DungTichRepository extends JpaRepository<DungTich,Long> {
+
+    boolean existsByMaDungTich(String maDungTich);
+    boolean existsBySoMl(Integer soMl);
 }

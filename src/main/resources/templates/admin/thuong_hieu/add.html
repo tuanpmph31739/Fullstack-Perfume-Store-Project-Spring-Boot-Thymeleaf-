@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Thêm mới Thương hiệu</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-md-8 offset-md-2"> <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin Thương hiệu</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <form th:action="@{/admin/thuong-hieu/save}" method="post"
+                              th:object="${thuongHieuRequest}">
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="maThuongHieu" class="form-label">Mã Thương hiệu</label>
+                                <input type="text" class="form-control" id="maThuongHieu"
+                                       th:field="*{maThuongHieu}" placeholder="Ví dụ: TH01" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('maThuongHieu')}"
+                                     th:errors="*{maThuongHieu}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tenThuongHieu" class="form-label">Tên Thương hiệu</label>
+                                <input type="text" class="form-control" id="tenThuongHieu"
+                                       th:field="*{tenThuongHieu}" placeholder="Ví dụ: Dior" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('tenThuongHieu')}"
+                                     th:errors="*{tenThuongHieu}"></div>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary ms-2">Lưu lại</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

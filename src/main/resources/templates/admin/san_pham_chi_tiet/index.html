@@ -15,7 +15,7 @@
                         <h3>Quản lý Chi tiết Sản phẩm</h3>
                     </div>
                     <div class="col-12 col-md-6 order-md-2 order-first text-end">
-                        <a th:href="@{/admin/san-pham/add}" class="btn btn-primary"> <i class="bi bi-plus-circle"></i> Thêm sản phẩm
+                        <a th:href="@{/admin/san-pham-chi-tiet/add}" class="btn btn-primary"> <i class="bi bi-plus-circle"></i> Thêm sản phẩm
                         </a>
                     </div>
                 </div>
@@ -42,9 +42,7 @@
                             <tbody>
                             <tr th:each="sp, iterStat : ${page.data}">
 
-                                <td th:text="${(page.currentPage * page.size) + iterStat.count}"
-                                    th:if="${page.metaDataAvailable}"></td>
-                                <td th:text="${iterStat.count}" th:unless="${page.metaDataAvailable}"></td>
+                                <td th:text="${(page.currentPage - 1) * page.size + iterStat.index + 1}"></td>
 
                                 <td>
                                     <img th:if="${sp.hinhAnh != null}"
@@ -81,8 +79,8 @@
                                        onclick="return confirm('Bạn có chắc muốn xóa chi tiết sản phẩm này?')">
                                         <i class="bi bi-trash"></i>
                                     </a>
-                                    <a th:href="@{/admin/san-pham/view/{id}(id=${sp.idSanPham})}" class="btn btn-info btn-sm" title="Xem sản phẩm gốc">
-                                        <i class="bi bi-eye"></i>
+                                    <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${sp.id})}" class="btn btn-info btn-sm" title="Xem chi tiết sản phẩm">
+                                    <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
                             </tr>

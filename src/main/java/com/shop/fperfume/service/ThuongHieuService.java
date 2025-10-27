@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,7 +29,20 @@ public class ThuongHieuService {
     }
 
     public void addThuongHieu(ThuongHieuRequest thuongHieuRequest) {
+
+        String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
+        String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
+
+        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi)) {
+            throw new RuntimeException("Mã thương hiệu '" + maThuongHieuMoi + "' đã tồn tại!");
+        }
+
+        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi)) {
+            throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
+        }
         ThuongHieu thuongHieu = MapperUtils.map(thuongHieuRequest, ThuongHieu.class);
+        thuongHieu.setNgayTao(LocalDateTime.now());
+        thuongHieu.setNgaySua(LocalDateTime.now());
         thuongHieuRepository.save(thuongHieu);
     }
 
@@ -36,6 +50,21 @@ public class ThuongHieuService {
     public void updateThuongHieu(Long id, ThuongHieuRequest thuongHieuRequest) {
         ThuongHieu thuongHieu = thuongHieuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + id));
+
+        String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
+        String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
+
+        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi) && !maThuongHieuMoi.equals(thuongHieu.getMaThuongHieu())) {
+            throw new RuntimeException("Mã thương hiệu '" + maThuongHieuMoi + "' đã tồn tại!");
+        }
+
+        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi) && !tenThuongHieuMoi.equals(thuongHieu.getTenThuongHieu())) {
+            throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
+        }
+
+        MapperUtils.mapToExisting(thuongHieuRequest, thuongHieu);
+        thuongHieu.setNgaySua(LocalDateTime.now());
+
         thuongHieuRepository.save(thuongHieu);
     }
 

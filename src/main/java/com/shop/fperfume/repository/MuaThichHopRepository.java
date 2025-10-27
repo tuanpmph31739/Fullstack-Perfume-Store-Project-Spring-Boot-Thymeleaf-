@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MuaThichHopRepository extends JpaRepository<MuaThichHop,Long> {
+
+    boolean existsByMaMua(String maMua);
+    boolean existsByTenMua(String tenMua);
 }

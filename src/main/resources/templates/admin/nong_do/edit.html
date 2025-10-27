@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chỉnh sửa Nồng độ</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-md-8 offset-md-2"> <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin Nồng độ</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <form th:action="@{/admin/nong-do/update/{id}(id=${nongDoRequest.id})}"
+                              method="post"
+                              th:object="${nongDoRequest}">
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="maNongDo" class="form-label">Mã Nồng độ</label>
+                                <input type="text" class="form-control" id="maNongDo"
+                                       th:field="*{maNongDo}" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('maNongDo')}"
+                                     th:errors="*{maNongDo}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tenNongDo" class="form-label">Tên Nồng độ</label>
+                                <input type="text" class="form-control" id="tenNongDo"
+                                       th:field="*{tenNongDo}" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('tenNongDo')}"
+                                     th:errors="*{tenNongDo}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="moTaNongDo" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="moTaNongDo" th:field="*{moTaNongDo}" rows="3"></textarea>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <a th:href="@{/admin/nong-do}" class="btn btn-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary ms-2">Cập nhật</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

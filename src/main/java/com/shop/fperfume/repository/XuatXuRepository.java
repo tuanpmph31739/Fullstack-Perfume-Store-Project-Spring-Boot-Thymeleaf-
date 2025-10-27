@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface XuatXuRepository extends JpaRepository<XuatXu, Long> {
+
+    boolean existsByMaXuatXu(String maXuatXu);
+    boolean existsByTenXuatXu(String tenXuatXu);
 }

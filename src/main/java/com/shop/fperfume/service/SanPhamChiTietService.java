@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class SanPhamChiTietService {
@@ -41,7 +43,7 @@ public class SanPhamChiTietService {
     @Autowired
     private NongDoRepository nongDoRepository;
 
-    private final Path uploadDir = Paths.get("src", "main", "resources", "static", "images", "uploads");
+    private final Path uploadDir = Paths.get("uploads");
 
     // --- Phương thức xử lý file ---
     private String saveFile(MultipartFile file) {
@@ -77,10 +79,8 @@ public class SanPhamChiTietService {
         }
     }
 
-    // --- Các phương thức CRUD ---
 
     public List<SanPhamChiTietResponse> getAllSanPhamChiTiet(){
-        // Sử dụng JOIN FETCH (Giả sử repository có phương thức này)
         return sanPhamChiTietRepository.findAllFetchingRelationships()
                 .stream()
                 .map(SanPhamChiTietResponse::new)
@@ -89,14 +89,19 @@ public class SanPhamChiTietService {
 
     public PageableObject<SanPhamChiTietResponse> paging(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo-1, pageSize);
-        // Sử dụng JOIN FETCH (Giả sử repository có phương thức này)
         Page<SanPhamChiTiet> page = sanPhamChiTietRepository.findAllFetchingRelationships(pageable);
         Page<SanPhamChiTietResponse> responses = page.map(SanPhamChiTietResponse::new);
         return new PageableObject<>(responses);
     }
 
     @Transactional
-    public SanPhamChiTiet addSanPhamChiTiet(SanPhamChiTietRequest sanPhamChiTietRequest) {
+    public void addSanPhamChiTiet(SanPhamChiTietRequest sanPhamChiTietRequest) {
+
+        Optional<SanPhamChiTiet> existingSku = sanPhamChiTietRepository.findByMaSKU(sanPhamChiTietRequest.getMaSKU().trim());
+
+        if (existingSku.isPresent()) {
+            throw new RuntimeException("Mã SKU '" + sanPhamChiTietRequest.getMaSKU() + "' đã tồn tại!");
+        }
 
         String tenFileAnh = saveFile(sanPhamChiTietRequest.getHinhAnh());
         sanPhamChiTietRequest.setHinhAnh(null);
@@ -104,25 +109,29 @@ public class SanPhamChiTietService {
         SanPhamChiTiet sanPhamChiTiet = MapperUtils.map(sanPhamChiTietRequest, SanPhamChiTiet.class);
         sanPhamChiTiet.setHinhAnh(tenFileAnh);
 
-        // Tìm và set các entity liên quan (dùng RuntimeException)
         SanPham sanPham = sanPhamRepository.findById(sanPhamChiTietRequest.getIdSanPham())
-                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham())); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham()));
         DungTich dungTich = dungTichRepository.findById(sanPhamChiTietRequest.getIdDungTich())
-                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich())); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich()));
         NongDo nongDo = nongDoRepository.findById(sanPhamChiTietRequest.getIdNongDo())
-                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo())); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo()));
 
         sanPhamChiTiet.setSanPham(sanPham);
         sanPhamChiTiet.setDungTich(dungTich);
         sanPhamChiTiet.setNongDo(nongDo);
 
-        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+        sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
     @Transactional
-    public SanPhamChiTiet updateSanPhamChiTiet(Long id, SanPhamChiTietRequest sanPhamChiTietRequest) {
+    public void updateSanPhamChiTiet(Long id, SanPhamChiTietRequest sanPhamChiTietRequest) {
+        Optional<SanPhamChiTiet> existingSku = sanPhamChiTietRepository.findByMaSKU(sanPhamChiTietRequest.getMaSKU().trim());
+        if (existingSku.isPresent() && !existingSku.get().getId().equals(id)) {
+            throw new RuntimeException("Mã SKU '" + sanPhamChiTietRequest.getMaSKU() + "' đã tồn tại!");
+        }
+
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id)); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
 
         String tenFileAnhCu = sanPhamChiTiet.getHinhAnh();
         String tenFileAnhMoi = tenFileAnhCu;
@@ -139,21 +148,26 @@ public class SanPhamChiTietService {
         MapperUtils.mapToExisting(sanPhamChiTietRequest, sanPhamChiTiet);
         sanPhamChiTiet.setHinhAnh(tenFileAnhMoi);
 
-        // Cập nhật các entity liên quan (dùng RuntimeException)
         sanPhamChiTiet.setSanPham(sanPhamRepository.findById(sanPhamChiTietRequest.getIdSanPham())
-                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham()))); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham())));
         sanPhamChiTiet.setDungTich(dungTichRepository.findById(sanPhamChiTietRequest.getIdDungTich())
-                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich()))); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich())));
         sanPhamChiTiet.setNongDo(nongDoRepository.findById(sanPhamChiTietRequest.getIdNongDo())
-                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo()))); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo())));
 
-        return sanPhamChiTietRepository.save(sanPhamChiTiet);
+        sanPhamChiTiet.setMaSKU(sanPhamChiTietRequest.getMaSKU());
+        sanPhamChiTiet.setSoLuongTon(sanPhamChiTietRequest.getSoLuongTon());
+        sanPhamChiTiet.setGiaNhap(sanPhamChiTietRequest.getGiaNhap());
+        sanPhamChiTiet.setGiaBan(sanPhamChiTietRequest.getGiaBan());
+        sanPhamChiTiet.setTrangThai(sanPhamChiTietRequest.getTrangThai());
+
+        sanPhamChiTietRepository.save(sanPhamChiTiet);
     }
 
     @Transactional
     public void deleteSanPhamChiTiet(Long id){
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id)); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
 
         String tenFileAnh = sanPhamChiTiet.getHinhAnh();
         sanPhamChiTietRepository.deleteById(id);
@@ -161,9 +175,18 @@ public class SanPhamChiTietService {
     }
 
     public SanPhamChiTietResponse getById(Long id) {
-        // Sử dụng JOIN FETCH và RuntimeException
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
-                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id)); // <-- ĐÃ SỬA
+                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
         return new SanPhamChiTietResponse(sanPhamChiTiet);
+    }
+
+    public List<SanPhamChiTietResponse> getAllChiTietBySanPhamId(Long sanPhamId) {
+        // 1. Gọi phương thức repository đã tạo (đã bao gồm JOIN FETCH)
+        List<SanPhamChiTiet> listChiTietEntities = sanPhamChiTietRepository.findBySanPhamIdFetchingRelationships(sanPhamId);
+
+        // 2. Map (chuyển đổi) từ List<Entity> sang List<ResponseDTO>
+        return listChiTietEntities.stream()
+                .map(SanPhamChiTietResponse::new) // Dùng constructor của SanPhamChiTietResponse
+                .collect(Collectors.toList()); // Hoặc .toList() nếu dùng Java 16+
     }
 }

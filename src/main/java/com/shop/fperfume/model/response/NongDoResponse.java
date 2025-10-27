@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -18,9 +19,9 @@ public class NongDoResponse {
 
     private String moTaNongDo;
 
-    private LocalDate ngayTao;
+    private LocalDateTime ngayTao;
 
-    private LocalDate ngaySua;
+    private LocalDateTime ngaySua;
 
     public NongDoResponse(NongDo nd) {
         this.id = nd.getId();
