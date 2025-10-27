@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chỉnh sửa Nhóm hương</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-md-8 offset-md-2"> <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin Nhóm hương</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <form th:action="@{/admin/nhom-huong/update/{id}(id=${nhomHuongRequest.id})}"
+                              method="post"
+                              th:object="${nhomHuongRequest}">
+
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="maNhomHuong" class="form-label">Mã Nhóm hương</label>
+                                <input type="text" class="form-control" id="maNhomHuong"
+                                       th:field="*{maNhomHuong}" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('maNhomHuong')}"
+                                     th:errors="*{maNhomHuong}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tenNhomHuong" class="form-label">Tên Nhóm hương</label>
+                                <input type="text" class="form-control" id="tenNhomHuong"
+                                       th:field="*{tenNhomHuong}" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('tenNhomHuong')}"
+                                     th:errors="*{tenNhomHuong}"></div>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <a th:href="@{/admin/nhom-huong}" class="btn btn-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary ms-2">Cập nhật</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

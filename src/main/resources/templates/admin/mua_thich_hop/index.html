@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Quản lý Dung tích</h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first text-end">
+                        <a th:href="@{/admin/mua-thich-hop/add}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Thêm Mùa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Danh sách Mùa</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã mùa</th>
+                                <th>Tên mùa</th> <th>Mô tả</th> <th>Ngày tạo</th> <th>Ngày Sửa</th> <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="m, iterStat : ${page.data}">
+
+                                <td th:text="${(page.currentPage - 1) * page.size + iterStat.index + 1}"></td>
+
+
+                                <td th:text="${m.maMua}"></td>
+
+                                <td th:text="${m.tenMua ?: '---'}"></td>
+                                <td th:text="${m.moTa ?: '---'}"></td>
+
+                                <td th:text="${m.ngayTao != null ? #temporals.format(m.ngayTao, 'dd-MM-yyyy HH:mm') : '---'}"></td>
+                                <td th:text="${m.ngaySua != null ? #temporals.format(m.ngaySua, 'dd-MM-yyyy HH:mm') : '---'}"></td>
+
+                                <td>
+                                    <a th:href="@{/admin/mua-thich-hop/edit/{id}(id=${m.id})}" class="btn btn-warning btn-sm" title="Sửa mùa thích hợp">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/dung-tich/delete/{id}(id=${m.id})}" class="btn btn-danger btn-sm" title="Xóa mùa thích hợp"
+                                       onclick="return confirm('Bạn có chắc muốn xóa mùa này?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
+                                <td colspan="7" class="text-center">Chưa thêm mùa nào.</td> </tr>
+                            </tbody>
+                        </table>
+
+                        <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
+                            <ul class="pagination justify-content-center">
+
+                                <!-- Nút Previous -->
+                                <li class="page-item" th:classappend="${page.currentPage <= 1} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/mua-thich-hop(page=${page.currentPage - 1})}">
+                                        Previous
+                                    </a>
+                                </li>
+
+                                <!-- Số trang -->
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(1, page.totalPage)}"
+                                    th:classappend="${i == page.currentPage} ? 'active'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/mua-thich-hop(page=${i})}"
+                                       th:text="${i}"></a>
+                                </li>
+
+                                <!-- Nút Next -->
+                                <li class="page-item" th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/admin/mua-thich-hop(page=${page.currentPage + 1})}">
+                                        Next
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </nav>
+
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

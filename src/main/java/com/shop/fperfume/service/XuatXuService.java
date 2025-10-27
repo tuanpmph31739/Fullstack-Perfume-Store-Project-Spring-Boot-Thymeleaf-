@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,7 +30,22 @@ public class XuatXuService {
     }
 
     public void addXuatXu(XuatXuRequest xuatXuRequest){
+
+        String maXuatXuMoi = xuatXuRequest.getMaXuatXu().trim();
+        String tenXuatXuMoi = xuatXuRequest.getTenXuatXu().trim();
+
+        if (xuatXuRepository.existsByMaXuatXu(maXuatXuMoi)) {
+            throw new RuntimeException("Mã xuất xứ '" + maXuatXuMoi + "' đã tồn tại!");
+        }
+
+        if (xuatXuRepository.existsByTenXuatXu(tenXuatXuMoi)) {
+            throw new RuntimeException("Nơi xuất xứ '" + tenXuatXuMoi + "' đã tồn tại!");
+        }
+
         XuatXu xuatXu = MapperUtils.map(xuatXuRequest, XuatXu.class);
+        xuatXu.setNgayTao(LocalDateTime.now());
+        xuatXu.setNgaySua(LocalDateTime.now());
+
         xuatXuRepository.save(xuatXu);
     }
 
@@ -37,6 +53,20 @@ public class XuatXuService {
     public void updateXuatXu(Long id, XuatXuRequest xuatXuRequest){
         XuatXu xuatXu = xuatXuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xuất xứ với ID: " + id));
+
+        String maXuatXuMoi = xuatXuRequest.getMaXuatXu().trim();
+        String tenXuatXuMoi = xuatXuRequest.getTenXuatXu().trim();
+
+        if (xuatXuRepository.existsByMaXuatXu(maXuatXuMoi) && !maXuatXuMoi.equals(xuatXu.getMaXuatXu())) {
+            throw new RuntimeException("Mã xuất xứ '" + maXuatXuMoi + "' đã tồn tại!");
+        }
+
+        if (xuatXuRepository.existsByTenXuatXu(tenXuatXuMoi) && !tenXuatXuMoi.equals(xuatXu.getTenXuatXu())) {
+            throw new RuntimeException("Nơi xuất xứ '" + tenXuatXuMoi + "' đã tồn tại!");
+        }
+
+        MapperUtils.mapToExisting(xuatXuRequest, xuatXu);
+        xuatXu.setNgaySua(LocalDateTime.now());
         xuatXuRepository.save(xuatXu);
     }
 

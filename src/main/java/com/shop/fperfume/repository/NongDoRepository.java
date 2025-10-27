@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NongDoRepository extends JpaRepository<NongDo, Long> {
+
+    boolean existsByMaNongDo(String maNongDo);
+    boolean existsByTenNongDo(String tenNongDo);
 }

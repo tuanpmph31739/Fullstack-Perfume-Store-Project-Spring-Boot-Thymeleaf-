@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Thêm mới Loại nước hoa</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-md-8 offset-md-2"> <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin Loại nước hoa</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <form th:action="@{/admin/loai-nuoc-hoa/save}" method="post"
+                              th:object="${loaiNuocHoaRequest}">
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="tenLoai" class="form-label">Tên loại nước hoa</label>
+                                <input type="text" class="form-control" id="tenLoai"
+                                       th:field="*{tenLoai}" placeholder="Ví dụ: Nam" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('tenLoai')}"
+                                     th:errors="*{tenLoai}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="moTaLoai" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="moTaLoai" th:field="*{moTaLoai}" rows="3"></textarea>
+
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <a th:href="@{/admin/loai-nuoc-hoa}" class="btn btn-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary ms-2">Lưu lại</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

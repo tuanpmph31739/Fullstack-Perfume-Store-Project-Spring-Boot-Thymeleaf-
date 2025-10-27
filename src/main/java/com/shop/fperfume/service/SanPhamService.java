@@ -21,6 +21,7 @@ import java.nio.file.Path; // <-- THÊM IMPORT
 import java.nio.file.Paths; // <-- THÊM IMPORT
 import java.nio.file.StandardCopyOption; // <-- THÊM IMPORT
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID; // <-- THÊM IMPORT
 
 import java.util.List;
@@ -62,10 +63,22 @@ public class SanPhamService {
         return new PageableObject<>(responses);
     }
 
-    public void addSanPham(SanPhamRequest sanPhamRequest){
+    @Transactional
+    public SanPham addSanPham(SanPhamRequest sanPhamRequest) {
+
+        // --- BƯỚC 1: KIỂM TRA TRÙNG TÊN ---
+        String tenMoi = sanPhamRequest.getTenNuocHoa().trim();
+        Optional<SanPham> existingSanPham = sanPhamRepository.findByTenNuocHoa(tenMoi);
+
+        if (existingSanPham.isPresent()) {
+            // Nếu tìm thấy, ném ra lỗi để Controller bắt
+            throw new RuntimeException("Tên nước hoa '" + tenMoi + "' đã tồn tại!");
+        }
+        // ---------------------------------
 
         SanPham sanPham = MapperUtils.map(sanPhamRequest, SanPham.class);
 
+        // Tìm và gán các entity liên quan
         ThuongHieu thuongHieu = thuongHieuRepository.findById(sanPhamRequest.getIdThuongHieu())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + sanPhamRequest.getIdThuongHieu()));
         XuatXu xuatXu = xuatXuRepository.findById(sanPhamRequest.getIdXuatXu())
@@ -83,15 +96,33 @@ public class SanPhamService {
         sanPham.setMuaThichHop(muaThichHop);
         sanPham.setNhomHuong(nhomHuong);
 
-
-        sanPhamRepository.save(sanPham);
+        return sanPhamRepository.save(sanPham);
     }
 
+    /**
+     * Sửa lại hàm Cập nhật, đổi tên và thêm logic kiểm tra trùng tên
+     */
     @Transactional
-    public void updateSanPham(Long id, SanPhamRequest sanPhamRequest){
+    public SanPham updateSanPham(Long id, SanPhamRequest sanPhamRequest) {
+
+        // --- BƯỚC 1: KIỂM TRA TRÙNG TÊN KHI CẬP NHẬT ---
+        String tenMoi = sanPhamRequest.getTenNuocHoa().trim();
+        Optional<SanPham> existingSanPham = sanPhamRepository.findByTenNuocHoa(tenMoi);
+
+        // Nếu tìm thấy tên VÀ ID của tên đó không giống ID đang sửa -> Báo lỗi
+        if (existingSanPham.isPresent() && !existingSanPham.get().getId().equals(id)) {
+            throw new RuntimeException("Tên nước hoa '" + tenMoi + "' đã tồn tại!");
+        }
+        // -------------------------------------------
+
         SanPham sanPham = sanPhamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
 
+        // Cập nhật các trường cơ bản
+        sanPham.setTenNuocHoa(sanPhamRequest.getTenNuocHoa());
+        sanPham.setMoTa(sanPhamRequest.getMoTa());
+
+        // Cập nhật các entity liên quan
         sanPham.setThuongHieu(thuongHieuRepository.findById(sanPhamRequest.getIdThuongHieu())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + sanPhamRequest.getIdThuongHieu())));
         sanPham.setXuatXu(xuatXuRepository.findById(sanPhamRequest.getIdXuatXu())
@@ -103,9 +134,8 @@ public class SanPhamService {
         sanPham.setNhomHuong(nhomHuongRepository.findById(sanPhamRequest.getIdNhomHuong())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm hương với ID: " + sanPhamRequest.getIdNhomHuong())));
 
-        sanPham.setTenNuocHoa(sanPhamRequest.getTenNuocHoa());
-        sanPham.setMoTa(sanPhamRequest.getMoTa());
-        sanPhamRepository.save(sanPham);
+
+        return sanPhamRepository.save(sanPham);
     }
 
 
@@ -118,27 +148,5 @@ public class SanPhamService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
         return new SanPhamResponse(sanPham);
     }
-
-    /**
-     * Hàm tiện ích map Entity sang Request DTO (Giữ nguyên)
-     */
-    private SanPhamRequest mapEntityToRequest(SanPham entity) {
-        SanPhamRequest dto = new SanPhamRequest();
-        dto.setId(entity.getId());
-        dto.setTenNuocHoa(entity.getTenNuocHoa());
-        dto.setMoTa(entity.getMoTa());
-        if (entity.getThuongHieu() != null) dto.setIdThuongHieu(entity.getThuongHieu().getId());
-        if (entity.getXuatXu() != null) dto.setIdXuatXu(entity.getXuatXu().getId());
-        if (entity.getLoaiNuocHoa() != null) dto.setIdLoaiNuocHoa(entity.getLoaiNuocHoa().getId());
-        if (entity.getMuaThichHop() != null) dto.setIdMuaThichHop(entity.getMuaThichHop().getId());
-        if (entity.getNhomHuong() != null) dto.setIdNhomHuong(entity.getNhomHuong().getId());
-        return dto;
-    }
-
-//    // Bạn cần đảm bảo phương thức này tồn tại trong SanPhamService
-//    // và nó trả về entity SanPham
-//    public SanPham findEntityById(Long id) {
-//        return sanPhamService.findEntityById(id);
-//    }
 
 }
