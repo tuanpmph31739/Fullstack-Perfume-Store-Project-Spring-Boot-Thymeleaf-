@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
+    <div id="main">
+        <header th:replace="/admin/fragments/header :: header"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Quản lý người dùng</h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first text-end">
+                        <a href="/admin/nguoidung/add" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Thêm mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card p-3">
+                    <form method="get" action="/admin/nguoidung" class="row g-3 align-items-end mb-3">
+                        <div class="col-md-3">
+                            <label>Vai trò</label>
+                            <select name="vaiTro" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="ADMIN" th:selected="${selectedVaiTro == 'ADMIN'}">ADMIN</option>
+                                <option value="NHANVIEN" th:selected="${selectedVaiTro == 'NHANVIEN'}">NHÂN VIÊN</option>
+                                <option value="KHACHHANG" th:selected="${selectedVaiTro == 'KHACHHANG'}">KHÁCH HÀNG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Trạng thái</label>
+                            <select name="trangThai" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="true" th:selected="${selectedTrangThai == true}">Hoạt động</option>
+                                <option value="false" th:selected="${selectedTrangThai == false}">Khóa</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-success w-100">Lọc</button>
+                        </div>
+                    </form>
+
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-dark text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="n : ${pageData.content}" class="align-middle text-center">
+                            <td th:text="${n.id}"></td>
+                            <td th:text="${n.ma}"></td>
+                            <td th:text="${n.hoTen}"></td>
+                            <td th:text="${n.email}"></td>
+                            <td th:text="${n.vaiTro}"></td>
+                            <td>
+                                <span th:text="${n.trangThai ? 'Hoạt động' : 'Khóa'}"
+                                      th:classappend="${n.trangThai} ? 'badge bg-success' : 'badge bg-danger'"></span>
+                            </td>
+                            <td>
+                                <a th:href="@{'/admin/nguoidung/edit/' + ${n.id}}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+                                <a th:href="@{'/admin/nguoidung/delete/' + ${n.id}}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Phân trang -->
+                    <nav th:if="${totalPages > 1}" class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 0}? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/nguoidung(page=${currentPage - 1})}">Trước</a>
+                            </li>
+
+                            <li class="page-item"
+                                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage}? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/admin/nguoidung(page=${i})}"
+                                   th:text="${i + 1}"></a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage + 1 == totalPages}? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/nguoidung(page=${currentPage + 1})}">Tiếp</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="/admin/fragments/footer :: footer"></footer>
+    </div>
+</div>
+<script th:replace="/admin/fragments/script :: script"></script>
+</body>
+</html>
