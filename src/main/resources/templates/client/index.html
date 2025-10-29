@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="client/fragments/head :: head"></head>
+<body>
+
+<!-- Header -->
+<div th:replace="client/fragments/header :: header"></div>
+
+<!-- Carousel banner -->
+<div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="/images/banner1.jpg" class="d-block w-100" alt="Banner 1">
+        </div>
+        <div class="carousel-item">
+            <img src="/images/banner2.jpg" class="d-block w-100" alt="Banner 2">
+        </div>
+    </div>
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"></button>
+    </div>
+</div>
+
+<!-- Sản phẩm nổi bật -->
+<section class="container-fluid my-5 featured-products px-5">
+    <h2 class="text-center mb-5 fw-medium">SẢN PHẨM NỔI BẬT</h2>
+
+    <div id="productCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+        <div class="carousel-inner">
+            <!-- Mỗi carousel-item là 1 nhóm sản phẩm -->
+            <div class="carousel-item" th:each="chunk, chunkStat : ${sanPhamChunks}" th:classappend="${chunkStat.index == 0} ? 'active'">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-4">
+                    <div class="col" th:each="sp : ${chunk}">
+                        <!-- Link toàn bộ card dẫn đến trang chi tiết sản phẩm -->
+                        <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                            <div class="card product-card text-center">
+                                <div class="product-img-wrapper">
+                                    <img th:if="${sp.hinhAnh != null}"
+                                         th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                         alt="Ảnh sản phẩm">
+                                </div>
+                                <div class="product-info">
+                                    <!-- Brand-name vẫn dẫn đến trang thương hiệu -->
+                                    <p class="brand-name">
+                                        <a th:href="@{'/thuong-hieu/' + ${sp.idThuongHieu}}"
+                                           th:text="${sp.tenThuongHieu ?: '---'}">
+                                        </a>
+                                    </p>
+
+                                    <hr class="brand-divider">
+                                    <br>
+
+                                    <h6 class="product-name">
+                                    <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                        th:text="${sp.tenSanPham ?: '---'}">
+                                    </a>
+                                    </h6>
+
+                                    <p class="product-price" th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dấu chấm phân trang -->
+        <div class="carousel-indicators mt-3">
+            <button th:each="chunk, stat : ${sanPhamChunks}"
+                    type="button"
+                    th:attr="data-bs-target='#productCarousel', data-bs-slide-to=${stat.index}"
+                    th:classappend="${stat.index == 0} ? 'active'">
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<div th:replace="client/fragments/footer :: footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -72,4 +72,28 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     // Bạn có thể thêm các phương thức truy vấn tùy chỉnh khác ở đây nếu cần.
 
     Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
+
+    @Query("""
+    SELECT DISTINCT spct FROM SanPhamChiTiet spct
+    LEFT JOIN FETCH spct.sanPham sp
+    LEFT JOIN FETCH sp.thuongHieu th
+    LEFT JOIN FETCH spct.dungTich dt
+    LEFT JOIN FETCH spct.nongDo nd
+    ORDER BY spct.ngayTao DESC
+""")
+    List<SanPhamChiTiet> findTop5NewestWithRelationships(org.springframework.data.domain.Pageable pageable);
+
+
+    @Query("""
+    SELECT spct FROM SanPhamChiTiet spct
+    JOIN FETCH spct.sanPham sp
+    LEFT JOIN FETCH sp.thuongHieu th
+    WHERE spct.id IN (
+        SELECT MIN(ct2.id)
+        FROM SanPhamChiTiet ct2
+        GROUP BY ct2.sanPham.id
+    )
+""")
+    List<SanPhamChiTiet> findDistinctBySanPham(org.springframework.data.domain.Pageable pageable);
+
 }

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor; // Nên thêm NoArgsConstructor
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,10 +31,15 @@ public class SanPhamResponse {
     private Long idNhomHuong;
     private String tenNhomHuong;
 
+    private LocalDateTime ngayTao;
+    private LocalDateTime ngaySua;
+
     public SanPhamResponse(SanPham sp) {
         this.id = sp.getId();
         this.tenNuocHoa = sp.getTenNuocHoa();
         this.moTa = sp.getMoTa();
+        this.ngayTao = sp.getNgayTao();
+        this.ngaySua = sp.getNgaySua();
 
         if (sp.getThuongHieu() != null) {
             this.idThuongHieu = sp.getThuongHieu().getId();
