@@ -65,4 +65,15 @@ public class NguoiDungService {
         repo.save(user);
         return true;
     }
+    public boolean updatePassword(Long id, String newPassword) {
+        Optional<NguoiDung> userOpt = repo.findById(id);
+        if (userOpt.isPresent()) {
+            NguoiDung user = userOpt.get();
+            user.setMatKhau(passwordEncoder.encode(newPassword)); // Mã hoá lại mật khẩu
+            repo.save(user);
+            return true;
+        }
+        return false;
+    }
+
 }

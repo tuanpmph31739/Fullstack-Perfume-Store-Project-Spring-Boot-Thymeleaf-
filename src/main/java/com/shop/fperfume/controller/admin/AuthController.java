@@ -43,12 +43,18 @@ public class AuthController {
             return "redirect:/register";
         }
 
+
+        if (user.getMa() == null || user.getMa().isEmpty()) {
+            user.setMa("ND" + System.currentTimeMillis());
+        }
+
         user.setMatKhau(passwordEncoder.encode(user.getMatKhau()));
         nguoiDungRepository.save(user);
 
         redirect.addFlashAttribute("success", "Đăng ký thành công!");
         return "redirect:/login";
     }
+
 
     @GetMapping("/verify")
     public String verifyUser(@RequestParam("code") String code, Model model) {
