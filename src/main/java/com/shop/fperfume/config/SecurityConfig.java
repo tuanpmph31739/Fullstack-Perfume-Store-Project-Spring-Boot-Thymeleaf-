@@ -1,5 +1,6 @@
 package com.shop.fperfume.config;
 
+import com.shop.fperfume.security.CustomSuccessHandler;
 import com.shop.fperfume.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -24,25 +25,30 @@ public class SecurityConfig {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    @Autowired
+    private CustomSuccessHandler customSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomSuccessHandler customSuccessHandler) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
-                                .anyRequest().permitAll()
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/admin/**").permitAll().anyRequest().authenticated()
+//                        .hasRole("ADMIN")
 //                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .successHandler(customSuccessHandler)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
+
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")

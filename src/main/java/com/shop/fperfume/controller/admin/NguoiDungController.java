@@ -3,9 +3,11 @@ package com.shop.fperfume.controller.admin;
 import com.shop.fperfume.entity.NguoiDung;
 import com.shop.fperfume.repository.NguoiDungRepository;
 import com.shop.fperfume.service.admin.NguoiDungService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ public class NguoiDungController {
 
     private final NguoiDungService service;
     private final NguoiDungRepository nguoiDungRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     public NguoiDungController(NguoiDungService service, NguoiDungRepository nguoiDungRepository) {
         this.service = service;
@@ -63,28 +67,40 @@ public class NguoiDungController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect) {
-        // ✅ Kiểm tra email trùng
+    public String save(@ModelAttribute NguoiDung nguoiDung,
+                       RedirectAttributes redirect) {
+
         Optional<NguoiDung> existing = nguoiDungRepository.findByEmail(nguoiDung.getEmail());
         if (existing.isPresent() && !existing.get().getId().equals(nguoiDung.getId())) {
             redirect.addFlashAttribute("error", "Email này đã tồn tại!");
             return "redirect:/admin/nguoidung/add";
         }
 
-        // ✅ Tự động sinh mã người dùng nếu chưa có
+        // ✅ Nếu không có mã => sinh tự động
         if (nguoiDung.getMa() == null || nguoiDung.getMa().isEmpty()) {
             nguoiDung.setMa("ND" + System.currentTimeMillis());
         }
 
-        // ✅ Gán giá trị mặc định nếu cần
-//        if (nguoiDung.getEnabled() == null) {
-//            nguoiDung.setEnabled(true);
-//        }
+        // ✅ Nếu là cập nhật user cũ
+        if (nguoiDung.getId() != null) {
+            NguoiDung oldUser = nguoiDungRepository.findById(nguoiDung.getId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+
+            if (nguoiDung.getMatKhau() == null || nguoiDung.getMatKhau().isEmpty()) {
+                nguoiDung.setMatKhau(oldUser.getMatKhau());
+            } else {
+                nguoiDung.setMatKhau(passwordEncoder.encode(nguoiDung.getMatKhau()));
+            }
+        } else {
+            nguoiDung.setMatKhau(passwordEncoder.encode(nguoiDung.getMatKhau()));
+        }
 
         nguoiDungRepository.save(nguoiDung);
         redirect.addFlashAttribute("success", "Lưu người dùng thành công!");
         return "redirect:/admin/nguoidung";
     }
+
 
 
     @GetMapping("/check-email")
