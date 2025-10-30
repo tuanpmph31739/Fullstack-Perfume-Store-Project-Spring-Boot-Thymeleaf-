@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,6 +27,12 @@ public class SanPham {
 
     @Column(name = "MoTa")
     private String moTa;
+
+    @Column(name = "NgayTao")
+    private LocalDateTime ngayTao;
+
+    @Column(name = "NgaySua")
+    private LocalDateTime ngaySua;
 
     @ManyToOne
     @JoinColumn(name = "IdThuongHieu", referencedColumnName = "Id")

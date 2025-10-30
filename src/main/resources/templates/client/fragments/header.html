@@ -1,0 +1,147 @@
+<header th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+    <!-- Thanh trên cùng -->
+    <div class="bg-light text-center py-1 border-bottom small">
+        Alo alo 1234
+    </div>
+
+    <!-- Navbar chính -->
+    <nav class="navbar navbar-expand-lg bg-white border-bottom">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand" href="/">
+                <img src="/images/logo-fperfume.png" alt="F Perfume" height="45">
+            </a>
+
+            <!-- Tìm kiếm -->
+            <form class="d-flex mx-auto w-50">
+                <input class="form-control me-2 rounded-pill bg-light border-0" type="search"
+                       placeholder="Tìm sản phẩm của bạn">
+            </form>
+
+            <!-- Biểu tượng -->
+            <div class="d-flex align-items-center gap-3">
+                <a href="/wishlist" class="text-dark"><i class="bi bi-heart fs-5"></i></a>
+                <a href="/cart" class="position-relative text-dark">
+                    <i class="bi bi-bag fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        0
+                    </span>
+                </a>
+                <a href="/login" class="text-dark text-decoration-none">
+                    <i class="bi bi-person-circle me-1"></i> Đăng nhập
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Menu dưới rộng -->
+    <div class="border-bottom">
+        <div class="container-fluid">
+            <ul class="nav justify-content-center fw-semibold">
+                <li class="nav-item"><a class="nav-link text-dark" href="/">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="#">About F Perfume</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Thương hiệu</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Chanel</a></li>
+                        <li><a class="dropdown-item" href="#">Dior</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Nước hoa</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Nam</a></li>
+                        <li><a class="dropdown-item" href="#">Nữ</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link text-dark" href="#">Tin tức</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="#">Liên hệ</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- CSS nhúng cho header -->
+    <style>
+        /* Font SVN-Gilroy */
+        @font-face {
+            font-family: 'SVN-Gilroy';
+            src: url('/fonts/SVN-Gilroy-Regular.otf') format('opentype');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'SVN-Gilroy';
+            src: url('/fonts/SVN-Gilroy-Medium.otf') format('opentype');
+            font-weight: 500;
+        }
+        @font-face {
+            font-family: 'SVN-Gilroy';
+            src: url('/fonts/SVN-Gilroy-SemiBold.otf') format('opentype');
+            font-weight: 600;
+        }
+        @font-face {
+            font-family: 'SVN-Gilroy';
+            src: url('/fonts/SVN-Gilroy-Bold.otf') format('opentype');
+            font-weight: 700;
+        }
+
+        /* Navbar chính */
+        .navbar {
+            padding-top: 1.2rem;
+            padding-bottom: 1.2rem;
+            font-family: 'SVN-Gilroy', sans-serif;
+        }
+        .navbar-brand img {
+            height: 65px;
+        }
+        .navbar form input {
+            height: 45px;
+            font-size: 1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-radius: 50px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+
+        /* Menu dưới */
+        .border-bottom .nav {
+            gap: 2.5rem; /* khoảng cách giữa các <li> */
+            justify-content: center;
+        }
+        .border-bottom .nav-link {
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            color: #222;
+            font-family: 'SVN-Gilroy', sans-serif;
+        }
+        .border-bottom .nav-link:hover {
+            color: #9c8679;
+        }
+
+        /* Thanh top */
+        .bg-light.text-center.py-1 {
+            font-size: 0.9rem;
+            padding-top: 0.6rem;
+            padding-bottom: 0.6rem;
+            font-family: 'SVN-Gilroy', sans-serif;
+        }
+
+        /* Icon */
+        .navbar i {
+            font-size: 1.5rem;
+            color: #222;
+        }
+        .navbar i:hover {
+            color: #9c8679;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-brand img { height: 50px; }
+            .navbar .nav-link { font-size: 1rem; }
+            .navbar form input { height: 40px; font-size: 0.9rem; }
+            .border-bottom .nav-link { font-size: 1rem; padding: 0.6rem 1rem; }
+        }
+    </style>
+</header>
