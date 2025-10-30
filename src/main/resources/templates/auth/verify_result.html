@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kết quả xác minh tài khoản</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        h2.error {
+            color: #dc3545;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            background: #007bff;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 th:if="${message.contains('xác minh')}" th:text="${message}">Tài khoản của bạn đã được xác minh!</h2>
+    <h2 class="error" th:if="${!message.contains('xác minh')}" th:text="${message}">Mã xác minh không hợp lệ!</h2>
+
+    <p>Bạn có thể quay lại trang đăng nhập để tiếp tục.</p>
+    <a th:href="@{/login}">Đăng nhập ngay</a>
+</div>
+
+</body>
+</html>

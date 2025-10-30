@@ -2,12 +2,17 @@ package com.shop.fperfume.service.admin;
 
 import com.shop.fperfume.entity.NguoiDung;
 import com.shop.fperfume.repository.NguoiDungRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +23,9 @@ public class NguoiDungService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     public NguoiDungService(NguoiDungRepository repo) {
         this.repo = repo;
@@ -45,14 +53,37 @@ public class NguoiDungService {
         user.setVerificationCode(UUID.randomUUID().toString());
         user.setEnabled(false);
         repo.save(user);
-        // Gửi email xác nhận
-        sendVerificationEmail(user, siteURL);
+
+        try {
+            sendVerificationEmail(user, siteURL);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException("Không thể gửi email xác minh: " + e.getMessage(), e);
+        }
     }
 
-    private void sendVerificationEmail(NguoiDung user, String siteURL) {
-        // Bạn sẽ thêm phần gửi mail ở đây (JavaMailSender)
-        // Gợi ý nội dung:
-        // "Nhấn vào link để kích hoạt: " + siteURL + "/verify?code=" + user.getVerificationCode();
+
+
+
+    public void sendVerificationEmail(NguoiDung user, String siteURL)
+            throws MessagingException, UnsupportedEncodingException {
+
+        String subject = "Xác minh tài khoản FPerfume của bạn";
+        String verifyURL = siteURL + "/verify?code=" + user.getVerificationCode();
+
+        String content = "<p>Xin chào <b>" + user.getHoTen() + "</b>,</p>"
+                + "<p>Bạn đã đăng ký tài khoản trên <b>FPerfume</b>.</p>"
+                + "<p>Nhấn vào link dưới đây để kích hoạt tài khoản:</p>"
+                + "<h3><a href=\"" + verifyURL + "\">XÁC MINH TÀI KHOẢN</a></h3>"
+                + "<br><p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>";
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setTo(user.getEmail());
+        helper.setSubject(subject);
+        helper.setText(content, true);
+        helper.setFrom("your_email@gmail.com", "FPerfume");
+
+        mailSender.send(message);
     }
 
     public boolean verify(String code) {
