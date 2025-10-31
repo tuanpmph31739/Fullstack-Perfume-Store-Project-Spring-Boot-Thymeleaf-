@@ -19,7 +19,7 @@ public class ThuongHieuController {
     @Autowired
     private ThuongHieuService thuongHieuService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
 
     @GetMapping

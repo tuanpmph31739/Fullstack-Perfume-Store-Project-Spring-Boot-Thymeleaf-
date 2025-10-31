@@ -1,59 +1,23 @@
-<footer th:fragment="footer"
-        xmlns:th="http://www.thymeleaf.org"
-        class="footer text-center text-muted py-3 shadow-sm bg-light border-top">
-
+<footer th:fragment="footer" class="footer text-center text-muted py-3 bg-light border-top mt-auto">
     <style>
-        /* --- Cấu trúc layout cơ bản để footer luôn ở đáy trang --- */
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        #main {
-            flex: 1; /* đẩy footer xuống cuối */
-            padding-bottom: 70px; /* tránh footer che nội dung */
-        }
-
-        /* --- Footer cố định dưới đáy trang --- */
         .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
             width: 100%;
             background-color: #f8f9fa;
-            z-index: 1000;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -2px 8px rgba(0,0,0,.05);
         }
-
-        /* --- Hiệu ứng hover icon mạng xã hội --- */
-        .footer a {
-            transition: color 0.3s;
+        .footer > div {
+            max-width: none !important;
+            padding: 0 15px;
+            width: 100%;
         }
-
-        .footer a:hover {
-            color: #0d6efd;
-        }
+        .footer a:hover { color: #0d6efd; }
     </style>
 
-    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
-        <!-- Bên trái -->
-        <div class="text-start mb-2 mb-md-0">
-            <span class="fw-bold text-dark">2025 © F Perfume</span> — All rights reserved.
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center px-3">
+        <div><span class="fw-bold text-dark">2025 © F Perfume</span> — All rights reserved.</div>
+        <div class="small text-secondary">
+            Made with love by <a href="#" class="text-primary fw-semibold">SD-26 Team</a>
         </div>
-
-        <!-- Giữa -->
-        <div class="text-center small text-secondary">
-            Made with ❤️ by
-            <a href="#" class="text-decoration-none text-primary fw-semibold">SD-26 Team</a>
-        </div>
-
-        <!-- Bên phải -->
         <div class="d-flex gap-3">
             <a href="#" class="text-muted"><i class="bi bi-facebook fs-5"></i></a>
             <a href="#" class="text-muted"><i class="bi bi-instagram fs-5"></i></a>

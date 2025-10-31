@@ -20,7 +20,7 @@ public class NongDoController {
     @Autowired
     private NongDoService nongDoService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
 
     @GetMapping

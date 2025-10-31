@@ -65,7 +65,8 @@
                                 <td colspan="6" class="text-center">Không có dung tích nào.</td> </tr>
                             </tbody>
                         </table>
-
+                    </div>
+                    <div class="card-footer" th:if="${page.totalPage > 1}">
                         <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
                             <ul class="pagination justify-content-center">
 
@@ -96,7 +97,6 @@
 
                             </ul>
                         </nav>
-
                     </div>
                 </div>
             </section>
