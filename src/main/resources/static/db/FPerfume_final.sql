@@ -1,4 +1,4 @@
-﻿-- Chuyển về database master
+-- Chuyển về database master
 USE master;
 GO
 
@@ -171,7 +171,8 @@ CREATE TABLE HoaDon (
     TenNguoiNhan NVARCHAR(100),
     DiaChi NVARCHAR(255),
     Sdt NVARCHAR(20),
-    TinhTrang INT,
+	TrangThai NVARCHAR(50) NOT NULL DEFAULT N'CHỜ XÁC NHẬN', -- Trạng thái đơn hàng
+    CONSTRAINT CK_orders_status CHECK (TrangThai IN (N'CHỜ XÁC NHẬN', N'ĐÃ XÁC NHẬN', N'ĐANG GIAO HÀNG', N'HOÀN THÀNH', N'ĐÃ HỦY', N'ĐÃ THANH TOÁN', N'ĐANG CHỜ THANH TOÁN')),
 
     -- 1. Tổng tiền hàng (SUM từ HoaDonChiTiet)
     TongTienHang DECIMAL(20, 0) NOT NULL DEFAULT 0,
@@ -347,42 +348,8 @@ GO
 PRINT N'Đã chèn ThanhToan mẫu.';
 GO
 
--- Chèn Hóa Đơn mẫu
-INSERT INTO HoaDon (IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, TinhTrang, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan, IdThanhToan)
-VALUES
-(
-    (SELECT Id FROM NguoiDung WHERE Ma = 'KH001'), -- IdKH
-    (SELECT Id FROM NguoiDung WHERE Ma = 'NV001'), -- IdNV
-    N'HD001', -- Ma
-    '2024-10-25 10:30:00', -- NgayTao
-    '2024-10-25 10:35:00', -- NgayThanhToan
-    N'Lê Thị Mai', -- TenNguoiNhan
-    N'10 Lý Thường Kiệt, Hoàn Kiếm', -- DiaChi
-    '0369852147', -- Sdt
-    3, -- TinhTrang (Đã hoàn thành)
-    (SELECT Id FROM GiamGia WHERE Ma = 'GG100K'), -- IdGiamGia
-    3500000, -- TongTienHang
-    100000, -- TienGiamGia
-    30000, -- PhiShip
-    3430000, -- TongThanhToan (3.500.000 - 100.000 + 30.000)
-    (SELECT Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%COD%') -- IdThanhToan
-);
-GO
-PRINT N'Đã chèn HoaDon mẫu.';
-GO
 
--- Chèn Hóa Đơn Chi Tiết mẫu
-INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
-VALUES
-(
-    (SELECT Id FROM HoaDon WHERE Ma = 'HD001'), -- IdHoaDon
-    (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CHA_BLEU_100_EDP'), -- IdSanPhamChiTiet (Bleu de Chanel)
-    1, -- SoLuong
-    3500000 -- DonGia (Đóng băng giá)
-);
-GO
-PRINT N'Đã chèn HoaDonChiTiet mẫu.';
-GO
+
 -- ======================================================
 
 -- CHÈN DỮ LIỆU GIOHANG
@@ -416,8 +383,8 @@ SELECT * FROM SanPham;
 SELECT * FROM SanPhamChiTiet;
 SELECT * FROM GiamGia;
 SELECT * FROM ThanhToan; -- Đã thêm
-SELECT * FROM HoaDon; 
+SELECT * FROM HoaDon;
 SELECT * FROM HoaDonChiTiet;
-SELECT * FROM GioHang; 
+SELECT * FROM GioHang;
 SELECT * FROM GioHangChiTiet;
 GO
