@@ -41,6 +41,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "LEFT JOIN FETCH spct.nongDo nd ")
     List<SanPhamChiTiet> findAllFetchingRelationships();
 
+
+
     /**
      * Lấy một trang (Page) SanPhamChiTiet và fetch các entity liên quan.
      * Dùng cho phân trang khi cần dữ liệu đầy đủ cho trang Response DTO.
@@ -69,7 +71,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "WHERE sp.id = :sanPhamId")
     List<SanPhamChiTiet> findBySanPhamIdFetchingRelationships(@Param("sanPhamId") Long sanPhamId);
 
-    // Bạn có thể thêm các phương thức truy vấn tùy chỉnh khác ở đây nếu cần.
 
     Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
 

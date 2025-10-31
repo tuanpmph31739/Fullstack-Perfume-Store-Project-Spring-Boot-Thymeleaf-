@@ -41,7 +41,7 @@ public class SanPhamController {
     @Autowired
     private NhomHuongService nhomHuongService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
 
     @GetMapping

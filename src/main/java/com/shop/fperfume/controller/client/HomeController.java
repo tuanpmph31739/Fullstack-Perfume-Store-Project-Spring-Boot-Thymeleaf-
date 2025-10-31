@@ -27,8 +27,7 @@ public class HomeController {
                     sanPhams.subList(i, Math.min(i + chunkSize, sanPhams.size()))
             );
         }
-
-        model.addAttribute("sanPhamChunks", sanPhamChunks); // gửi xuống view
+        model.addAttribute("sanPhamChunks", sanPhamChunks);
         return "client/index";
     }
 

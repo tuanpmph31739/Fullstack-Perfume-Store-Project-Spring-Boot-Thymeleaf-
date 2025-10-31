@@ -25,12 +25,13 @@
 
         <div class="page-content">
             <section class="row">
-                <div class="card">
+                <div class="card table-card">
                     <div class="card-header">
                         <h5>Danh sách Dòng sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-striped">
+
+                        <table class="table table-striped table-fixed align-middle">
                             <thead>
                             <tr>
                                 <th>#</th>
@@ -70,7 +71,9 @@
                                 <td colspan="7" class="text-center">Không có dòng sản phẩm nào.</td> </tr>
                             </tbody>
                         </table>
+                    </div>
 
+                    <div class="card-footer" th:if="${page.totalPage > 1}">
                         <nav aria-label="Page navigation" th:if="${page.totalPage > 1}">
                             <ul class="pagination justify-content-center">
 
@@ -101,8 +104,8 @@
 
                             </ul>
                         </nav>
-
                     </div>
+
                 </div>
             </section>
         </div>

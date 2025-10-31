@@ -19,7 +19,7 @@ public class XuatXuController {
     @Autowired
     private XuatXuService xuatXuService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
 
     @GetMapping

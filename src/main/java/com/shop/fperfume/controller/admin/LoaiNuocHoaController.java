@@ -19,7 +19,7 @@ public class LoaiNuocHoaController {
     @Autowired
     private LoaiNuocHoaService  loaiNuocHoaService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
     @GetMapping
     public String index(Model model,
