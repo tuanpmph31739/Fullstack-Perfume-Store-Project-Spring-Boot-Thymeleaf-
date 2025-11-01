@@ -21,7 +21,7 @@ USE PerfumeStore;
 GO
 
 -- =================================================================================
--- PHẦN 1: TẠO CẤU TRÚC BẢNG (Đã sắp xếp lại thứ tự)
+-- PHẦN 1: TẠO CẤU TRÚC BẢNG (Đã sắp xếp lại thứ tự) 
 -- =================================================================================
 PRINT 'Bat dau tao cac bang...';
 
@@ -171,8 +171,7 @@ CREATE TABLE HoaDon (
     TenNguoiNhan NVARCHAR(100),
     DiaChi NVARCHAR(255),
     Sdt NVARCHAR(20),
-	TrangThai NVARCHAR(50) NOT NULL DEFAULT N'CHỜ XÁC NHẬN', -- Trạng thái đơn hàng
-    CONSTRAINT CK_orders_status CHECK (TrangThai IN (N'CHỜ XÁC NHẬN', N'ĐÃ XÁC NHẬN', N'ĐANG GIAO HÀNG', N'HOÀN THÀNH', N'ĐÃ HỦY', N'ĐÃ THANH TOÁN', N'ĐANG CHỜ THANH TOÁN')),
+    TinhTrang INT,
 
     -- 1. Tổng tiền hàng (SUM từ HoaDonChiTiet)
     TongTienHang DECIMAL(20, 0) NOT NULL DEFAULT 0,
@@ -304,25 +303,25 @@ GO
 -- Chèn SanPhamChiTiet (Biến thể)
 INSERT INTO SanPhamChiTiet (IdSanPham, IdDungTich, IdNongDo, MaSKU, SoLuongTon, GiaNhap, GiaBan, HinhAnh, TrangThai)
 VALUES
-(1, (SELECT Id FROM DungTich WHERE Ma = 'DT100'), (SELECT Id FROM NongDo WHERE Ma = 'EDP'), 'CHA_BLEU_100_EDP', 50, 2500000, 3500000, 'e6fd0ab6-5459-438e-9c8f-039ecb0feba9_bleu de chanel.png', 1),
-(2, (SELECT Id FROM DungTich WHERE Ma = 'DT100'), (SELECT Id FROM NongDo WHERE Ma = 'EDT'), 'DIOR_SAUVAGE_100_EDT', 40, 2200000, 3200000, 'ff47ec91-d9b7-4760-8db5-6dacdae3435e_dior sauvage.png', 1),
-(3, (SELECT Id FROM DungTich WHERE Ma = 'DT50'), (SELECT Id FROM NongDo WHERE Ma = 'EDP'), 'GUCCI_BLOOM_50_EDP', 60, 1800000, 2800000, '30a05ddc-7b17-4036-870e-e0b8ae5c084d_gucci bloom.png', 1),
-(4, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'DIOR_JADORE_50_EDP', 40, 2200000, 3200000, '8fda4029-592e-4542-be9e-cc3b4ccc36e7_J’adore Dior.png', 1),
-(4, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'DIOR_JADORE_100_EDP', 30, 2900000, 3900000, '5e473f2f-af23-43a1-8cf4-09d393b92487_J’adore Dior.png', 1),
-(5, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CHANEL_COCO_50_EDP', 35, 2500000, 3600000, 'b7338fe3-d419-450e-b283-178b183bb0ff_Coco Mademoiselle.png', 1),
-(5, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CHANEL_COCO_100_EDP', 20, 3400000, 4800000, '653e7a55-dd2e-43b5-b901-b43c2a2607e1_Coco Mademoiselle.png', 1),
-(6, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'YSL_BLACK_OPIUM_50_EDP', 40, 2100000, 3100000, '0bb50091-21dc-4904-a63c-0a7fd8ea2af9_Black Opium.png', 1),
-(6, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'YSL_BLACK_OPIUM_100_EDP', 25, 2900000, 4100000, '10df4683-52ad-4558-a926-a1befe50ae02_Black Opium.png', 1),
-(7, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'VERSACE_EROS_100_EDT', 50, 2300000, 3400000, '74aed322-c36b-456d-98fa-4193a79d3414_Versace Eros.png', 1),
-(8, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'ARMANI_GIO_50_EDT', 40, 2000000, 2900000, '3234fa77-a28d-47c7-8003-b5703d9e14d9_Acqua di Gio.png', 1),
-(8, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'ARMANI_GIO_100_EDT', 30, 2600000, 3600000, '8a4b27a1-3b65-43f5-b014-9694ca4c044a_Acqua di Gio.png', 1),
-(9, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'DG_LIGHT_BLUE_50_EDT', 50, 1800000, 2700000, 'cc267e16-ec5f-463b-9972-21c6ae098750_Light Blue.png', 1),
-(10, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'GUCCI_GUILTY_100_EDT', 35, 2400000, 3400000, '5cbc4821-8296-4951-974e-97967ae295db_Gucci Guilty Pour Homme.png', 1),
-(11, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'MONTBLANC_EXPLORER_100_EDP', 40, 2500000, 3600000, 'b4945dd9-8d20-496e-8eee-b327defe757a_Montblanc Explorer.png', 1),
-(12, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'TF_BLACK_ORCHID_50_EDP', 20, 3500000, 4800000, 'd9368b18-23e9-47e8-b326-2ceb78902872_Black Orchid.png', 1),
-(12, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'TF_BLACK_ORCHID_100_EDP', 15, 4200000, 5800000, 'b5e9141a-47a5-4067-ae3a-12b10159abc8_Black Orchid.png', 1),
-(13, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CREED_AVENTUS_50_EDP', 25, 4800000, 6200000, '71e80d45-8055-46e4-90cb-3ef58c1b98bb_Creed Aventus.png', 1),
-(13, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CREED_AVENTUS_100_EDP', 20, 6800000, 8800000, 'c5e79850-19a2-4214-b5a1-61f5d259893a_Creed Aventus.png', 1);
+(1, (SELECT Id FROM DungTich WHERE Ma = 'DT100'), (SELECT Id FROM NongDo WHERE Ma = 'EDP'), 'CHA_BLEU_100_EDP', 50, 2500000, 3500000, '4b2a32cb-0f0f-47c3-8a91-2c9c4394cca1_bleu de chanel.png', 1),
+(2, (SELECT Id FROM DungTich WHERE Ma = 'DT100'), (SELECT Id FROM NongDo WHERE Ma = 'EDT'), 'DIOR_SAUVAGE_100_EDT', 40, 2200000, 3200000, '2de4f339-7875-417b-ade1-55434dbbe940_dior sauvage.png', 1),
+(3, (SELECT Id FROM DungTich WHERE Ma = 'DT50'), (SELECT Id FROM NongDo WHERE Ma = 'EDP'), 'GUCCI_BLOOM_50_EDP', 60, 1800000, 2800000, 'd9b503e2-3243-4fca-858c-d93f9d79fdd8_gucci bloom.png', 1),
+(4, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'DIOR_JADORE_50_EDP', 40, 2200000, 3200000, '211d95c5-1fd3-40ad-9a96-a327557d939c_J’adore Dior.png', 1),
+(4, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'DIOR_JADORE_100_EDP', 30, 2900000, 3900000, '973a5421-fc6e-4afe-a989-a149b84961a4_J’adore Dior.png', 1),
+(5, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CHANEL_COCO_50_EDP', 35, 2500000, 3600000, '881695d2-67b3-4278-bca2-413a73397dca_Coco Mademoiselle.png', 1),
+(5, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CHANEL_COCO_100_EDP', 20, 3400000, 4800000, 'ea8cbe30-9d06-41c4-94e6-55a8409bc293_Coco Mademoiselle.png', 1),
+(6, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'YSL_BLACK_OPIUM_50_EDP', 40, 2100000, 3100000, '57b38f57-924e-4597-bf1e-7404b09f6a35_Black Opium.png', 1),
+(6, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'YSL_BLACK_OPIUM_100_EDP', 25, 2900000, 4100000, 'b0efb088-aea3-4c8c-9565-c398d7eeccba_Black Opium.png', 1),
+(7, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'VERSACE_EROS_100_EDT', 50, 2300000, 3400000, 'aa6dd6e6-46f4-40ef-a011-01b9b4b53f47_Versace Eros.png', 1),
+(8, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'ARMANI_GIO_50_EDT', 40, 2000000, 2900000, 'af56c0b0-cbc6-464a-a440-6d1a6bad1745_Acqua di Gio.png', 1),
+(8, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'ARMANI_GIO_100_EDT', 30, 2600000, 3600000, 'f957717a-5897-4e7e-9f96-beb358ce2a17_Acqua di Gio.png', 1),
+(9, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'DG_LIGHT_BLUE_50_EDT', 50, 1800000, 2700000, '9c1706a0-15b9-475c-96c2-c0f323541de0_Light Blue.png', 1),
+(10, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDT'), 'GUCCI_GUILTY_100_EDT', 35, 2400000, 3400000, '3d2bc963-78ce-40e9-9269-8ca6ccb3c975_Gucci Guilty Pour Homme.png', 1),
+(11, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'MONTBLANC_EXPLORER_100_EDP', 40, 2500000, 3600000, '76b1584e-01d3-4823-812c-41ec38e85b76_Montblanc Explorer.png', 1),
+(12, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'TF_BLACK_ORCHID_50_EDP', 20, 3500000, 4800000, '3248ff98-908b-49ad-9cde-487a2bc02119_Black Orchid.png', 1),
+(12, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'TF_BLACK_ORCHID_100_EDP', 15, 4200000, 5800000, 'b7d25888-59d2-445b-8e8d-2746af7b8f92_Black Orchid.png', 1),
+(13, (SELECT Id FROM DungTich WHERE Ma='DT50'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CREED_AVENTUS_50_EDP', 25, 4800000, 6200000, 'fc7738e7-268d-4885-a297-20251b89701c_Creed Aventus.png', 1),
+(13, (SELECT Id FROM DungTich WHERE Ma='DT100'), (SELECT Id FROM NongDo WHERE Ma='EDP'), 'CREED_AVENTUS_100_EDP', 20, 6800000, 8800000, 'f0c27633-d26f-4fea-af7e-9d1db8ac5f79_Creed Aventus.png', 1);
 GO
 PRINT N'Đã chèn SanPhamChiTiet mẫu.';
 GO
@@ -348,8 +347,42 @@ GO
 PRINT N'Đã chèn ThanhToan mẫu.';
 GO
 
+-- Chèn Hóa Đơn mẫu
+INSERT INTO HoaDon (IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, TinhTrang, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan, IdThanhToan)
+VALUES
+(
+    (SELECT Id FROM NguoiDung WHERE Ma = 'KH001'), -- IdKH
+    (SELECT Id FROM NguoiDung WHERE Ma = 'NV001'), -- IdNV
+    N'HD001', -- Ma
+    '2024-10-25 10:30:00', -- NgayTao
+    '2024-10-25 10:35:00', -- NgayThanhToan
+    N'Lê Thị Mai', -- TenNguoiNhan
+    N'10 Lý Thường Kiệt, Hoàn Kiếm', -- DiaChi
+    '0369852147', -- Sdt
+    3, -- TinhTrang (Đã hoàn thành)
+    (SELECT Id FROM GiamGia WHERE Ma = 'GG100K'), -- IdGiamGia
+    3500000, -- TongTienHang
+    100000, -- TienGiamGia
+    30000, -- PhiShip
+    3430000, -- TongThanhToan (3.500.000 - 100.000 + 30.000)
+    (SELECT Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%COD%') -- IdThanhToan
+);
+GO
+PRINT N'Đã chèn HoaDon mẫu.';
+GO
 
-
+-- Chèn Hóa Đơn Chi Tiết mẫu
+INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+VALUES
+(
+    (SELECT Id FROM HoaDon WHERE Ma = 'HD001'), -- IdHoaDon
+    (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CHA_BLEU_100_EDP'), -- IdSanPhamChiTiet (Bleu de Chanel)
+    1, -- SoLuong
+    3500000 -- DonGia (Đóng băng giá)
+);
+GO
+PRINT N'Đã chèn HoaDonChiTiet mẫu.';
+GO
 -- ======================================================
 
 -- CHÈN DỮ LIỆU GIOHANG
@@ -383,8 +416,8 @@ SELECT * FROM SanPham;
 SELECT * FROM SanPhamChiTiet;
 SELECT * FROM GiamGia;
 SELECT * FROM ThanhToan; -- Đã thêm
-SELECT * FROM HoaDon;
+SELECT * FROM HoaDon; 
 SELECT * FROM HoaDonChiTiet;
-SELECT * FROM GioHang;
+SELECT * FROM GioHang; 
 SELECT * FROM GioHangChiTiet;
 GO
