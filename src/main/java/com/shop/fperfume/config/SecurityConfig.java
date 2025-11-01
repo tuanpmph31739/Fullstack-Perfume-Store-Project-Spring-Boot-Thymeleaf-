@@ -33,7 +33,11 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**").permitAll()
+                                .requestMatchers(
+                                        "/", "/home",               // trang chủ
+                                        "/login", "/register", "/verify",
+                                        "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico"
+                                ).permitAll()
                         .requestMatchers("/admin/**").permitAll().anyRequest().authenticated()
 //                        .hasRole("ADMIN")
 //                        .anyRequest().authenticated()
