@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách Giảm Giá</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container mt-4">
+    <h3>Danh sách Giảm Giá</h3>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <a class="btn btn-primary mb-2" th:href="@{/admin/giam-gia/add}">Thêm mới</a>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Mã</th>
+            <th>Tên</th>
+            <th>Loại giảm</th>
+            <th>Giá trị</th>
+            <th>Số lượng</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th>
+            <th>Trạng thái</th>
+            <th>Sản phẩm</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="g : ${giamGias}">
+            <td th:text="${g.id}"></td>
+            <td th:text="${g.ma}"></td>
+            <td th:text="${g.ten}"></td>
+            <td th:text="${g.loaiGiam}"></td>
+            <td th:text="${g.giaTri}"></td>
+            <td th:text="${g.soLuong}"></td>
+            <td th:text="${g.ngayBatDau}"></td>
+            <td th:text="${g.ngayKetThuc}"></td>
+            <td th:text="${g.trangThai}"></td>
+            <td th:text="${g.tenSanPham} ?: 'Toàn cửa hàng'"></td>
+            <td>
+                <a th:href="@{/admin/giam-gia/edit/{id}(id=${g.id})}" class="btn btn-sm btn-warning">Sửa</a>
+                <a th:href="@{/admin/giam-gia/delete/{id}(id=${g.id})}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Bạn có chắc muốn xóa?');">Xóa</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

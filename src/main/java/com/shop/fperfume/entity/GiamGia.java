@@ -17,7 +17,7 @@ public class GiamGia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "Ma", unique = true, nullable = false)
     private String ma;
