@@ -7,8 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-// Kiểu khóa chính của GiamGia là INT -> Integer
-public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
+public interface GiamGiaRepository extends JpaRepository<GiamGia, Long> {
 
+    // Tìm giảm giá theo mã
     Optional<GiamGia> findByMa(String ma);
+
+    // Kiểm tra mã giảm giá đã tồn tại chưa
+    boolean existsByMa(String ma);
 }
