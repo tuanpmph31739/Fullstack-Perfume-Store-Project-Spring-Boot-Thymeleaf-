@@ -33,7 +33,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                        "/", "/home", "/thuong-hieu/**",   // <-- cho phép tất cả đường dẫn con
+                                        "/**", "/home", "/thuong-hieu/**",   // <-- cho phép tất cả đường dẫn con
                                         "/login", "/register", "/verify",
                                         "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico"
                                 ).permitAll()

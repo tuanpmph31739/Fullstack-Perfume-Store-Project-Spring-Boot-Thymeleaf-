@@ -12,7 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +31,6 @@ public class ThuongHieuService {
     }
 
     public void addThuongHieu(ThuongHieuRequest thuongHieuRequest) {
-
         String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
         String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
 
@@ -40,9 +41,14 @@ public class ThuongHieuService {
         if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi)) {
             throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
         }
+
         ThuongHieu thuongHieu = MapperUtils.map(thuongHieuRequest, ThuongHieu.class);
         thuongHieu.setNgayTao(LocalDateTime.now());
         thuongHieu.setNgaySua(LocalDateTime.now());
+
+        // 🔹 Tự động sinh slug
+        thuongHieu.setSlug(generateSlug(tenThuongHieuMoi));
+
         thuongHieuRepository.save(thuongHieu);
     }
 
@@ -54,16 +60,21 @@ public class ThuongHieuService {
         String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
         String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
 
-        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi) && !maThuongHieuMoi.equals(thuongHieu.getMaThuongHieu())) {
+        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi)
+                && !maThuongHieuMoi.equals(thuongHieu.getMaThuongHieu())) {
             throw new RuntimeException("Mã thương hiệu '" + maThuongHieuMoi + "' đã tồn tại!");
         }
 
-        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi) && !tenThuongHieuMoi.equals(thuongHieu.getTenThuongHieu())) {
+        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi)
+                && !tenThuongHieuMoi.equals(thuongHieu.getTenThuongHieu())) {
             throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
         }
 
         MapperUtils.mapToExisting(thuongHieuRequest, thuongHieu);
         thuongHieu.setNgaySua(LocalDateTime.now());
+
+        // 🔹 Cập nhật lại slug khi tên thương hiệu đổi
+        thuongHieu.setSlug(generateSlug(tenThuongHieuMoi));
 
         thuongHieuRepository.save(thuongHieu);
     }
@@ -78,10 +89,18 @@ public class ThuongHieuService {
         return new ThuongHieuResponse(thuongHieu);
     }
 
-    public PageableObject<ThuongHieuResponse>paging(Integer pageNo, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo-1, pageSize);
+    public PageableObject<ThuongHieuResponse> paging(Integer pageNo, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         Page<ThuongHieu> page = thuongHieuRepository.findAll(pageable);
         Page<ThuongHieuResponse> responses = page.map(ThuongHieuResponse::new);
         return new PageableObject<>(responses);
+    }
+
+    // 🧩 Hàm generateSlug tái sử dụng cho thêm/sửa
+    private String generateSlug(String tenThuongHieu) {
+        String slug = Normalizer.normalize(tenThuongHieu, Normalizer.Form.NFD);
+        slug = slug.replaceAll("\\p{M}", ""); // bỏ dấu tiếng Việt
+        slug = slug.toLowerCase().replaceAll("[^a-z0-9]+", "-"); // chỉ giữ chữ + số, thay khoảng trắng bằng "-"
+        return StringUtils.strip(slug, "-"); // bỏ dấu - ở đầu/cuối
     }
 }
