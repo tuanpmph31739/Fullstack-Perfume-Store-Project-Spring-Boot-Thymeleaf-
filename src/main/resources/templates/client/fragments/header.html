@@ -1,95 +1,115 @@
 <!-- File: templates/client/fragments/header.html -->
 <div th:fragment="header">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3 px-4">
-        <div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
+        <div class="container-fluid d-flex flex-column">
 
-            <!-- Nút toggle cho mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                    aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <!-- 🔹 Tầng 1: Logo + Search + Icon -->
+            <div class="d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
+                <!-- Logo -->
+                <a class="navbar-brand mx-lg-auto" th:href="@{/}">
+                    <img src="/images/logo-fperfume.png" alt="F Perfume" style="height: 80px; width: auto;">
+                </a>
 
-            <div class="collapse navbar-collapse justify-content-center align-items-center" id="mainNavbar">
-                <!-- 🔹 Hàng ngang chia 3 phần -->
-                <div class="d-flex w-100 justify-content-between align-items-center flex-nowrap main-nav-wrapper">
+                <!-- Thanh tìm kiếm -->
+                <form class="search-form d-none d-lg-flex align-items-center position-relative mx-auto flex-grow-1 px-4"
+                      th:action="@{/search}" method="get" style="max-width: 500px;">
+                    <input type="text" name="keyword" class="form-control search-input rounded-pill ps-3"
+                           placeholder="Tìm kiếm sản phẩm, thương hiệu..." />
+                    <button type="submit" class="btn position-absolute end-0 me-2 text-secondary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
 
-                    <!-- 🧭 MENU TRÁI -->
-                    <ul class="navbar-nav flex-row align-items-center gap-4 mx-auto mx-lg-0 order-1 order-lg-1">
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" th:href="@{/}">Trang chủ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
-                        </li>
-                        <!-- Dropdown cho Sản phẩm -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link fw-medium dropdown-toggle" href="#" id="sanPhamDropdown" role="button"
-                               aria-expanded="false" th:href="@{/san-pham}">Sản phẩm</a>
-                            <ul class="dropdown-menu" aria-labelledby="sanPhamDropdown">
-                                <!-- Placeholder: Thay bằng th:each nếu dynamic -->
-                                <li><a class="dropdown-item" th:href="@{/san-pham?loai=nam}">Nước hoa nam</a></li>
-                                <li><a class="dropdown-item" th:href="@{/san-pham?loai=nu}">Nước hoa nữ</a></li>
-                                <li><a class="dropdown-item" th:href="@{/san-pham?loai=unisex}">Nước hoa unisex</a></li>
-                                <li><a class="dropdown-item" th:href="@{/san-pham?loai=niche}">Nước hoa niche</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <!-- 💎 LOGO Ở GIỮA -->
-                    <a class="navbar-brand mx-auto order-2" th:href="@{/}">
-                        <img src="/images/logo-fperfume.png" alt="F Perfume" style="height: 80px; width: auto;">
+                <!-- Account + Cart -->
+                <div class="d-flex align-items-center gap-4">
+                    <a href="#" class="text-dark">
+                        <i class="bi bi-person fs-5"></i>
                     </a>
-
-                    <!-- 🌟 MENU PHẢI + ICON -->
-                    <div class="d-flex align-items-center gap-3 mx-auto mx-lg-0 order-3">
-
-                        <ul class="navbar-nav flex-row align-items-center gap-4 d-none d-lg-flex">
-                            <!-- Dropdown cho Thương hiệu -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link fw-medium dropdown-toggle" href="#" id="thuongHieuDropdown" role="button"
-                                   aria-expanded="false" th:href="@{/thuong-hieu}">Thương hiệu</a>
-                                <ul class="dropdown-menu" aria-labelledby="thuongHieuDropdown">
-                                    <!-- Placeholder: Thay bằng th:each nếu dynamic -->
-                                    <li><a class="dropdown-item" th:href="@{/thuong-hieu/dior}">Dior</a></li>
-                                    <li><a class="dropdown-item" th:href="@{/thuong-hieu/chanel}">Chanel</a></li>
-                                    <li><a class="dropdown-item" th:href="@{/thuong-hieu/gucci}">Gucci</a></li>
-                                    <li><a class="dropdown-item" th:href="@{/thuong-hieu/tom-ford}">Tom Ford</a></li>
-                                    <li><a class="dropdown-item" th:href="@{/thuong-hieu/creed}">Creed</a></li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-medium" th:href="@{/giam-gia}">Giảm giá</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-medium" th:href="@{/lien-he}">Liên hệ</a>
-                            </li>
-                        </ul>
-
-                        <!-- 🔍 Thanh tìm kiếm -->
-                        <form class="search-form d-none d-lg-flex align-items-center position-relative" th:action="@{/search}" method="get">
-                            <input type="text" name="keyword" class="form-control search-input"
-                                   placeholder="Tìm kiếm..." />
-                            <button type="submit" class="btn search-btn position-absolute end-0">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </form>
-
-                        <!-- 👤 Account -->
-                        <a href="#" class="text-dark">
-                            <i class="bi bi-person fs-5"></i>
-                        </a>
-
-                        <!-- 🛍️ Cart -->
-                        <a href="#" class="text-dark position-relative">
-                            <i class="bi bi-bag fs-5"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                3
-                            </span>
-                        </a>
-                    </div>
-
+                    <a href="#" class="text-dark position-relative">
+                        <i class="bi bi-bag fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            3
+                        </span>
+                    </a>
                 </div>
             </div>
+
+            <!-- 🔹 Tầng 2: Menu chính -->
+            <div class="navbar-collapse w-100">
+                <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
+                    </li>
+
+                    <!-- Dropdown Sản phẩm -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle" href="#" id="sanPhamDropdown" role="button"
+                           aria-expanded="false" th:href="@{/san-pham}">Sản phẩm</a>
+                        <ul class="dropdown-menu" aria-labelledby="sanPhamDropdown">
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nam}">Nước hoa nam</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nu}">Nước hoa nữ</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=unisex}">Nước hoa unisex</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=niche}">Nước hoa niche</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Dropdown Thương hiệu -->
+                    <li class="nav-item dropdown position-static hover-mega-dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle" th:href="@{/thuong-hieu}" id="thuongHieuDropdown" role="button"
+                           aria-expanded="false">Thương hiệu</a>
+                        <div class="dropdown-menu mega-menu shadow-lg border-0 mt-0 py-4"
+                             aria-labelledby="thuongHieuDropdown">
+                            <div class="container-fluid px-4">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu bán chạy</h6>
+                                        <div class="p-3 rounded-3 text-white hot-brand-list">
+                                            <ul class="list-unstyled mb-0">
+                                                <li th:each="brand : ${brandsHot}">
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}" th:text="${brand.tenThuongHieu}"
+                                                       class="text-white text-decoration-none d-block py-1"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-9">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu nước hoa</h6>
+                                        <div class="mb-3">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <a href="#" class="az-btn active">All</a>
+                                                <a href="#" class="az-btn"
+                                                   th:each="letter : ${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}"
+                                                   th:text="${letter}"></a>
+                                            </div>
+                                        </div>
+
+                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
+                                            <div class="col" th:each="brand : ${brands}">
+                                                <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                   th:text="${brand.tenThuongHieu}"
+                                                   class="d-block text-dark text-decoration-none brand-link"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/giam-gia}">Giảm giá</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/lien-he}">Liên hệ</a>
+                    </li>
+                </ul>
+            </div>
+
         </div>
     </nav>
 </div>

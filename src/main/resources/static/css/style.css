@@ -417,3 +417,138 @@ body {
         display: none; /* Tắt hover trên mobile để tránh lỗi */
     }
 }
+
+.featured-brands {
+    text-align: center;
+}
+
+
+/* Lưới thương hiệu */
+.brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.5rem; /* giảm khoảng cách giữa các ô */
+    justify-items: center;
+    align-items: center;
+}
+
+/* Ô logo */
+.brand-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #fff;
+    padding: 50px 25px; /* tăng padding để logo có không gian thoáng */
+    transition: all 0.3s ease;
+    height: 240px; /* Ô cao hơn rõ rệt */
+    width: 100%;
+}
+
+.brand-item img {
+    max-width: 100%; /* logo chiếm gần hết chiều ngang ô */
+    max-height: 160px; /* logo cao lớn hơn hẳn */
+    object-fit: contain;
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+}
+
+.brand-item:hover {
+    border-color: #ccc;
+    transform: translateY(-6px);
+}
+
+.brand-item:hover img {
+    filter: none;
+}
+@media (max-width: 768px) {
+    .brand-item {
+        height: 160px;
+        padding: 30px 15px;
+    }
+
+    .brand-item img {
+        max-height: 100px;
+    }
+}
+
+/* Hiển thị dropdown khi hover */
+.hover-mega-dropdown:hover .mega-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mega-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.25s ease-in-out;
+
+    /* 🔹 Kích thước linh hoạt */
+    width: 90vw;                  /* chiếm 90% chiều ngang màn hình */
+    max-width: 1000px;            /* không vượt quá 1000px */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+
+    border-radius: 0 0 16px 16px;
+    background: #fff;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem 2rem;
+}
+
+/* Cột bên trái */
+.hot-brand-list {
+    background-color: #b79a82;
+}
+
+/* A-Z filter */
+.az-btn {
+    display: inline-block;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #444;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.az-btn:hover,
+.az-btn.active {
+    background-color: #b79a82;
+    color: #fff;
+    border-color: #b79a82;
+}
+
+/* Thương hiệu */
+.brand-link {
+    padding: 2px 0;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.brand-link:hover {
+    color: #b79a82;
+    text-decoration: underline;
+}
+
+/* 📱 Responsive cho màn nhỏ */
+@media (max-width: 992px) {
+    .mega-menu {
+        width: 100vw;             /* chiếm toàn bộ màn hình */
+        max-width: 100%;          /* không giới hạn chiều rộng */
+        left: 0;                  /* căn lề trái */
+        transform: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 1rem;
+    }
+}
+
+
+

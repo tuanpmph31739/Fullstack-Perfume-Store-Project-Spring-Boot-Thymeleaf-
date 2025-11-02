@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -21,24 +19,25 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
     @Autowired
     private CustomSuccessHandler customSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomSuccessHandler customSuccessHandler) throws Exception {
-        http
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
-                                        "/", "/home",               // trang chủ
+                                        "/**", "/home", "/thuong-hieu/**",   // <-- cho phép tất cả đường dẫn con
                                         "/login", "/register", "/verify",
                                         "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico"
                                 ).permitAll()
-                        .requestMatchers("/admin/**").permitAll().anyRequest().authenticated()
+                                .requestMatchers("/admin/**").permitAll().anyRequest().authenticated()
 //                        .hasRole("ADMIN")
 //                        .anyRequest().authenticated()
                 )
@@ -52,13 +51,16 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 )
-                .userDetailsService(customUserDetailsService);
+
+                .userDetailsService(customUserDetailsService)
+
+                // ✅ Quan trọng: tắt CSRF nếu bạn chỉ test local hoặc API không post form
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
