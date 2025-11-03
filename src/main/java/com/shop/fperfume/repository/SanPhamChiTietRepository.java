@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, Long> {
+public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, Integer> {
 
     @Query("SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN FETCH spct.sanPham sp " +
             "LEFT JOIN FETCH spct.dungTich dt " +
             "LEFT JOIN FETCH spct.nongDo nd " +
             "WHERE spct.id = :id")
-    Optional<SanPhamChiTiet> findByIdFetchingRelationships(@Param("id") Long id);
+    Optional<SanPhamChiTiet> findByIdFetchingRelationships(@Param("id") Integer id);
 
     @Query("SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN FETCH spct.sanPham sp " +
@@ -39,7 +39,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "LEFT JOIN FETCH spct.dungTich dt " +
             "LEFT JOIN FETCH spct.nongDo nd " +
             "WHERE sp.id = :sanPhamId")
-    List<SanPhamChiTiet> findBySanPhamIdFetchingRelationships(@Param("sanPhamId") Long sanPhamId);
+    List<SanPhamChiTiet> findBySanPhamIdFetchingRelationships(@Param("sanPhamId") Integer sanPhamId);
 
     Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
 
@@ -68,9 +68,9 @@ SELECT spct FROM SanPhamChiTiet spct
 WHERE spct.sanPham.id = :idSanPham
   AND spct.dungTich.soMl = :soMl
 """)
-    Optional<SanPhamChiTiet> findFirstBySanPhamIdAndDungTich_SoMl(Long idSanPham, Integer soMl);
+    Optional<SanPhamChiTiet> findFirstBySanPhamIdAndDungTich_SoMl(Integer idSanPham, Integer soMl);
 
-    List<SanPhamChiTiet> findBySanPham_IdOrderByDungTich_SoMlAsc(Long idSanPham);
+    List<SanPhamChiTiet> findBySanPham_IdOrderByDungTich_SoMlAsc(Integer idSanPham);
 
 
 }

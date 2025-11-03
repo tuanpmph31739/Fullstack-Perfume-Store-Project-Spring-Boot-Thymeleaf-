@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class SanPhamChiTietResponse {
 
-    private Long id;
+    private Integer id;
     private String maSKU;
     private Integer soLuongTon;
     private BigDecimal giaNhap;
@@ -21,7 +21,7 @@ public class SanPhamChiTietResponse {
     private String hinhAnh;
     private Boolean trangThai;
 
-    private Long idSanPham;
+    private Integer idSanPham;
     private String tenSanPham;
     private String moTa;  // Thêm MoTa vào DTO
 

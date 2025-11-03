@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class SanPhamChiTiet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "MaSKU")
     private String maSKU;

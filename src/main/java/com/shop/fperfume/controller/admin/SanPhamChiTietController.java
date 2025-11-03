@@ -89,7 +89,7 @@ public class SanPhamChiTietController {
      * === SỬA LẠI HÀM NÀY ĐỂ DÙNG MAPPERUTILS ===
      */
     @GetMapping("/edit/{id}")
-    public String viewEdit(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String viewEdit(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             // 1. Lấy Response DTO
             SanPhamChiTietResponse responseDto = sanPhamChiTietService.getById(id);
@@ -116,7 +116,7 @@ public class SanPhamChiTietController {
      * (Hàm update giữ nguyên như trước, đã bao gồm Validation)
      */
     @PostMapping("/update/{id}")
-    public String update(@PathVariable("id") Long id,
+    public String update(@PathVariable("id") Integer id,
                          @Valid @ModelAttribute("sanPhamChiTietRequest") SanPhamChiTietRequest request,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes,
@@ -158,13 +158,13 @@ public class SanPhamChiTietController {
     }
 
     @GetMapping("/view/{id}")
-    public String view(@PathVariable Long id, Model model) {
+    public String view(@PathVariable Integer id, Model model) {
         model.addAttribute("sanPhamChiTietResponse", sanPhamChiTietService.getById(id));
         return "admin/san_pham_chi_tiet/view";
     }
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
         try {
             sanPhamChiTietService.deleteSanPhamChiTiet(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa chi tiết sản phẩm thành công!");

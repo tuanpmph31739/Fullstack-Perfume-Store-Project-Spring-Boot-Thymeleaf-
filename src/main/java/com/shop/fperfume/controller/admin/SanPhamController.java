@@ -104,7 +104,7 @@ public class SanPhamController {
 
 
     @GetMapping("/edit/{id}")
-    public String viewEdit(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String viewEdit(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             // 1. Lấy Entity (Cần SanPhamService có hàm findEntityById)
             SanPhamResponse entity = sanPhamService.getById(id);
@@ -161,7 +161,7 @@ public class SanPhamController {
     // Trong SanPhamController.java
 
     @GetMapping("/view/{id}")
-    public String view(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String view(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         // Khối try-catch này là BẮT BUỘC
         try {
             SanPhamResponse sanPham = sanPhamService.getById(id); // Nếu ID sai, hàm này sẽ ném Exception

@@ -137,8 +137,8 @@ public class SanPhamService {
         sanPhamRepository.deleteById(id);
     }
 
-    public SanPhamResponse getById(Long id) {
-        SanPham sanPham = sanPhamRepository.findById(id)
+    public SanPhamResponse getById(Integer id) {
+        SanPham sanPham = sanPhamRepository.findById(Long.valueOf(id))
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
         return new SanPhamResponse(sanPham);
     }
