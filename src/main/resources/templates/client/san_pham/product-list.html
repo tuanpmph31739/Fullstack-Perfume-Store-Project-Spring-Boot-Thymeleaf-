@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="client/fragments/head :: head"></head>
+<body>
+
+<!-- Header -->
+<div th:replace="client/fragments/header :: header"></div>
+
+<!-- Product List Section -->
+<section class="container-fluid my-5 product-list">
+    <div class="row">
+        <!-- Sidebar for filters -->
+        <div th:replace="client/fragments/sidebar :: productFilters(
+                   ${brands},
+                   ${selectedBrands},
+                   ${selectedGender},
+                   ${minPrice},
+                   ${maxPrice}
+                 )">
+        </div>
+
+
+        <!-- Product Grid Section -->
+        <div class="col-md-9">
+            <div class="product-grid">
+                <div class="product-item" th:each="sp : ${sanPhams}">
+                    <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                        <div class="card product-card text-center">
+                            <div class="product-img-wrapper">
+                                <img th:if="${sp.hinhAnh != null}"
+                                     th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                     alt="Ảnh sản phẩm">
+                            </div>
+                            <div class="product-info">
+                                <h6 class="product-name">
+                                    <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                       th:text="${sp.tenSanPham ?: '---'}"></a>
+                                </h6>
+                                <p class="product-price"
+                                   th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <nav class="mt-4" th:if="${totalPages > 1}">
+                <ul class="pagination justify-content-center">
+
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/san-pham/all(page=${currentPage - 1}, size=${pageSize})}">
+                            Prev
+                        </a>
+                    </li>
+
+                    <li class="page-item" th:each="p : ${pageNumbers}"
+                        th:classappend="${p == currentPage} ? 'active'">
+                        <a class="page-link"
+                           th:text="${p}"
+                           th:href="@{/san-pham/all(page=${p}, size=${pageSize})}"></a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/san-pham/all(page=${currentPage + 1}, size=${pageSize})}">
+                            Next
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<div th:replace="client/fragments/footer :: footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function updatePriceRange() {
+        const rangeValue = document.getElementById('priceRange').value;
+        document.getElementById('priceRangeValue').innerText = rangeValue;
+    }
+</script>
+
+</body>
+</html>

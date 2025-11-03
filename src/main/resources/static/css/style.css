@@ -180,14 +180,14 @@ body {
 }
 
 /* 🖼️ Product image */
-.product-img-wrapper {
+.featured-products .product-img-wrapper {
     width: 100%;
     padding-top: 100%;
     position: relative;
     overflow: hidden;
 }
 
-.product-img-wrapper img {
+.featured-products .product-img-wrapper img {
     position: absolute;
     top: 0;
     left: 0;
@@ -197,7 +197,7 @@ body {
     transition: transform var(--transition-fast);
 }
 
-.product-card:hover img {
+.featured-products .product-card:hover img {
     transform: scale(1.05);
 }
 
@@ -211,12 +211,12 @@ body {
     transition: color var(--transition-fast);
 }
 
-.brand-name a:hover {
+.featured-products .brand-name a:hover {
     color: var(--color-hover);
 }
 
 /* 📦 Product name - LINH HOẠT THEO MÀN HÌNH */
-.product-name a {
+.featured-products .product-name a {
     font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.15rem);
     color: var(--color-text);
     font-weight: 500;

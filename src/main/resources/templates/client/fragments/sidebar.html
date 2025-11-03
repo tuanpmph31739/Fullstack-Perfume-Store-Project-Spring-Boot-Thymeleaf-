@@ -1,0 +1,87 @@
+<!-- client/fragments/filter-sidebar.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Fragment nhận tham số: brands, selectedBrands, selectedGender, minPrice, maxPrice -->
+<div class="col-md-3" th:fragment="productFilters(brands, selectedBrands, selectedGender, minPrice, maxPrice)">
+    <div class="filter-box">
+        <h5>Lọc sản phẩm</h5>
+
+        <!-- NÊN bọc trong form (GET) để giữ trạng thái filter khi chuyển trang -->
+        <form th:action="@{/san-pham/all}" method="get">
+
+            <!-- Filter Brand -->
+            <div class="filter-category">
+                <h6>Thương hiệu</h6>
+                <ul class="list-unstyled mb-2">
+                    <li th:each="brand : ${brands}">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="checkbox"
+                                   name="brand"
+                                   th:value="${brand.id}"
+                                   th:checked="${selectedBrands != null} ? ${selectedBrands.contains(brand.id)} : false">
+                            <span th:text="${brand.name}">Brand name</span>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Filter Gender -->
+            <div class="filter-gender">
+                <h6>Giới tính</h6>
+                <label class="d-block">
+                    <input type="radio" name="gender" value="" th:checked="${selectedGender} == null or ${selectedGender} == ''"> Tất cả
+                </label>
+                <label class="d-block">
+                    <input type="radio" name="gender" value="nam" th:checked="${selectedGender} == 'nam'"> Nam
+                </label>
+                <label class="d-block">
+                    <input type="radio" name="gender" value="nu" th:checked="${selectedGender} == 'nu'"> Nữ
+                </label>
+                <label class="d-block">
+                    <input type="radio" name="gender" value="unisex" th:checked="${selectedGender} == 'unisex'"> Unisex
+                </label>
+            </div>
+
+            <!-- Filter Price -->
+            <div class="filter-price mt-3">
+                <h6>Khoảng giá</h6>
+                <input type="range"
+                       min="0" max="5000000" step="50000"
+                       th:value="${minPrice != null} ? ${minPrice} : 0"
+                       id="priceRange"
+                       oninput="document.getElementById('priceRangeValue').innerText = this.value">
+                <div class="small">
+                    <span id="priceRangeValue" th:text="${minPrice != null} ? ${minPrice} : 0">0</span> ₫
+                </div>
+                <!-- Truyền minPrice qua query -->
+                <input type="hidden" name="min" th:value="${minPrice != null} ? ${minPrice} : 0">
+                <!-- Nếu cần maxPrice, thêm input tương tự -->
+                <input type="hidden" name="max" th:value="${maxPrice != null} ? ${maxPrice} : 0">
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Áp dụng</button>
+                <a class="btn btn-outline-secondary btn-sm" th:href="@{/san-pham/all}">Xóa lọc</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Đồng bộ giá trị range vào hidden input min
+        (function () {
+            const range = document.getElementById('priceRange');
+            if (!range) return;
+            const hiddenMin = document.querySelector('input[name="min"]');
+            const label = document.getElementById('priceRangeValue');
+            const sync = () => {
+                if (hiddenMin) hiddenMin.value = range.value;
+                if (label) label.innerText = range.value;
+            };
+            range.addEventListener('input', sync);
+            sync();
+        })();
+    </script>
+</div>
+</body>
+</html>
