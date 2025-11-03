@@ -60,7 +60,7 @@ public class GiamGiaService {
 
     // Cập nhật giảm giá
     @Transactional
-    public void updateGiamGia(Long id, GiamGiaRequest giamGiaRequest) {
+    public void updateGiamGia(Integer id, GiamGiaRequest giamGiaRequest) {
         GiamGia giamGia = giamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá với ID: " + id));
 
@@ -86,13 +86,13 @@ public class GiamGiaService {
 
     // Xóa giảm giá
     @Transactional
-    public void deleteGiamGia(Long id) {
+    public void deleteGiamGia(Integer id) {
         giamGiaRepository.deleteById(id);
     }
 
     // Lấy giảm giá theo ID
     @Transactional
-    public GiamGiaResponse getGiamGiaById(Long id) {
+    public GiamGiaResponse getGiamGiaById(Integer id) {
         GiamGia giamGia = giamGiaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá với ID: " + id));
         return new GiamGiaResponse(giamGia);

@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 public class GiamGiaResponse {
 
-    private Long id;             // Đồng bộ với entity
+    private Integer id;           // Entity GiamGia thường dùng Integer cho id
     private String ma;
     private String ten;
     private String loaiGiam;
@@ -20,10 +20,9 @@ public class GiamGiaResponse {
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
     private Integer trangThai;
-    private Integer idSanPham;
+    private Integer idSanPham;       // Đổi sang Long để đồng bộ với SanPham entity
     private String tenSanPham;
 
-    // Constructor nhận entity GiamGia
     public GiamGiaResponse(GiamGia giamGia) {
         this.id = giamGia.getId();
         this.ma = giamGia.getMa();
@@ -37,7 +36,7 @@ public class GiamGiaResponse {
 
         if (giamGia.getSanPham() != null) {
             this.idSanPham = giamGia.getSanPham().getId();
-            this.tenSanPham = giamGia.getSanPham().getTenNuocHoa(); // hoặc getTenNuocHoa() nếu bạn dùng tên đó
+            this.tenSanPham = giamGia.getSanPham().getTenNuocHoa(); // đổi đúng theo entity
         }
     }
 }
