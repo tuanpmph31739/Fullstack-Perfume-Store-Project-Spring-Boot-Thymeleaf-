@@ -1,16 +1,12 @@
-<!-- File: templates/client/fragments/header.html -->
 <div th:fragment="header">
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
         <div class="container-fluid d-flex flex-column">
 
-            <!-- 🔹 Tầng 1: Logo + Search + Icon -->
             <div class="d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
-                <!-- Logo -->
                 <a class="navbar-brand mx-lg-auto" th:href="@{/}">
                     <img src="/images/logo-fperfume.png" alt="F Perfume" style="height: 80px; width: auto;">
                 </a>
 
-                <!-- Thanh tìm kiếm -->
                 <form class="search-form d-none d-lg-flex align-items-center position-relative mx-auto flex-grow-1 px-4"
                       th:action="@{/search}" method="get" style="max-width: 500px;">
                     <input type="text" name="keyword" class="form-control search-input rounded-pill ps-3"
@@ -20,21 +16,22 @@
                     </button>
                 </form>
 
-                <!-- Account + Cart -->
                 <div class="d-flex align-items-center gap-4">
-                    <a href="#" class="text-dark">
+                    <a th:href="@{/account}" class="text-dark">
                         <i class="bi bi-person fs-5"></i>
                     </a>
-                    <a href="#" class="text-dark position-relative">
+
+                    <a th:href="@{/cart}" class="text-dark position-relative">
                         <i class="bi bi-bag fs-5"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            3
-                        </span>
+
+                        <span id="cart-item-count"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              th:text="${session.cartSize != null ? session.cartSize : 0}">
+                             0 </span>
                     </a>
                 </div>
             </div>
 
-            <!-- 🔹 Tầng 2: Menu chính -->
             <div class="navbar-collapse w-100">
                 <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
 
@@ -45,7 +42,6 @@
                         <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
                     </li>
 
-                    <!-- Dropdown Sản phẩm -->
                     <li class="nav-item dropdown">
                         <a class="nav-link fw-medium dropdown-toggle" href="#" id="sanPhamDropdown" role="button"
                            aria-expanded="false" th:href="@{/san-pham}">Sản phẩm</a>
@@ -57,7 +53,6 @@
                         </ul>
                     </li>
 
-                    <!-- Dropdown Thương hiệu -->
                     <li class="nav-item dropdown position-static hover-mega-dropdown">
                         <a class="nav-link fw-medium dropdown-toggle" th:href="@{/thuong-hieu}" id="thuongHieuDropdown" role="button"
                            aria-expanded="false">Thương hiệu</a>
