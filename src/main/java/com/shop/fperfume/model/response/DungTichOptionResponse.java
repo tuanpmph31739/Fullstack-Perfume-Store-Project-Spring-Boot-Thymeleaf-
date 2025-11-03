@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DungTichOptionResponse {
-    private Long idSpct;        // id biến thể
+    private Integer idSpct;        // id biến thể
     private Integer soMl;       // dung tích
     private BigDecimal giaBan;  // giá của biến thể
 }

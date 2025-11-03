@@ -36,7 +36,7 @@ public class GiamGiaResponse {
         this.trangThai = giamGia.getTrangThai();
 
         if (giamGia.getSanPham() != null) {
-            this.idSanPham = giamGia.getSanPham().getId();
+            this.idSanPham = Long.valueOf(giamGia.getSanPham().getId());
             this.tenSanPham = giamGia.getSanPham().getTenNuocHoa(); // hoặc getTenNuocHoa() nếu bạn dùng tên đó
         }
     }

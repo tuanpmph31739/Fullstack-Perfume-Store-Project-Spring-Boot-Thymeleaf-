@@ -4,7 +4,6 @@ import com.shop.fperfume.entity.SanPhamChiTiet;
 import com.shop.fperfume.model.response.DungTichOptionResponse;
 import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.repository.SanPhamChiTietRepository;
-import com.shop.fperfume.util.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,7 @@ public class SanPhamClientService {
                 .toList();
     }
 
-    public SanPhamChiTietResponse getById(Long id) {
+    public SanPhamChiTietResponse getById(Integer id) {
         // Lấy thông tin sản phẩm chi tiết và các mối quan hệ liên quan
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
                 .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + id));
@@ -40,11 +39,11 @@ public class SanPhamClientService {
     }
 
     // Lấy giá của sản phẩm theo dung tích
-    public Optional<SanPhamChiTiet> getBySanPhamAndSoMl(Long idSanPham, Integer soMl) {
+    public Optional<SanPhamChiTiet> getBySanPhamAndSoMl(Integer idSanPham, Integer soMl) {
         return sanPhamChiTietRepository.findFirstBySanPhamIdAndDungTich_SoMl(idSanPham, soMl);
     }
 
-    public List<DungTichOptionResponse> getDungTichOptions(Long idSanPham) {
+    public List<DungTichOptionResponse> getDungTichOptions(Integer idSanPham) {
         return sanPhamChiTietRepository.findBySanPham_IdOrderByDungTich_SoMlAsc(idSanPham)
                 .stream()
                 .map(ct -> new DungTichOptionResponse(ct.getId(), ct.getDungTich().getSoMl(), ct.getGiaBan()))

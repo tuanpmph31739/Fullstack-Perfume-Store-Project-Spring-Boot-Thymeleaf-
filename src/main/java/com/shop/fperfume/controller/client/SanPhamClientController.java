@@ -21,7 +21,7 @@ public class SanPhamClientController {
     private SanPhamClientService sanPhamClientService;
 
     @GetMapping("/{id}")
-    public String viewProduct(@PathVariable Long id, Model model) {
+    public String viewProduct(@PathVariable Integer id, Model model) {
         SanPhamChiTietResponse spct = sanPhamClientService.getById(id);
         if (spct == null) return "redirect:/san-pham";
 
@@ -41,7 +41,7 @@ public class SanPhamClientController {
 
     @GetMapping("/{idSanPham}/gia")
     @ResponseBody
-    public ResponseEntity<?> getProductPrice(@PathVariable Long idSanPham, @RequestParam Integer soMl) {
+    public ResponseEntity<?> getProductPrice(@PathVariable Integer idSanPham, @RequestParam Integer soMl) {
         Optional<SanPhamChiTiet> sanPhamChiTiet = sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
         if (sanPhamChiTiet.isPresent()) {
             SanPhamChiTiet ct = sanPhamChiTiet.get();
