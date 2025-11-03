@@ -11,55 +11,75 @@
 
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-    <form th:action="@{/admin/giam-gia/edit/{id}(id=${giamGiaRequest.id})}" th:object="${giamGiaRequest}" method="post">
+    <form th:action="@{/admin/giam-gia/edit/{id}(id=${giamGiaRequest.id})}"
+          th:object="${giamGiaRequest}" method="post">
+
         <div class="mb-3">
             <label>Mã giảm giá</label>
             <input type="text" th:field="*{ma}" class="form-control" required>
         </div>
+
         <div class="mb-3">
             <label>Tên giảm giá</label>
-            <input type="text" th:field="*{ten}" class="form-control">
+            <input type="text" th:field="*{ten}" class="form-control" required>
         </div>
+
         <div class="mb-3">
             <label>Loại giảm</label>
-            <select th:field="*{loaiGiam}" class="form-select">
+            <select th:field="*{loaiGiam}" class="form-select" required>
                 <option value="PERCENT" th:selected="${giamGiaRequest.loaiGiam == 'PERCENT'}">Phần trăm</option>
                 <option value="AMOUNT" th:selected="${giamGiaRequest.loaiGiam == 'AMOUNT'}">Số tiền</option>
             </select>
         </div>
+
         <div class="mb-3">
             <label>Giá trị</label>
             <input type="number" step="0.01" th:field="*{giaTri}" class="form-control" required>
         </div>
+
         <div class="mb-3">
             <label>Số lượng</label>
-            <input type="number" th:field="*{soLuong}" class="form-control" required>
+            <input type="number" th:field="*{soLuong}" class="form-control" min="0" required>
         </div>
+
+        <!-- LocalDate hiển thị đúng trong input type="date" -->
         <div class="mb-3">
             <label>Ngày bắt đầu</label>
-            <input type="date" th:field="*{ngayBatDau}" class="form-control">
+            <input type="date" class="form-control"
+                   th:field="*{ngayBatDau}"
+                   th:value="${giamGiaRequest.ngayBatDau != null} ? ${giamGiaRequest.ngayBatDau} : ''">
         </div>
+
         <div class="mb-3">
             <label>Ngày kết thúc</label>
-            <input type="date" th:field="*{ngayKetThuc}" class="form-control">
+            <input type="date" class="form-control"
+                   th:field="*{ngayKetThuc}"
+                   th:value="${giamGiaRequest.ngayKetThuc != null} ? ${giamGiaRequest.ngayKetThuc} : ''">
         </div>
+
         <div class="mb-3">
             <label>Trạng thái</label>
-            <select th:field="*{trangThai}" class="form-select">
+            <select th:field="*{trangThai}" class="form-select" required>
                 <option value="1" th:selected="${giamGiaRequest.trangThai == 1}">Hoạt động</option>
                 <option value="0" th:selected="${giamGiaRequest.trangThai == 0}">Ngưng hoạt động</option>
             </select>
         </div>
+
         <div class="mb-3">
             <label>Sản phẩm áp dụng</label>
             <select th:field="*{idSanPham}" class="form-select">
-                <option th:value="" th:selected="${giamGiaRequest.idSanPham == null}">Toàn cửa hàng</option>
-                <option th:each="sp : ${sanPhams}" th:value="${sp.id}" th:text="${sp.ten}"
-                        th:selected="${giamGiaRequest.idSanPham == sp.id}"></option>
+                <option value="0" th:text="'Toàn cửa hàng'" th:selected="${giamGiaRequest.idSanPham == null}"></option>
+                <option th:each="sp : ${sanPhams}"
+                        th:value="${sp.id}"
+                        th:text="${sp.tenNuocHoa}"
+                        th:selected="${giamGiaRequest.idSanPham == sp.id}">
+                </option>
             </select>
         </div>
-        <button class="btn btn-success" type="submit">Cập nhật</button>
+
+        <button type="submit" class="btn btn-success">Cập nhật</button>
         <a th:href="@{/admin/giam-gia}" class="btn btn-secondary">Hủy</a>
+
     </form>
 </div>
 </body>

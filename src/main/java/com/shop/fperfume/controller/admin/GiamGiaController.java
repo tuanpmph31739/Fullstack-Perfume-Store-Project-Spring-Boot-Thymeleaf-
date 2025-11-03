@@ -51,7 +51,7 @@ public class GiamGiaController {
 
     // Trang chỉnh sửa
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String editForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             GiamGiaResponse giamGiaResponse = giamGiaService.getGiamGiaById(id);
             model.addAttribute("giamGiaRequest", giamGiaResponse);
@@ -65,7 +65,7 @@ public class GiamGiaController {
 
     // Xử lý cập nhật
     @PostMapping("/edit/{id}")
-    public String updateGiamGia(@PathVariable Long id,
+    public String updateGiamGia(@PathVariable Integer id,
                                 @ModelAttribute GiamGiaRequest giamGiaRequest,
                                 RedirectAttributes redirectAttributes) {
         try {
@@ -80,7 +80,7 @@ public class GiamGiaController {
 
     // Xóa giảm giá
     @GetMapping("/delete/{id}")
-    public String deleteGiamGia(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteGiamGia(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
             giamGiaService.deleteGiamGia(id);
             redirectAttributes.addFlashAttribute("success", "Xóa giảm giá thành công!");

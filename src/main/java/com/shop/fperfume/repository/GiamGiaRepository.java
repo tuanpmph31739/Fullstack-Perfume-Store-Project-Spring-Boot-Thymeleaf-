@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface GiamGiaRepository extends JpaRepository<GiamGia, Long> {
+public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
 
     // Tìm giảm giá theo mã
     Optional<GiamGia> findByMa(String ma);

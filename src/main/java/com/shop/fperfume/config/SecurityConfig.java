@@ -37,7 +37,7 @@
 //                        .requestMatchers(
 //                                "/", "/home", "/thuong-hieu/**", "/san-pham/**", // Sửa: Thêm /san-pham/**
 //                                "/login", "/register", "/verify",
-//                                "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico"
+//                                "/css/**", "/js/**", "/images/**", "/webjars/**"
 //                        ).permitAll()
 //
 //                        // 2. Trang Admin (Chỉ ADMIN)
