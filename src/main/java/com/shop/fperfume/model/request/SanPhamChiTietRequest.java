@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @Getter
 public class SanPhamChiTietRequest {
 
-    private Long id;
+    private Integer id;
 
     @NotBlank(message = "Mã SKU không được để trống")
     private String maSKU;
@@ -41,7 +41,7 @@ public class SanPhamChiTietRequest {
     private Boolean trangThai;
 
     @NotNull(message = "Vui lòng chọn sản phẩm")
-    private Long idSanPham;
+    private Integer idSanPham;
 
     @NotNull(message = "Vui lòng chọn dung tích")
     private Long idDungTich;

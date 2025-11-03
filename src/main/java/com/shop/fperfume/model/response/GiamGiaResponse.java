@@ -20,7 +20,7 @@ public class GiamGiaResponse {
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
     private Integer trangThai;
-    private Long idSanPham;
+    private Integer idSanPham;
     private String tenSanPham;
 
     // Constructor nhận entity GiamGia
@@ -36,7 +36,7 @@ public class GiamGiaResponse {
         this.trangThai = giamGia.getTrangThai();
 
         if (giamGia.getSanPham() != null) {
-            this.idSanPham = Long.valueOf(giamGia.getSanPham().getId());
+            this.idSanPham = giamGia.getSanPham().getId();
             this.tenSanPham = giamGia.getSanPham().getTenNuocHoa(); // hoặc getTenNuocHoa() nếu bạn dùng tên đó
         }
     }

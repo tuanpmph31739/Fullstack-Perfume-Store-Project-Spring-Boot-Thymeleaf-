@@ -51,7 +51,7 @@ public class NguoiDung {
     private String verificationCode;
 
     @Column(name = "Enabled")
-    private boolean enabled = false;
+    private Boolean enabled = false;
 
     @Column(name = "TrangThai", nullable = false)
     private Boolean trangThai = true;

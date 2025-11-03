@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 public class SanPhamRequest {
 
-    private Long id;
+    private Integer id;
 
     @NotBlank(message = "Tên nước hoa không được để trống")
     private String tenNuocHoa;

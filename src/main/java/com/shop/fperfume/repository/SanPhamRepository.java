@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
+public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     Optional<SanPham> findByTenNuocHoa(String tenNuocHoa);
 
     @Query("""
