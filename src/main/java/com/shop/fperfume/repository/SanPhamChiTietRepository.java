@@ -72,5 +72,37 @@ WHERE spct.sanPham.id = :idSanPham
 
     List<SanPhamChiTiet> findBySanPham_IdOrderByDungTich_SoMlAsc(Integer idSanPham);
 
+    // ✅ Lấy 1 biến thể đại diện cho mỗi sản phẩm (id nhỏ nhất)
+    @Query("""
+        SELECT DISTINCT spct FROM SanPhamChiTiet spct
+        JOIN FETCH spct.sanPham sp
+        LEFT JOIN FETCH sp.thuongHieu th
+        LEFT JOIN FETCH spct.dungTich dt
+        LEFT JOIN FETCH spct.nongDo nd
+        WHERE spct.id IN (
+            SELECT MIN(ct2.id)
+            FROM SanPhamChiTiet ct2
+            GROUP BY ct2.sanPham.id
+        )
+    """)
+    List<SanPhamChiTiet> findAllSanPhamChiTiet();
+
+    // ✅ Nếu muốn hỗ trợ phân trang
+    @Query(
+            value = """
+        SELECT spct FROM SanPhamChiTiet spct
+        JOIN spct.sanPham sp
+        WHERE spct.id IN (
+            SELECT MIN(ct2.id)
+            FROM SanPhamChiTiet ct2
+            GROUP BY ct2.sanPham.id
+        )
+      """,
+            countQuery = """
+        SELECT COUNT(DISTINCT spct.sanPham.id)
+        FROM SanPhamChiTiet spct
+      """
+    )
+    Page<SanPhamChiTiet> findAllSanPhamChiTiet(Pageable pageable);
 
 }

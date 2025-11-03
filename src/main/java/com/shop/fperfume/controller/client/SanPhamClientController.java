@@ -4,12 +4,12 @@ import com.shop.fperfume.entity.SanPhamChiTiet;
 import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.service.client.SanPhamClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,6 +54,33 @@ public class SanPhamClientController {
             return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy biến thể theo dung tích"));
         }
     }
+
+    @GetMapping("/all")
+    public String listAllProducts(
+            Model model,
+            @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
+            @RequestParam(name = "size", defaultValue = "15") Integer pageSize
+    ) {
+        int pageIndex = Math.max(pageNo - 1, 0);
+
+        var pageData = sanPhamClientService.pageAll(pageIndex, pageSize);
+
+        model.addAttribute("sanPhams", pageData.getContent());
+        model.addAttribute("currentPage", pageData.getNumber() + 1);
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("totalItems", pageData.getTotalElements());
+
+        // Show dãy số trang (1..N)
+        if (pageData.getTotalPages() > 0) {
+            List<Integer> pageNumbers = new java.util.ArrayList<>();
+            for (int i = 1; i <= pageData.getTotalPages(); i++) pageNumbers.add(i);
+            model.addAttribute("pageNumbers", pageNumbers);
+        }
+
+        return "client/san_pham/product-list";
+    }
+
 
 }
 
