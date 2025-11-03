@@ -27,122 +27,122 @@ PRINT 'Bat dau tao cac bang...';
 
 -- Bảng Cấp 1 (Không phụ thuộc)
 CREATE TABLE NguoiDung (
-    Id BIGINT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    HoTen NVARCHAR(100),
-    Email NVARCHAR(100) NOT NULL UNIQUE,
-    MatKhau NVARCHAR(255) NOT NULL,
-    GioiTinh INT NULL,
-    NgaySinh DATE NULL,
-    DiaChi NVARCHAR(255) NULL,
-    Sdt NVARCHAR(20) NULL,
-    VaiTro NVARCHAR(20) NOT NULL DEFAULT N'KHACHHANG',
-    TrangThai BIT NOT NULL DEFAULT 1,
-    CONSTRAINT CHK_VaiTro CHECK (VaiTro IN (N'ADMIN', N'NHANVIEN', N'KHACHHANG'))
+                           Id BIGINT PRIMARY KEY IDENTITY(1,1),
+                           Ma NVARCHAR(20) UNIQUE,
+                           HoTen NVARCHAR(100),
+                           Email NVARCHAR(100) NOT NULL UNIQUE,
+                           MatKhau NVARCHAR(255) NOT NULL,
+                           GioiTinh INT NULL,
+                           NgaySinh DATE NULL,
+                           DiaChi NVARCHAR(255) NULL,
+                           Sdt NVARCHAR(20) NULL,
+                           VaiTro NVARCHAR(20) NOT NULL DEFAULT N'KHACHHANG',
+                           TrangThai BIT NOT NULL DEFAULT 1,
+                           CONSTRAINT CHK_VaiTro CHECK (VaiTro IN (N'ADMIN', N'NHANVIEN', N'KHACHHANG'))
 );
 PRINT N'Bảng NguoiDung đã được tạo.';
 GO
 
 CREATE TABLE ThuongHieu (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    Ten NVARCHAR(100),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                            Id INT PRIMARY KEY IDENTITY(1,1),
+                            Ma NVARCHAR(20) UNIQUE,
+                            Ten NVARCHAR(100),
+                            NgayTao DATETIME2 DEFAULT GETDATE(),
+                            NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE XuatXu (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    Ten NVARCHAR(100),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                        Id INT PRIMARY KEY IDENTITY(1,1),
+                        Ma NVARCHAR(20) UNIQUE,
+                        Ten NVARCHAR(100),
+                        NgayTao DATETIME2 DEFAULT GETDATE(),
+                        NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE DungTich (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    SoMl INT,
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                          Id INT PRIMARY KEY IDENTITY(1,1),
+                          Ma NVARCHAR(20) UNIQUE,
+                          SoMl INT,
+                          NgayTao DATETIME2 DEFAULT GETDATE(),
+                          NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE LoaiNuocHoa (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    TenLoai NVARCHAR(50) NOT NULL,
-    MoTa NVARCHAR(255),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                             Id INT PRIMARY KEY IDENTITY(1,1),
+                             TenLoai NVARCHAR(50) NOT NULL,
+                             MoTa NVARCHAR(255),
+                             NgayTao DATETIME2 DEFAULT GETDATE(),
+                             NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE MuaThichHop (
-    Id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    MaMua NVARCHAR(20) UNIQUE,
-    TenMua NVARCHAR(50),
-    MoTa NVARCHAR(255),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                             Id BIGINT IDENTITY(1,1) PRIMARY KEY,
+                             MaMua NVARCHAR(20) UNIQUE,
+                             TenMua NVARCHAR(50),
+                             MoTa NVARCHAR(255),
+                             NgayTao DATETIME2 DEFAULT GETDATE(),
+                             NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE NongDo (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(10) UNIQUE,
-    Ten NVARCHAR(100),
-    MoTa NVARCHAR(255),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                        Id INT PRIMARY KEY IDENTITY(1,1),
+                        Ma NVARCHAR(10) UNIQUE,
+                        Ten NVARCHAR(100),
+                        MoTa NVARCHAR(255),
+                        NgayTao DATETIME2 DEFAULT GETDATE(),
+                        NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 CREATE TABLE NhomHuong (
-    Id BIGINT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    TenNhomHuong NVARCHAR(100),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                           Id BIGINT PRIMARY KEY IDENTITY(1,1),
+                           Ma NVARCHAR(20) UNIQUE,
+                           TenNhomHuong NVARCHAR(100),
+                           NgayTao DATETIME2 DEFAULT GETDATE(),
+                           NgaySua DATETIME2 DEFAULT GETDATE()
 );
 PRINT N'Đã tạo các bảng thuộc tính (Cấp 1).';
 GO
 
 -- Bảng Cấp 2 (Phụ thuộc Cấp 1)
 CREATE TABLE SanPham (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    TenNuocHoa NVARCHAR(255),
-    IdThuongHieu INT FOREIGN KEY REFERENCES ThuongHieu(Id),
-    IdXuatXu INT FOREIGN KEY REFERENCES XuatXu(Id),
-    IdLoai INT FOREIGN KEY REFERENCES LoaiNuocHoa(Id),
-    IdMuaThichHop BIGINT FOREIGN KEY REFERENCES MuaThichHop(Id),
-    IdNhomHuong BIGINT FOREIGN KEY REFERENCES NhomHuong(Id),
-    MoTa NVARCHAR(MAX)
+                         Id INT PRIMARY KEY IDENTITY(1,1),
+                         TenNuocHoa NVARCHAR(255),
+                         IdThuongHieu INT FOREIGN KEY REFERENCES ThuongHieu(Id),
+                         IdXuatXu INT FOREIGN KEY REFERENCES XuatXu(Id),
+                         IdLoai INT FOREIGN KEY REFERENCES LoaiNuocHoa(Id),
+                         IdMuaThichHop BIGINT FOREIGN KEY REFERENCES MuaThichHop(Id),
+                         IdNhomHuong BIGINT FOREIGN KEY REFERENCES NhomHuong(Id),
+                         MoTa NVARCHAR(MAX)
 );
 PRINT N'Bảng SanPham đã được tạo.';
 GO
 
 CREATE TABLE SanPhamChiTiet (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    IdSanPham INT NOT NULL FOREIGN KEY REFERENCES SanPham(Id),
-    IdDungTich INT FOREIGN KEY REFERENCES DungTich(Id),
-    IdNongDo INT FOREIGN KEY REFERENCES NongDo(Id),
-    MaSKU NVARCHAR(50) UNIQUE,
-    SoLuongTon INT,
-    GiaNhap DECIMAL(20, 0),
-    GiaBan DECIMAL(20, 0),
-    HinhAnh NVARCHAR(255) NULL,
-    TrangThai BIT DEFAULT 1
+                                Id INT PRIMARY KEY IDENTITY(1,1),
+                                IdSanPham INT NOT NULL FOREIGN KEY REFERENCES SanPham(Id),
+                                IdDungTich INT FOREIGN KEY REFERENCES DungTich(Id),
+                                IdNongDo INT FOREIGN KEY REFERENCES NongDo(Id),
+                                MaSKU NVARCHAR(50) UNIQUE,
+                                SoLuongTon INT,
+                                GiaNhap DECIMAL(20, 0),
+                                GiaBan DECIMAL(20, 0),
+                                HinhAnh NVARCHAR(255) NULL,
+                                TrangThai BIT DEFAULT 1
 );
 PRINT N'Bảng SanPhamChiTiet đã được tạo.';
 GO
 
 CREATE TABLE GiamGia (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE NOT NULL,
-    Ten NVARCHAR(100),
-    LoaiGiam NVARCHAR(20),
-    GiaTri DECIMAL(10,2),
-    SoLuong INT NOT NULL DEFAULT 0,
-    NgayBatDau DATE,
-    NgayKetThuc DATE,
-    TrangThai INT DEFAULT 1,
-    IdSanPham INT NULL FOREIGN KEY REFERENCES SanPham(Id)
+                         Id INT PRIMARY KEY IDENTITY(1,1),
+                         Ma NVARCHAR(20) UNIQUE NOT NULL,
+                         Ten NVARCHAR(100),
+                         LoaiGiam NVARCHAR(20),
+                         GiaTri DECIMAL(10,2),
+                         SoLuong INT NOT NULL DEFAULT 0,
+                         NgayBatDau DATE,
+                         NgayKetThuc DATE,
+                         TrangThai INT DEFAULT 1,
+                         IdSanPham INT NULL FOREIGN KEY REFERENCES SanPham(Id)
 );
 PRINT N'Bảng GiamGia đã được tạo.';
 GO
@@ -151,46 +151,46 @@ GO
 -- PHẦN SẮP XẾP LẠI: ThanhToan PHẢI ĐƯỢC TẠO TRƯỚC HoaDon
 -- ======================================================
 CREATE TABLE ThanhToan (
-    Id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    HinhThucThanhToan NVARCHAR(255) NOT NULL,
-    Mota NVARCHAR(1000),
-    TrangThai BIT NOT NULL DEFAULT 1,
-    NgayTao DATETIME2 DEFAULT GETDATE(), -- Đã sửa
-    NgaySua DATETIME2 DEFAULT GETDATE()  -- Đã sửa
+                           Id BIGINT IDENTITY(1,1) PRIMARY KEY,
+                           HinhThucThanhToan NVARCHAR(255) NOT NULL,
+                           Mota NVARCHAR(1000),
+                           TrangThai BIT NOT NULL DEFAULT 1,
+                           NgayTao DATETIME2 DEFAULT GETDATE(), -- Đã sửa
+                           NgaySua DATETIME2 DEFAULT GETDATE()  -- Đã sửa
 );
 PRINT N'Bảng ThanhToan đã được tạo.';
 GO
 
 CREATE TABLE HoaDon (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
-    IdNV BIGINT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
-    Ma NVARCHAR(20) UNIQUE,
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgayThanhToan DATETIME2 NULL,
-    TenNguoiNhan NVARCHAR(100),
-    DiaChi NVARCHAR(255),
-    Sdt NVARCHAR(20),
-    TinhTrang INT,
+                        Id INT PRIMARY KEY IDENTITY(1,1),
+                        IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                        IdNV BIGINT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                        Ma NVARCHAR(20) UNIQUE,
+                        NgayTao DATETIME2 DEFAULT GETDATE(),
+                        NgayThanhToan DATETIME2 NULL,
+                        TenNguoiNhan NVARCHAR(100),
+                        DiaChi NVARCHAR(255),
+                        Sdt NVARCHAR(20),
+                        TinhTrang INT,
 
     -- 1. Tổng tiền hàng (SUM từ HoaDonChiTiet)
-    TongTienHang DECIMAL(20, 0) NOT NULL DEFAULT 0,
+                        TongTienHang DECIMAL(20, 0) NOT NULL DEFAULT 0,
 
     -- 2. Mã giảm giá áp dụng (nếu có)
-    IdGiamGia INT NULL FOREIGN KEY REFERENCES GiamGia(Id),
+                        IdGiamGia INT NULL FOREIGN KEY REFERENCES GiamGia(Id),
 
     -- 3. Số tiền được giảm (tính toán từ IdGiamGia)
-    TienGiamGia DECIMAL(20, 0) NOT NULL DEFAULT 0,
+                        TienGiamGia DECIMAL(20, 0) NOT NULL DEFAULT 0,
 
     -- 4. Phí vận chuyển
-    PhiShip DECIMAL(20, 0) DEFAULT 30000,
+                        PhiShip DECIMAL(20, 0) DEFAULT 30000,
 
     -- 5. TỔNG TIỀN CUỐI CÙNG (TongTienHang - TienGiamGia + PhiShip)
-    TongThanhToan DECIMAL(20, 0) NOT NULL DEFAULT 0,
+                        TongThanhToan DECIMAL(20, 0) NOT NULL DEFAULT 0,
 
     -- Khóa ngoại tham chiếu đến ThanhToan
-    IdThanhToan BIGINT NULL FOREIGN KEY REFERENCES ThanhToan(Id),
-    NgayGiaoHang DATETIME2 NULL
+                        IdThanhToan BIGINT NULL FOREIGN KEY REFERENCES ThanhToan(Id),
+                        NgayGiaoHang DATETIME2 NULL
 );
 PRINT N'Bảng HoaDon đã được tạo (sau ThanhToan).';
 GO
@@ -198,33 +198,33 @@ GO
 
 -- Bảng Cấp 3 (Phụ thuộc Cấp 2)
 CREATE TABLE HoaDonChiTiet (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    IdHoaDon INT NOT NULL FOREIGN KEY REFERENCES HoaDon(Id),
-    IdSanPhamChiTiet INT NOT NULL FOREIGN KEY REFERENCES SanPhamChiTiet(Id),
-    SoLuong INT NOT NULL CHECK (SoLuong > 0),
-    DonGia DECIMAL(20, 0) NOT NULL CHECK (DonGia >= 0),
-    ThanhTien AS (SoLuong * DonGia) PERSISTED,
-    GhiChu NVARCHAR(255) NULL,
-    TrangThai INT DEFAULT 1
+                               Id INT PRIMARY KEY IDENTITY(1,1),
+                               IdHoaDon INT NOT NULL FOREIGN KEY REFERENCES HoaDon(Id),
+                               IdSanPhamChiTiet INT NOT NULL FOREIGN KEY REFERENCES SanPhamChiTiet(Id),
+                               SoLuong INT NOT NULL CHECK (SoLuong > 0),
+                               DonGia DECIMAL(20, 0) NOT NULL CHECK (DonGia >= 0),
+                               ThanhTien AS (SoLuong * DonGia) PERSISTED,
+                               GhiChu NVARCHAR(255) NULL,
+                               TrangThai INT DEFAULT 1
 );
 PRINT N'Bảng HoaDonChiTiet đã được tạo.';
 GO
 
 CREATE TABLE GioHang (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE(),
-    IdGiamGia INT NULL FOREIGN KEY REFERENCES GiamGia(Id)
+                         Id INT PRIMARY KEY IDENTITY(1,1),
+                         IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                         NgayTao DATETIME2 DEFAULT GETDATE(),
+                         NgaySua DATETIME2 DEFAULT GETDATE(),
+                         IdGiamGia INT NULL FOREIGN KEY REFERENCES GiamGia(Id)
 );
 PRINT N'Bảng GioHang đã được tạo.';
 GO
 
 CREATE TABLE GioHangChiTiet (
-    IdGioHang INT FOREIGN KEY REFERENCES GioHang(Id),
-    IdSanPhamChiTiet INT FOREIGN KEY REFERENCES SanPhamChiTiet(Id),
-    SoLuong INT,
-    PRIMARY KEY (IdGioHang, IdSanPhamChiTiet)
+                                IdGioHang INT FOREIGN KEY REFERENCES GioHang(Id),
+                                IdSanPhamChiTiet INT FOREIGN KEY REFERENCES SanPhamChiTiet(Id),
+                                SoLuong INT,
+                                PRIMARY KEY (IdGioHang, IdSanPhamChiTiet)
 );
 PRINT N'Bảng GioHangChiTiet đã được tạo.';
 GO
@@ -235,6 +235,8 @@ ALTER TABLE SanPhamChiTiet ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATE
 ALTER TABLE HoaDon ADD NgaySua DATETIME2 DEFAULT GETDATE();
 ALTER TABLE HoaDonChiTiet ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATETIME2 DEFAULT GETDATE();
 ALTER TABLE ThuongHieu ADD slug NVARCHAR(255);
+ALTER TABLE NguoiDung ADD VerificationCode NVARCHAR(255) NULL;
+ALTER TABLE NguoiDung ADD Enabled BIT DEFAULT 0;
 PRINT 'Da tao xong tat ca cac bang.';
 GO
 
@@ -250,10 +252,10 @@ PRINT 'Bat dau chen du lieu mau...';
 -- CHÈN DỮ LIỆU NGUOIDUNG
 INSERT INTO NguoiDung (Ma, HoTen, Email, MatKhau, GioiTinh, NgaySinh, DiaChi, Sdt, VaiTro, TrangThai)
 VALUES
-(N'ADMIN001', N'Nguyễn Thu An', N'admin@fperfume.com', N'$2a$10$...', 0, '1995-08-15', N'123 Đê La Thành, Hà Nội', '0987654321', N'ADMIN', 1),
-(N'NV001', N'Trần Minh Bảo', N'nhanvien@fperfume.com', N'$2a$10$...', 1, '1998-04-20', N'456 Lê Lợi, TP.HCM', '0912345678', N'NHANVIEN', 1),
-(N'KH001', N'Lê Thị Mai', N'mai.le@email.com', N'$2a$10$...', NULL, '1999-12-01', N'10 Lý Thường Kiệt, Hoàn Kiếm', '0369852147', N'KHACHHANG', 1),
-(N'KH002', N'Vũ Hoàng Anh', N'anh.vu@email.com', N'$2a$10$...', NULL, '2001-07-22', N'50 Võ Văn Tần, Quận 3', '0321456987', N'KHACHHANG', 1);
+    (N'ADMIN001', N'Nguyễn Thu An', N'admin@fperfume.com', N'$2a$10$...', 0, '1995-08-15', N'123 Đê La Thành, Hà Nội', '0987654321', N'ADMIN', 1),
+    (N'NV001', N'Trần Minh Bảo', N'nhanvien@fperfume.com', N'$2a$10$...', 1, '1998-04-20', N'456 Lê Lợi, TP.HCM', '0912345678', N'NHANVIEN', 1),
+    (N'KH001', N'Lê Thị Mai', N'mai.le@email.com', N'$2a$10$...', NULL, '1999-12-01', N'10 Lý Thường Kiệt, Hoàn Kiếm', '0369852147', N'KHACHHANG', 1),
+    (N'KH002', N'Vũ Hoàng Anh', N'anh.vu@email.com', N'$2a$10$...', NULL, '2001-07-22', N'50 Võ Văn Tần, Quận 3', '0321456987', N'KHACHHANG', 1);
 GO
 
 -- Chèn các bảng thuộc tính sản phẩm
@@ -416,8 +418,8 @@ SELECT * FROM SanPham;
 SELECT * FROM SanPhamChiTiet;
 SELECT * FROM GiamGia;
 SELECT * FROM ThanhToan; -- Đã thêm
-SELECT * FROM HoaDon; 
+SELECT * FROM HoaDon;
 SELECT * FROM HoaDonChiTiet;
-SELECT * FROM GioHang; 
+SELECT * FROM GioHang;
 SELECT * FROM GioHangChiTiet;
 GO

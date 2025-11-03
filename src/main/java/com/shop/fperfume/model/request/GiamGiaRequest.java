@@ -23,5 +23,5 @@ public class GiamGiaRequest {
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
     private Integer trangThai;   // Trạng thái: 1=active, 0=inactive (ví dụ)
-    private Long idSanPham;   // Id của sản phẩm nếu giảm giá áp dụng cho sản phẩm cụ thể
+    private Integer idSanPham;   // Id của sản phẩm nếu giảm giá áp dụng cho sản phẩm cụ thể
 }

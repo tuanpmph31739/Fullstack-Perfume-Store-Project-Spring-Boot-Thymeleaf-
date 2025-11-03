@@ -122,7 +122,7 @@ public class SanPhamController {
 
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id,
+    public String update(@PathVariable Integer id,
                          @Valid @ModelAttribute("sanPhamRequest") SanPhamRequest request,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes,
@@ -182,7 +182,7 @@ public class SanPhamController {
 
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
 
         sanPhamService.deleteSanPham(id);
         redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công!");

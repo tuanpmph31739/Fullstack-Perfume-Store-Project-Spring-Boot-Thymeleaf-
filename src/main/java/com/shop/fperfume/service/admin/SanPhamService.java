@@ -97,7 +97,7 @@ public class SanPhamService {
      * Sửa lại hàm Cập nhật, đổi tên và thêm logic kiểm tra trùng tên
      */
     @Transactional
-    public SanPham updateSanPham(Long id, SanPhamRequest sanPhamRequest) {
+    public SanPham updateSanPham(Integer id, SanPhamRequest sanPhamRequest) {
 
         // --- BƯỚC 1: KIỂM TRA TRÙNG TÊN KHI CẬP NHẬT ---
         String tenMoi = sanPhamRequest.getTenNuocHoa().trim();
@@ -133,12 +133,12 @@ public class SanPhamService {
     }
 
 
-    public void deleteSanPham(Long id){
+    public void deleteSanPham(Integer id){
         sanPhamRepository.deleteById(id);
     }
 
     public SanPhamResponse getById(Integer id) {
-        SanPham sanPham = sanPhamRepository.findById(Long.valueOf(id))
+        SanPham sanPham = sanPhamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
         return new SanPhamResponse(sanPham);
     }

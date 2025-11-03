@@ -41,6 +41,7 @@ public class SanPhamChiTietController {
         model.addAttribute("page", page);
         model.addAttribute("pageMetaDataAvailable", page != null);
         model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
         return "admin/san_pham_chi_tiet/index";
     }

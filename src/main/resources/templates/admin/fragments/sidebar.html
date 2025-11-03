@@ -24,14 +24,16 @@
                 <!-- Quản lý sản phẩm -->
                 <li class="sidebar-item has-sub"
                     th:classappend="${
-                        #strings.startsWith(currentPath, '/admin/san-pham') or
-                        #strings.startsWith(currentPath, '/admin/thuong-hieu') or
-                        #strings.startsWith(currentPath, '/admin/xuat-xu') or
-                        #strings.startsWith(currentPath, '/admin/dung-tich') or
-                        #strings.startsWith(currentPath, '/admin/nong-do') or
-                        #strings.startsWith(currentPath, '/admin/loai-nuoc-hoa') or
-                        #strings.startsWith(currentPath, '/admin/mua-thich-hop') or
-                        #strings.startsWith(currentPath, '/admin/nhom-huong')
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham-chi-tiet') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/thuong-hieu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/xuat-xu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/dung-tich') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nong-do') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/loai-nuoc-hoa') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/mua-thich-hop') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhom-huong')
+
                     } ? 'active'">
                     <a href="#" class="sidebar-link">
                         <i class="bi bi-basket"></i>
