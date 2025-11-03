@@ -1,5 +1,6 @@
 package com.shop.fperfume.config;
 
+import com.shop.fperfume.interceptor.CartInterceptor;
 import com.shop.fperfume.interceptor.CurrentPathInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private CurrentPathInterceptor currentPathInterceptor;
 
+    @Autowired
+    private CartInterceptor cartInterceptor;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Cho phép truy cập thư mục uploads/ qua URL /images/uploads/**
@@ -22,7 +26,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(currentPathInterceptor)
-                .addPathPatterns("/admin/**");
+        registry.addInterceptor(cartInterceptor)
+                // Áp dụng cho TẤT CẢ các URL
+                .addPathPatterns("/**")
+                // TRỪ các file tĩnh (CSS, JS, Ảnh...) để tăng hiệu suất
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/admin.assets.compiled/**");
     }
+
+
+
+
 }

@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="client/fragments/head :: head"></head>
+<head th:replace="client/fragments/head :: head">
+    <link rel="stylesheet" th:href="@{/css/product.css}">
+</head>
 <body>
 
-<!-- Header -->
 <div th:replace="client/fragments/header :: header"></div>
 
-<!-- Product Detail Section -->
 <section class="container-fluid my-5 prod-dt">
     <div class="row">
-        <!-- Cột trái: Hình ảnh sản phẩm -->
         <div class="col-md-3 d-flex justify-content-center">
             <div class="product-image">
                 <div id="product-gallery" class="carousel slide" data-bs-ride="carousel">
@@ -18,19 +17,10 @@
                             <img th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" class="d-block w-100" alt="Ảnh sản phẩm">
                         </div>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#product-gallery" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#product-gallery" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Cột giữa: Tên sản phẩm, Giá, Mô tả, Nút thêm vào giỏ hàng -->
         <div class="col-md-3">
             <h1 th:text="${sanPhamChiTiet.tenSanPham}">Tên sản phẩm</h1>
 
@@ -41,8 +31,10 @@
                 <p th:text="${sanPhamChiTiet.moTa}">Mô tả sản phẩm</p>
             </div>
 
-            <!-- Nút chọn dung tích -->
-            <div class="dung-tich-options">
+            <form id="addToCartForm">
+
+                <input type="hidden" id="selectedSanPhamChiTietId"
+                       th:value="${sanPhamChiTiet.id}"> <div class="dung-tich-options">
                 <label th:each="option : ${options}" class="dung-tich-label">
                     <input type="radio" name="dung-tich"
                            th:value="${option.soMl}"
@@ -53,14 +45,21 @@
                 </label>
             </div>
 
-            <div class="add-to-cart">
-                <button class="btn btn-primary" type="button">
-                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
-                </button>
-            </div>
+                <div class="my-3">
+                    <label for="quantityInput" class="form-label fw-bold">Số lượng:</label>
+                    <input type="number" id="quantityInput" class="form-control"
+                           value="1" min="1" max="10" style="width: 100px;">
+                </div>
+
+                <div class="add-to-cart mt-4">
+                    <button class="btn btn-primary w-100" type="submit" style="padding: 12px 20px;">
+                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                    </button>
+                </div>
+
+            </form>
         </div>
 
-        <!-- Cột phải: Bảng thông tin sản phẩm -->
         <div class="col-md-3">
             <div class="product-table">
                 <h5>Thông tin sản phẩm</h5>
@@ -73,7 +72,6 @@
                             <a class="brand-link2" th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</a>
                         </p>
                     </li>
-
                     <li class="info-item">
                         <div class="ic-info">
                             <img src="/images/nong-do-icon.png" alt="Nồng độ">
@@ -82,8 +80,6 @@
                             <span th:text="${sanPhamChiTiet.tenNongDo}">Nồng độ</span>
                         </p>
                     </li>
-
-
                     <li class="info-item">
                         <div class="ic-info">
                             <img src="/images/luu-mui-icon.png" alt="Độ lưu mùi">
@@ -92,7 +88,6 @@
                             <span th:text="${sanPhamChiTiet.tenNhomHuong}">Nhóm hương</span>
                         </p>
                     </li>
-
                     <li class="info-item">
                         <div class="ic-info">
                             <img src="/images/toa-huong-icon.png" alt="Độ tỏa hương">
@@ -101,7 +96,6 @@
                             <span th:text="${sanPhamChiTiet.tenMuaThichHop}">Mùa thích hợp</span>
                         </p>
                     </li>
-
                     <li class="info-item">
                         <div class="ic-info">
                             <img src="/images/gioi-tinh-icon.png" alt="Giới tính">
@@ -116,36 +110,40 @@
     </div>
 </section>
 
-<!-- Footer -->
 <div th:replace="client/fragments/footer :: footer"></div>
 
-<!-- Bootstrap JS (carousel) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-    // Hàm format giá: 1000000 -> 1.000.000
+<script th:inline="javascript">
+    // Lấy idSanPham từ Model (để dùng trong fetch URL)
+    // Cú pháp [[...]] của Thymeleaf sẽ chèn giá trị Java vào JavaScript
+    var idSanPham = /*[[${idSanPham}]]*/ null;
+
+    // Hàm format giá (Giữ nguyên của bạn)
     function formatPrice(price) {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
-    // Hàm cập nhật giá theo dung tích
+    // Hàm cập nhật giá (ĐÃ SỬA)
     function updatePrice(soMl) {
-        // Lấy idSanPham từ Thymeleaf và chèn vào URL
-        var idSanPham = [[${idSanPham}]]; // Đã đúng cú pháp Thymeleaf
-
-        // Fetch giá của sản phẩm dựa trên dung tích
+        // Gọi API của SanPhamClientController
         fetch(`/san-pham/${idSanPham}/gia?soMl=${soMl}`)
             .then(response => response.json())
             .then(data => {
-                // Format giá trước khi cập nhật
-                var formattedGia = formatPrice(data.giaBan);
-                // Cập nhật giá vào giao diện
-                document.getElementById('product-price').innerText = formattedGia + ' ₫';
+                if(data.giaBan) {
+                    // 1. Cập nhật giá hiển thị cho người dùng
+                    var formattedGia = formatPrice(data.giaBan);
+                    document.getElementById('product-price').innerText = formattedGia + ' ₫';
+
+                    // 2. CẬP NHẬT INPUT ẨN (Rất quan trọng)
+                    // (API của bạn trả về 'idSpct')
+                    document.getElementById('selectedSanPhamChiTietId').value = data.idSpct;
+                }
             })
             .catch(error => console.error('Lỗi khi cập nhật giá:', error));
     }
 
-    // Tùy chọn: Gọi updatePrice khi trang load để đảm bảo giá mặc định đúng (nếu cần)
+    // Code window.onload của bạn (Giữ nguyên)
     window.onload = function() {
         var defaultInput = document.querySelector('input[name="dung-tich"]:checked');
         if (defaultInput) {
@@ -154,6 +152,7 @@
     };
 </script>
 
+<script th:src="@{/js/cart-ajax.js}"></script>
 
 </body>
 </html>

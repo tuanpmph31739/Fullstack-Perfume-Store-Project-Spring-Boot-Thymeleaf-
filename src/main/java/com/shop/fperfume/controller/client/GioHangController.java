@@ -13,7 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal; // Import BigDecimal
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,15 +26,16 @@ public class GioHangController {
 
     /**
      * HIỂN THỊ trang giỏ hàng.
-     * (ĐÃ CẬP NHẬT: Thêm logic tính toán tổng tiền)
+     * (Đã CẬP NHẬT: Thêm logic tính toán tổng tiền)
      */
     @GetMapping
     public String viewCart(Model model
             /* @AuthenticationPrincipal NguoiDung khachHang */) {
 
         // TODO: Lấy NguoiDung thật từ Spring Security
-        NguoiDung khachHang = new NguoiDung(); // Giả lập User
-        khachHang.setId(2L); // Giả lập User ID 2 (Vũ Hoàng Anh)
+        // Tạm thời Giả lập User ID 2 (Vũ Hoàng Anh)
+        NguoiDung khachHang = new NguoiDung();
+        khachHang.setId(2L);
 
         GioHang gioHang = gioHangClientService.getCartByUser(khachHang);
 
@@ -43,12 +44,15 @@ public class GioHangController {
         BigDecimal tienGiamGia = BigDecimal.ZERO;
         BigDecimal tongThanhToan = BigDecimal.ZERO;
 
-        if (gioHang != null && !gioHang.getGioHangChiTiets().isEmpty()) {
+        if (gioHang != null && gioHang.getGioHangChiTiets() != null && !gioHang.getGioHangChiTiets().isEmpty()) {
             // 1. Tính Tổng Tiền Hàng (Tạm tính)
             for (GioHangChiTiet item : gioHang.getGioHangChiTiets()) {
-                BigDecimal giaBan = item.getSanPhamChiTiet().getGiaBan();
-                BigDecimal soLuong = new BigDecimal(item.getSoLuong());
-                tongTienHang = tongTienHang.add(giaBan.multiply(soLuong));
+                // Thêm kiểm tra null (để an toàn hơn)
+                if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getGiaBan() != null) {
+                    BigDecimal giaBan = item.getSanPhamChiTiet().getGiaBan();
+                    BigDecimal soLuong = new BigDecimal(item.getSoLuong());
+                    tongTienHang = tongTienHang.add(giaBan.multiply(soLuong));
+                }
             }
 
             // 2. Tính Tiền Giảm Giá (Nếu có)
@@ -59,7 +63,6 @@ public class GioHangController {
                 } else { // "AMOUNT"
                     tienGiamGia = giamGia.getGiaTri();
                 }
-                // Đảm bảo tiền giảm không lớn hơn tổng tiền hàng
                 tienGiamGia = tienGiamGia.min(tongTienHang);
             }
         }
@@ -68,19 +71,16 @@ public class GioHangController {
         tongThanhToan = tongTienHang.subtract(tienGiamGia);
         // === LOGIC TÍNH TOÁN KẾT THÚC ===
 
-
-        // Đẩy các giá trị ra View (cart.html)
         model.addAttribute("gioHang", gioHang);
         model.addAttribute("tongTienHang", tongTienHang);
         model.addAttribute("tienGiamGia", tienGiamGia);
         model.addAttribute("tongThanhToan", tongThanhToan);
 
-        return "client/cart"; // Trả về file /resources/templates/client/cart.html
+        return "client/cart";
     }
 
     /**
      * THÊM sản phẩm vào giỏ (dùng cho AJAX).
-     * (Giữ nguyên)
      */
     @PostMapping("/add")
     @ResponseBody
@@ -96,7 +96,6 @@ public class GioHangController {
         try {
             GioHang gioHang = gioHangClientService.addItemToCart(khachHang, idSanPhamChiTiet, soLuong);
 
-            // Tính toán số lượng item trong giỏ (để cập nhật icon giỏ hàng)
             int cartSize = gioHang.getGioHangChiTiets().stream()
                     .mapToInt(GioHangChiTiet::getSoLuong)
                     .sum();
@@ -111,14 +110,14 @@ public class GioHangController {
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", e.getMessage()); // e.g., "Không đủ hàng..."
+            response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
 
     /**
      * CẬP NHẬT số lượng sản phẩm (dùng cho AJAX).
-     * (Giữ nguyên)
+     * (ĐÃ SỬA LỖI: Bổ sung logic)
      */
     @PostMapping("/update")
     @ResponseBody
@@ -127,13 +126,30 @@ public class GioHangController {
             @RequestParam("soLuong") Integer soLuong
             /* @AuthenticationPrincipal NguoiDung khachHang */) {
 
-        // ... (Code logic của hàm update giữ nguyên) ...
-        return null; // Tạm thời
+        // TODO: Lấy NguoiDung thật
+        NguoiDung khachHang = new NguoiDung();
+        khachHang.setId(2L);
+
+        try {
+            gioHangClientService.updateItemQuantity(khachHang, idSanPhamChiTiet, soLuong);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Cập nhật số lượng thành công!");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage()); // e.g., "Không đủ hàng..."
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     /**
      * XÓA sản phẩm khỏi giỏ (dùng cho AJAX).
-     * (Giữ nguyên)
+     * (ĐÃ SỬA LỖI: Bổ sung logic)
      */
     @PostMapping("/remove")
     @ResponseBody
@@ -141,8 +157,25 @@ public class GioHangController {
             @RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet
             /* @AuthenticationPrincipal NguoiDung khachHang */) {
 
-        // ... (Code logic của hàm remove giữ nguyên) ...
-        return null; // Tạm thời
+        // TODO: Lấy NguoiDung thật
+        NguoiDung khachHang = new NguoiDung();
+        khachHang.setId(2L);
+
+        try {
+            gioHangClientService.removeItemFromCart(khachHang, idSanPhamChiTiet);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Đã xóa sản phẩm khỏi giỏ hàng.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     // === CÁC HÀM XỬ LÝ VOUCHER ===
