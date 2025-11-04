@@ -1,0 +1,6 @@
+<h2>Thương hiệu</h2>
+<div class="row row-cols-2 row-cols-md-4 g-3">
+    <div class="col" th:each="brand : ${brands}">
+        <a th:href="@{'/thuong-hieu/' + ${brand.slug}}" th:text="${brand.tenThuongHieu}" class="btn btn-outline-dark w-100"></a>
+    </div>
+</div>

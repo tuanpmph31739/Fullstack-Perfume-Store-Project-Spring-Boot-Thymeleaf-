@@ -41,7 +41,7 @@ public class SanPhamController {
     @Autowired
     private NhomHuongService nhomHuongService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 15;
 
 
     @GetMapping
@@ -104,7 +104,7 @@ public class SanPhamController {
 
 
     @GetMapping("/edit/{id}")
-    public String viewEdit(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String viewEdit(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             // 1. Lấy Entity (Cần SanPhamService có hàm findEntityById)
             SanPhamResponse entity = sanPhamService.getById(id);
@@ -122,7 +122,7 @@ public class SanPhamController {
 
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id,
+    public String update(@PathVariable Integer id,
                          @Valid @ModelAttribute("sanPhamRequest") SanPhamRequest request,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes,
@@ -161,7 +161,7 @@ public class SanPhamController {
     // Trong SanPhamController.java
 
     @GetMapping("/view/{id}")
-    public String view(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String view(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         // Khối try-catch này là BẮT BUỘC
         try {
             SanPhamResponse sanPham = sanPhamService.getById(id); // Nếu ID sai, hàm này sẽ ném Exception
@@ -182,7 +182,7 @@ public class SanPhamController {
 
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
 
         sanPhamService.deleteSanPham(id);
         redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công!");

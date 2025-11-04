@@ -1,0 +1,554 @@
+/* ========================================
+   🌸 F PERFUME - MAIN STYLE (Inspired by LALUZ)
+   ======================================== */
+
+/* 1️⃣ Font import */
+@import url('https://fonts.googleapis.com/css2?family=Encode+Sans+Expanded:wght@400;500;600;700&display=swap');
+
+/* 2️⃣ Root variables */
+:root {
+    --font-pri: "Encode Sans Expanded", sans-serif;
+    --color-primary: #a68a79;
+    --color-hover: #8c7565;
+    --color-text: #1a1a1a;
+    --color-border: #f1f1f1;
+    --transition-fast: 0.3s ease;
+}
+
+/* 3️⃣ Global reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-pri);
+    font-weight: 400;
+    color: var(--color-text);
+    background-color: #fff;
+}
+
+/* ========================================
+   🧭 NAVBAR - Elegant LALUZ Style
+   ======================================== */
+.navbar {
+    background-color: #ffffff;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.main-nav-wrapper {
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1.5rem;
+}
+
+/* Logo size */
+.navbar .navbar-brand img {
+    height: 48px;
+}
+
+/* Nav links - LINH HOẠT THEO MÀN HÌNH */
+.navbar-nav .nav-link {
+    font-size: clamp(0.9rem, 0.8rem + 0.6vw, 1.1rem);
+    font-weight: 500;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+    white-space: nowrap;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+    color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--color-hover);
+    font-weight: 600;
+}
+
+/* ========================================
+   📱 RESPONSIVE NAVBAR
+   ======================================== */
+
+/* Tablet & Mobile: Khi navbar collapse */
+@media (max-width: 991px) {
+    .main-nav-wrapper {
+        padding: 0 1rem;
+        flex-direction: column !important;
+        gap: 1rem;
+    }
+
+    .main-nav-wrapper > * {
+        order: unset !important;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .navbar-nav.flex-row {
+        gap: 0.75rem !important;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .navbar-nav .nav-link {
+        font-size: clamp(0.85rem, 0.7rem + 0.8vw, 1rem);
+        padding: 0.5rem 0.75rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    /* Ẩn menu phải trên mobile (đã có trong collapse) */
+    .d-none.d-lg-flex {
+        display: none !important;
+    }
+
+    /* Icon account & cart */
+    .d-flex.gap-3 a {
+        font-size: 1.3rem;
+    }
+}
+
+/* Mobile nhỏ hơn nữa */
+@media (max-width: 576px) {
+    .navbar-nav .nav-link {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .main-nav-wrapper {
+        padding: 0 0.5rem;
+    }
+
+    .navbar .navbar-brand img {
+        height: 40px;
+    }
+}
+
+/* ========================================
+   🎞️ BANNER CAROUSEL
+   ======================================== */
+#carouselExample {
+    width: 100%;
+    overflow: hidden;
+}
+
+#carouselExample .carousel-item img {
+    width: 100%;
+    max-height: 80vh;
+    object-fit: cover;
+    object-position: center;
+}
+
+@media (max-width: 768px) {
+    #carouselExample .carousel-item img {
+        max-height: 45vh;
+    }
+}
+
+@media (max-width: 576px) {
+    #carouselExample .carousel-item img {
+        max-height: 35vh;
+    }
+}
+
+/* ========================================
+   💎 FEATURED PRODUCTS
+   ======================================== */
+.featured-products .product-card {
+    border: 1px solid var(--color-border);
+    border-radius: 38px;
+    background-color: #fff;
+    padding: 25px 15px 20px 15px;
+    transition: all var(--transition-fast);
+    height: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.featured-products .product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* 🖼️ Product image */
+.featured-products .product-img-wrapper {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.featured-products .product-img-wrapper img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-fast);
+}
+
+.featured-products .product-card:hover img {
+    transform: scale(1.05);
+}
+
+/* 🏷️ Brand name - LINH HOẠT THEO MÀN HÌNH */
+.brand-name a {
+    font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.15rem);
+    font-weight: 600;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.featured-products .brand-name a:hover {
+    color: var(--color-hover);
+}
+
+/* 📦 Product name - LINH HOẠT THEO MÀN HÌNH */
+.featured-products .product-name a {
+    font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.15rem);
+    color: var(--color-text);
+    font-weight: 500;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5em;
+    transition: color var(--transition-fast);
+}
+
+.product-name a:hover {
+    color: var(--color-primary);
+}
+
+/* 💰 Product price - LINH HOẠT THEO MÀN HÌNH */
+.product-price {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-top: auto;
+}
+
+/* Divider */
+.brand-divider {
+    width: 50%;
+    margin: 1em auto;
+    border-top: 1px solid #ddd;
+}
+
+/* ========================================
+   ⚪ Carousel indicators
+   ======================================== */
+#productCarousel .carousel-indicators {
+    bottom: -40px;
+    justify-content: center;
+}
+
+#productCarousel .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ccc;
+    border: none;
+    margin: 0 6px;
+    transition: background-color var(--transition-fast);
+}
+
+#productCarousel .carousel-indicators button.active {
+    background-color: var(--color-primary);
+}
+
+/* ========================================
+   📱 Responsive adjustments for PRODUCTS
+   ======================================== */
+@media (max-width: 768px) {
+    .featured-products .product-card {
+        padding: 15px 10px;
+    }
+
+    .brand-name a {
+        font-size: clamp(0.85rem, 0.75rem + 0.6vw, 1rem);
+    }
+
+    .product-name a {
+        font-size: clamp(0.85rem, 0.75rem + 0.6vw, 1rem);
+    }
+
+    .product-price {
+        font-size: clamp(0.9rem, 0.8rem + 0.6vw, 1.1rem);
+    }
+
+    #productCarousel .carousel-indicators {
+        bottom: -30px;
+    }
+
+    #productCarousel .carousel-indicators button {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .brand-name a {
+        font-size: 0.85rem !important;
+    }
+
+    .product-name a {
+        font-size: 0.85rem !important;
+    }
+
+    .product-price {
+        font-size: 0.9rem !important;
+    }
+
+    .featured-products .product-card {
+        padding: 10px 8px;
+    }
+}
+
+/* === Thanh tìm kiếm trong navbar === */
+.search-form {
+    background-color: #f8f8f8;
+    border-radius: 50px;
+    padding: 2px 10px 2px 16px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.search-form:focus-within {
+    border-color: var(--color-primary);
+    background-color: #fff;
+    box-shadow: 0 0 6px rgba(156, 134, 121, 0.3);
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    width: 160px;
+    transition: width 0.3s ease;
+}
+
+.search-input:focus {
+    width: 220px;
+}
+
+.search-btn {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 1.1rem;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    color: var(--color-hover);
+}
+
+/* Mobile: ẩn thanh tìm kiếm chính */
+@media (max-width: 991px) {
+    .search-form {
+        display: none !important;
+    }
+}
+
+.dropdown-menu {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+    min-width: 200px;
+    background-color: #fff;
+    margin-top: 0; /* 🔑 Loại bỏ khoảng cách để chuột di chuyển mượt */
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Thêm transition mượt */
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s; /* Show ngay lập tức */
+}
+
+/* Delay hide một chút */
+.dropdown .dropdown-menu {
+    transition-delay: 0.1s; /* Delay nhẹ khi hide để kịp di chuột vào */
+}
+
+.dropdown-item {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-transform: uppercase;
+    padding: 0.5rem 1.5rem;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.dropdown-item:hover {
+    color: var(--color-primary);
+    background-color: #f8f8f8;
+}
+
+/* Responsive: Trên mobile, dropdown dùng click (Bootstrap default) */
+@media (max-width: 991px) {
+    .dropdown-menu {
+        border: 1px solid var(--color-border);
+        margin-top: 0;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        display: none; /* Tắt hover trên mobile để tránh lỗi */
+    }
+}
+
+.featured-brands {
+    text-align: center;
+}
+
+
+/* Lưới thương hiệu */
+.brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.5rem; /* giảm khoảng cách giữa các ô */
+    justify-items: center;
+    align-items: center;
+}
+
+/* Ô logo */
+.brand-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #fff;
+    padding: 50px 25px; /* tăng padding để logo có không gian thoáng */
+    transition: all 0.3s ease;
+    height: 240px; /* Ô cao hơn rõ rệt */
+    width: 100%;
+}
+
+.brand-item img {
+    max-width: 100%; /* logo chiếm gần hết chiều ngang ô */
+    max-height: 160px; /* logo cao lớn hơn hẳn */
+    object-fit: contain;
+    filter: grayscale(100%);
+    transition: all 0.3s ease;
+}
+
+.brand-item:hover {
+    border-color: #ccc;
+    transform: translateY(-6px);
+}
+
+.brand-item:hover img {
+    filter: none;
+}
+@media (max-width: 768px) {
+    .brand-item {
+        height: 160px;
+        padding: 30px 15px;
+    }
+
+    .brand-item img {
+        max-height: 100px;
+    }
+}
+
+/* Hiển thị dropdown khi hover */
+.hover-mega-dropdown:hover .mega-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mega-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.25s ease-in-out;
+
+    /* 🔹 Kích thước linh hoạt */
+    width: 90vw;                  /* chiếm 90% chiều ngang màn hình */
+    max-width: 1000px;            /* không vượt quá 1000px */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+
+    border-radius: 0 0 16px 16px;
+    background: #fff;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem 2rem;
+}
+
+/* Cột bên trái */
+.hot-brand-list {
+    background-color: #b79a82;
+}
+
+/* A-Z filter */
+.az-btn {
+    display: inline-block;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #444;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.az-btn:hover,
+.az-btn.active {
+    background-color: #b79a82;
+    color: #fff;
+    border-color: #b79a82;
+}
+
+/* Thương hiệu */
+.brand-link {
+    padding: 2px 0;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.brand-link:hover {
+    color: #b79a82;
+    text-decoration: underline;
+}
+
+/* 📱 Responsive cho màn nhỏ */
+@media (max-width: 992px) {
+    .mega-menu {
+        width: 100vw;             /* chiếm toàn bộ màn hình */
+        max-width: 100%;          /* không giới hạn chiều rộng */
+        left: 0;                  /* căn lề trái */
+        transform: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 1rem;
+    }
+}
+
+
+

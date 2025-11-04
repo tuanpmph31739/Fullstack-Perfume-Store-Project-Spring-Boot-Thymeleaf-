@@ -1,27 +1,16 @@
-<div id="sidebar" class="sidebar-desktop" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org">
-    <style>
-        body, #sidebar, .sidebar-menu, .menu, .sidebar-link {
-            font-family: 'Roboto', 'Segoe UI', sans-serif !important;
-        }
-    </style>
+<div id="sidebar" class="sidebar-desktop active" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org">
     <div class="sidebar-wrapper ps ps--active-y">
-        <div class="sidebar-header position-relative d-flex justify-content-between align-items-center">
-            <a th:href="@{/admin}">
-                <img th:src="@{/admin/assets/static/images/logo/logofperfume.png}" style="width:50%; height:50%;" alt="Logo">
+        <!-- Header -->
+        <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-2">
+            <a th:href="@{/admin}" class="d-flex align-items-center">
+                <img th:src="@{/admin/assets/compiled/jpg/logo3.png}" alt="Logo" class="logo">
             </a>
-            <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
-                <div class="form-check form-switch fs-6">
-                    <input class="form-check-input me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
-                </div>
-            </div>
-            <div class="sidebar-toggler x">
-                <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
-            </div>
         </div>
 
-        <div class="sidebar-menu">
-            <ul class="menu">
-                <li class="sidebar-title">Menu</li>
+        <!-- Menu -->
+        <div class="sidebar-menu mt-3">
+            <ul class="menu list-unstyled mb-0">
+                <li class="sidebar-title text-uppercase">Menu</li>
 
                 <li class="sidebar-item" th:classappend="${currentPath == '/admin'} ? 'active'">
                     <a th:href="@{/admin}" class="sidebar-link">
@@ -30,18 +19,21 @@
                     </a>
                 </li>
 
-                <hr style="border: none; border-top: 3px dashed #090a0b;width: 80%; margin: 20px auto;">
+                <hr class="menu-divider">
 
+                <!-- Quản lý sản phẩm -->
                 <li class="sidebar-item has-sub"
                     th:classappend="${
-                        #strings.startsWith(currentPath, '/admin/san-pham') or
-                        #strings.startsWith(currentPath, '/admin/thuong-hieu') or
-                        #strings.startsWith(currentPath, '/admin/xuat-xu') or
-                        #strings.startsWith(currentPath, '/admin/dung-tich') or
-                        #strings.startsWith(currentPath, '/admin/nong-do') or
-                        #strings.startsWith(currentPath, '/admin/loai-nuoc-hoa') or
-                        #strings.startsWith(currentPath, '/admin/mua-thich-hop') or
-                        #strings.startsWith(currentPath, '/admin/nhom-huong')
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham-chi-tiet') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/thuong-hieu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/xuat-xu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/dung-tich') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nong-do') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/loai-nuoc-hoa') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/mua-thich-hop') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhom-huong')
+
                     } ? 'active'">
                     <a href="#" class="sidebar-link">
                         <i class="bi bi-basket"></i>
@@ -103,24 +95,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const sidebar = document.getElementById('sidebar');
-        const hideBtn = document.querySelector('.sidebar-hide');
-
-        if (localStorage.getItem('sidebar-active') === 'false') {
-            sidebar.classList.remove('active');
-        } else {
-            sidebar.classList.add('active');
-        }
-
-        if (hideBtn) {
-            hideBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                sidebar.classList.toggle('active');
-                localStorage.setItem('sidebar-active', sidebar.classList.contains('active'));
-            });
-        }
-    });
-</script>

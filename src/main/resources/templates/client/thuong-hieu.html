@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${thuongHieu.tenThuongHieu}">Thương hiệu</title>
+</head>
+<body>
+<h1 th:text="${thuongHieu.tenThuongHieu}">Tên thương hiệu</h1>
+
+<div th:if="${#lists.isEmpty(sanPhams)}">
+    <p>Không có sản phẩm nào thuộc thương hiệu này.</p>
+</div>
+
+<div th:each="sp : ${sanPhams}">
+    <h3 th:text="${sp.tenSanPham}"></h3>
+    <p th:text="${sp.gia} + ' VND'"></p>
+</div>
+</body>
+</html>

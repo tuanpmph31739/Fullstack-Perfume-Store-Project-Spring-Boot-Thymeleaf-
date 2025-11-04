@@ -17,6 +17,8 @@ public class ThuongHieuResponse {
 
     private String tenThuongHieu;
 
+    private String slug;
+
     private LocalDateTime ngayTao;
 
     private LocalDateTime ngaySua;
@@ -25,6 +27,7 @@ public class ThuongHieuResponse {
         this.id = th.getId();
         this.maThuongHieu = th.getMaThuongHieu();
         this.tenThuongHieu = th.getTenThuongHieu();
+        this.slug = th.getSlug();
         this.ngayTao = th.getNgayTao();
         this.ngaySua = th.getNgaySua();
     }

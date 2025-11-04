@@ -127,7 +127,7 @@ public class SanPhamChiTietService {
     }
 
     @Transactional
-    public void updateSanPhamChiTiet(Long id, SanPhamChiTietRequest sanPhamChiTietRequest) {
+    public void updateSanPhamChiTiet(Integer id, SanPhamChiTietRequest sanPhamChiTietRequest) {
         Optional<SanPhamChiTiet> existingSku = sanPhamChiTietRepository.findByMaSKU(sanPhamChiTietRequest.getMaSKU().trim());
         if (existingSku.isPresent() && !existingSku.get().getId().equals(id)) {
             throw new RuntimeException("Mã SKU '" + sanPhamChiTietRequest.getMaSKU() + "' đã tồn tại!");
@@ -169,7 +169,7 @@ public class SanPhamChiTietService {
     }
 
     @Transactional
-    public void deleteSanPhamChiTiet(Long id){
+    public void deleteSanPhamChiTiet(Integer id){
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
 
@@ -178,13 +178,13 @@ public class SanPhamChiTietService {
         deleteFile(tenFileAnh);
     }
 
-    public SanPhamChiTietResponse getById(Long id) {
+    public SanPhamChiTietResponse getById(Integer id) {
         SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
                 .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
         return new SanPhamChiTietResponse(sanPhamChiTiet);
     }
 
-    public List<SanPhamChiTietResponse> getAllChiTietBySanPhamId(Long sanPhamId) {
+    public List<SanPhamChiTietResponse> getAllChiTietBySanPhamId(Integer sanPhamId) {
         // 1. Gọi phương thức repository đã tạo (đã bao gồm JOIN FETCH)
         List<SanPhamChiTiet> listChiTietEntities = sanPhamChiTietRepository.findBySanPhamIdFetchingRelationships(sanPhamId);
 

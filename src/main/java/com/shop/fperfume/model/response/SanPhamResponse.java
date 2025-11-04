@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class SanPhamResponse {
 
-    private Long id;
+    private Integer id;
     private String tenNuocHoa;
     private String moTa;
 

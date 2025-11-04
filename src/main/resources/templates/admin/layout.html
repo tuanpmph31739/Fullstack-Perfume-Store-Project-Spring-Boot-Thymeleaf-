@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+
+<!-- Wrapper chính -->
+<div class="wrapper">
+    <!-- Sidebar (đã tích hợp HTMX) -->
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main content -->
+    <div id="main">
+        <!-- Header -->
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <!-- Spinner loading -->
+        <div id="loading-indicator" class="htmx-indicator text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Nội dung động (HTMX sẽ thay đổi phần này) -->
+        <div id="page-content" class="page-content">
+            <div class="text-center mt-5">
+                <h4>Chào mừng bạn đến trang quản trị F Perfume!</h4>
+                <p>Chọn một mục bên trái để bắt đầu quản lý.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<!-- Script -->
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<!-- Thêm HTMX (nếu chưa có trong script.html) -->
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+<!-- Tùy chọn: hiệu ứng chuyển mượt (fade) khi load HTMX -->
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block;
+    }
+    #page-content {
+        transition: opacity 0.3s ease-in-out;
+    }
+    .htmx-request #page-content {
+        opacity: 0.3;
+    }
+</style>
+
+</body>
+</html>

@@ -30,4 +30,8 @@ public class ThuongHieu {
 
     @Column(name = "NgaySua")
     private LocalDateTime ngaySua;
+
+    @Column(name = "slug", unique = true)
+    private String slug;
+
 }

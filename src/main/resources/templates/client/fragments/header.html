@@ -1,147 +1,110 @@
-<header th:fragment="header" xmlns:th="http://www.thymeleaf.org">
-    <!-- Thanh trên cùng -->
-    <div class="bg-light text-center py-1 border-bottom small">
-        Alo alo 1234
-    </div>
+<div th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
+        <div class="container-fluid d-flex flex-column">
 
-    <!-- Navbar chính -->
-    <nav class="navbar navbar-expand-lg bg-white border-bottom">
-        <div class="container">
-            <!-- Logo -->
-            <a class="navbar-brand" href="/">
-                <img src="/images/logo-fperfume.png" alt="F Perfume" height="45">
-            </a>
-
-            <!-- Tìm kiếm -->
-            <form class="d-flex mx-auto w-50">
-                <input class="form-control me-2 rounded-pill bg-light border-0" type="search"
-                       placeholder="Tìm sản phẩm của bạn">
-            </form>
-
-            <!-- Biểu tượng -->
-            <div class="d-flex align-items-center gap-3">
-                <a href="/wishlist" class="text-dark"><i class="bi bi-heart fs-5"></i></a>
-                <a href="/cart" class="position-relative text-dark">
-                    <i class="bi bi-bag fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        0
-                    </span>
+            <div class="d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
+                <a class="navbar-brand mx-lg-auto" th:href="@{/}">
+                    <img src="/images/logo-fperfume.png" alt="F Perfume" style="height: 80px; width: auto;">
                 </a>
-                <a href="/login" class="text-dark text-decoration-none">
-                    <i class="bi bi-person-circle me-1"></i> Đăng nhập
-                </a>
+
+                <form class="search-form d-none d-lg-flex align-items-center position-relative mx-auto flex-grow-1 px-4"
+                      th:action="@{/search}" method="get" style="max-width: 500px;">
+                    <input type="text" name="keyword" class="form-control search-input rounded-pill ps-3"
+                           placeholder="Tìm kiếm sản phẩm, thương hiệu..." />
+                    <button type="submit" class="btn position-absolute end-0 me-2 text-secondary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+
+                <div class="d-flex align-items-center gap-4">
+                    <a th:href="@{/account}" class="text-dark">
+                        <i class="bi bi-person fs-5"></i>
+                    </a>
+
+                    <a th:href="@{/cart}" class="text-dark position-relative">
+                        <i class="bi bi-bag fs-5"></i>
+
+                        <span id="cart-item-count"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              th:text="${session.cartSize != null ? session.cartSize : 0}">
+                             0 </span>
+                    </a>
+                </div>
             </div>
+
+            <div class="navbar-collapse w-100">
+                <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle" href="#" id="sanPhamDropdown" role="button"
+                           aria-expanded="false" th:href="@{/san-pham/all}">Sản phẩm</a>
+                        <ul class="dropdown-menu" aria-labelledby="sanPhamDropdown">
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nam}">Nước hoa nam</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nu}">Nước hoa nữ</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=unisex}">Nước hoa unisex</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=niche}">Nước hoa niche</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown position-static hover-mega-dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle" th:href="@{/thuong-hieu}" id="thuongHieuDropdown" role="button"
+                           aria-expanded="false">Thương hiệu</a>
+                        <div class="dropdown-menu mega-menu shadow-lg border-0 mt-0 py-4"
+                             aria-labelledby="thuongHieuDropdown">
+                            <div class="container-fluid px-4">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu bán chạy</h6>
+                                        <div class="p-3 rounded-3 text-white hot-brand-list">
+                                            <ul class="list-unstyled mb-0">
+                                                <li th:each="brand : ${brandsHot}">
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}" th:text="${brand.tenThuongHieu}"
+                                                       class="text-white text-decoration-none d-block py-1"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-9">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu nước hoa</h6>
+                                        <div class="mb-3">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <a href="#" class="az-btn active">All</a>
+                                                <a href="#" class="az-btn"
+                                                   th:each="letter : ${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}"
+                                                   th:text="${letter}"></a>
+                                            </div>
+                                        </div>
+
+                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
+                                            <div class="col" th:each="brand : ${brands}">
+                                                <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                   th:text="${brand.tenThuongHieu}"
+                                                   class="d-block text-dark text-decoration-none brand-link"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/giam-gia}">Giảm giá</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/lien-he}">Liên hệ</a>
+                    </li>
+                </ul>
+            </div>
+
         </div>
     </nav>
-
-    <!-- Menu dưới rộng -->
-    <div class="border-bottom">
-        <div class="container-fluid">
-            <ul class="nav justify-content-center fw-semibold">
-                <li class="nav-item"><a class="nav-link text-dark" href="/">Trang chủ</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="#">About F Perfume</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Thương hiệu</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Chanel</a></li>
-                        <li><a class="dropdown-item" href="#">Dior</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Nước hoa</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Nam</a></li>
-                        <li><a class="dropdown-item" href="#">Nữ</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link text-dark" href="#">Tin tức</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="#">Liên hệ</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- CSS nhúng cho header -->
-    <style>
-        /* Font SVN-Gilroy */
-        @font-face {
-            font-family: 'SVN-Gilroy';
-            src: url('/fonts/SVN-Gilroy-Regular.otf') format('opentype');
-            font-weight: 400;
-        }
-        @font-face {
-            font-family: 'SVN-Gilroy';
-            src: url('/fonts/SVN-Gilroy-Medium.otf') format('opentype');
-            font-weight: 500;
-        }
-        @font-face {
-            font-family: 'SVN-Gilroy';
-            src: url('/fonts/SVN-Gilroy-SemiBold.otf') format('opentype');
-            font-weight: 600;
-        }
-        @font-face {
-            font-family: 'SVN-Gilroy';
-            src: url('/fonts/SVN-Gilroy-Bold.otf') format('opentype');
-            font-weight: 700;
-        }
-
-        /* Navbar chính */
-        .navbar {
-            padding-top: 1.2rem;
-            padding-bottom: 1.2rem;
-            font-family: 'SVN-Gilroy', sans-serif;
-        }
-        .navbar-brand img {
-            height: 65px;
-        }
-        .navbar form input {
-            height: 45px;
-            font-size: 1rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-            border-radius: 50px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-        }
-
-        /* Menu dưới */
-        .border-bottom .nav {
-            gap: 2.5rem; /* khoảng cách giữa các <li> */
-            justify-content: center;
-        }
-        .border-bottom .nav-link {
-            font-size: 1.5rem;
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-            color: #222;
-            font-family: 'SVN-Gilroy', sans-serif;
-        }
-        .border-bottom .nav-link:hover {
-            color: #9c8679;
-        }
-
-        /* Thanh top */
-        .bg-light.text-center.py-1 {
-            font-size: 0.9rem;
-            padding-top: 0.6rem;
-            padding-bottom: 0.6rem;
-            font-family: 'SVN-Gilroy', sans-serif;
-        }
-
-        /* Icon */
-        .navbar i {
-            font-size: 1.5rem;
-            color: #222;
-        }
-        .navbar i:hover {
-            color: #9c8679;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar-brand img { height: 50px; }
-            .navbar .nav-link { font-size: 1rem; }
-            .navbar form input { height: 40px; font-size: 0.9rem; }
-            .border-bottom .nav-link { font-size: 1rem; padding: 0.6rem 1rem; }
-        }
-    </style>
-</header>
+</div>
