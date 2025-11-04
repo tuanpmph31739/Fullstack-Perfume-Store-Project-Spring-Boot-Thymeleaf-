@@ -3,15 +3,15 @@ package com.shop.fperfume.controller.admin;
 import com.shop.fperfume.entity.NguoiDung;
 import com.shop.fperfume.repository.NguoiDungRepository;
 import com.shop.fperfume.service.admin.NguoiDungService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.UnsupportedEncodingException;
 
 @Controller
 public class AuthController {
@@ -20,15 +20,15 @@ public class AuthController {
     private NguoiDungService nguoiDungService;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-    @Autowired
     private NguoiDungRepository nguoiDungRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
     public String loginPage() {
         return "auth/login";
     }
-
 
     @GetMapping("/register")
     public String registerForm(Model model) {
@@ -37,29 +37,41 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute NguoiDung user, RedirectAttributes redirect) {
+    public String register(@ModelAttribute NguoiDung user,
+                           RedirectAttributes redirect,
+                           @RequestHeader("Host") String host) {
+
         if (nguoiDungRepository.findByEmail(user.getEmail()).isPresent()) {
             redirect.addFlashAttribute("error", "Email đã tồn tại!");
             return "redirect:/register";
         }
 
-
-        if (user.getMa() == null || user.getMa().isEmpty()) {
-            user.setMa("ND" + System.currentTimeMillis());
-        }
-
+        // Sinh mã người dùng & mã xác minh
+        user.setMa("ND" + System.currentTimeMillis());
         user.setMatKhau(passwordEncoder.encode(user.getMatKhau()));
+        user.setEnabled(false); // chưa xác minh
+        user.setVerificationCode(java.util.UUID.randomUUID().toString());
+
         nguoiDungRepository.save(user);
 
-        redirect.addFlashAttribute("success", "Đăng ký thành công!");
-        return "redirect:/login";
-    }
+        // Gửi email xác minh
+        String siteURL = "http://" + host;
+        try {
+            nguoiDungService.sendVerificationEmail(user, siteURL);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            redirect.addFlashAttribute("error", "Không gửi được email xác minh: " + e.getMessage());
+            return "redirect:/register";
+        }
 
+        return "auth/register_success";
+    }
 
     @GetMapping("/verify")
     public String verifyUser(@RequestParam("code") String code, Model model) {
         boolean verified = nguoiDungService.verify(code);
-        model.addAttribute("verified", verified);
+        model.addAttribute("message",
+                verified ? "Tài khoản của bạn đã được xác minh!"
+                        : "Mã xác minh không hợp lệ hoặc đã được sử dụng.");
         return "auth/verify_result";
     }
 
