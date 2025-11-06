@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="client/fragments/head :: head">
-</head>
+<head th:replace="~{client/fragments/head :: head}"></head>
 <body>
 
-<div th:replace="client/fragments/header :: header"></div>
+<div th:replace="~{client/fragments/header :: header}"></div>
 
 <div class="container my-5">
-    <h2 class="text-center mb-4" style="font-weight: 600;">GIỎ HÀNG CỦA BẠN</h2>
+    <h2 class="text-center mb-4 fw-semibold">GIỎ HÀNG CỦA BẠN</h2>
 
     <div th:if="${errorMessage}" class="alert alert-danger" role="alert"
-         th:text="${errorMessage}">
-    </div>
+         th:text="${errorMessage}"></div>
 
     <div th:if="${gioHang == null || gioHang.gioHangChiTiets.isEmpty()}" class="text-center">
         <p>Giỏ hàng của bạn đang trống.</p>
@@ -19,16 +17,15 @@
     </div>
 
     <div th:if="${gioHang != null && !gioHang.gioHangChiTiets.isEmpty()}" class="row">
-
         <div class="col-lg-8">
             <table class="table align-middle">
                 <thead>
                 <tr>
-                    <th scope="col" colspan="2">Sản Phẩm</th>
-                    <th scope="col">Giá</th>
-                    <th scope="col">Số Lượng</th>
-                    <th scope="col">Tạm Tính</th>
-                    <th scope="col"></th>
+                    <th colspan="2">Sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Tạm tính</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -39,28 +36,29 @@
                     </td>
                     <td>
                         <a th:href="@{'/san-pham/' + ${item.sanPhamChiTiet.sanPham.id}}"
-                           class="text-dark text-decoration-none" style="font-weight: 600;"
-                           th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên Sản Phẩm</a>
+                           class="text-dark text-decoration-none fw-semibold"
+                           th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}"></a>
                         <small class="d-block text-muted"
-                               th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml - ' + item.sanPhamChiTiet.nongDo.tenNongDo}"> 100ml - EDP
-                        </small>
+                               th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml - ' + item.sanPhamChiTiet.nongDo.tenNongDo}"></small>
                     </td>
-                    <td th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'">1.000.000 ₫</td>
+
+                    <td class="item-price"
+                        th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
                     <td>
-                        <input type="number"
+                        <input type="number" class="form-control quantity-input text-center" style="width: 90px;"
                                th:value="${item.soLuong}"
-                               class="form-control quantity-input" style="width: 80px;"
                                th:attr="data-item-id=${item.sanPhamChiTiet.id}"
                                min="1"
                                th:max="${item.sanPhamChiTiet.soLuongTon}">
                     </td>
-                    <td style="font-weight: 500;"
-                        th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan.multiply(item.soLuong), 0, 'POINT', 0, 'NONE')} + ' ₫'">
-                        1.000.000 ₫
-                    </td>
+
+                    <td class="item-row-total fw-medium"
+                        th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan.multiply(item.soLuong), 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
                     <td>
                         <button class="btn btn-outline-danger btn-sm remove-item-btn"
-                                th:attr="data-item-id=${item.sanPhamChiTiet.id}">X</button>
+                                th:attr="data-item-id=${item.sanPhamChiTiet.id}" title="Xóa sản phẩm">X</button>
                     </td>
                 </tr>
                 </tbody>
@@ -68,52 +66,54 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card" style="border: 1px solid var(--color-border); border-radius: 12px;">
+            <div class="card border rounded-3">
                 <div class="card-body p-4">
-                    <h5 class="card-title" style="font-weight: 600;">TÓM TẮT ĐƠN HÀNG</h5>
+                    <h5 class="fw-semibold">TÓM TẮT ĐƠN HÀNG</h5>
 
                     <ul class="list-group list-group-flush mt-3">
                         <li class="list-group-item d-flex justify-content-between px-0">
                             <span>Tạm tính</span>
-                            <span id="cart-subtotal" th:text="${#numbers.formatDecimal(tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'">...</span>
+                            <span id="cart-subtotal" th:text="${#numbers.formatDecimal(tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0">
                             <span>Giảm giá</span>
-                            <span id="cart-discount" class="text-danger" th:text="'- ' + ${#numbers.formatDecimal(tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'">-0 ₫</span>
+                            <span id="cart-discount" class="text-danger" th:text="'- ' + ${#numbers.formatDecimal(tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between px-0" style="font-weight: 600; font-size: 1.1rem;">
+                        <li class="list-group-item d-flex justify-content-between px-0 fw-semibold fs-5">
                             <span>Tổng cộng</span>
-                            <span id="cart-total" style="color: var(--color-primary);" th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'">...</span>
+                            <span id="cart-total" class="text-primary" th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
                         </li>
                     </ul>
 
                     <form th:action="@{/cart/apply-voucher}" method="POST" class="d-flex mt-4" id="voucher-form">
                         <input type="text" name="maGiamGia" class="form-control" placeholder="Nhập mã giảm giá">
-                        <button type="submit" class="btn" style="background-color: var(--color-primary); color: white; margin-left: 8px;">Áp Dụng</button>
+                        <button type="submit" class="btn text-white ms-2" style="background-color: var(--color-primary);">Áp Dụng</button>
                     </form>
 
                     <div th:if="${gioHang.giamGia != null}" class="alert alert-success mt-2 p-2">
                         Đã áp dụng mã: <strong th:text="${gioHang.giamGia.ma}"></strong>
-                        <form th:action="@{/cart/remove-voucher}" method="POST" style="display: inline;">
-                            <button type="submit" class="btn-close float-end"></button>
+
+                        <form th:action="@{/cart/remove-voucher}" method="POST" class="float-end" id="remove-voucher-form">
+                            <button type="submit" class="btn-close"></button>
                         </form>
                     </div>
 
-                    <a th:href="@{/order/checkout}" class="btn btn-primary w-100 mt-4" style="background-color: var(--color-primary); border: none; padding: 12px 0; font-weight: 600;">
+                    <a th:href="@{/order/checkout}" class="btn btn-primary w-100 mt-4 fw-semibold"
+                       style="background-color: var(--color-primary); border: none; padding: 12px 0;">
                         TIẾN HÀNH THANH TOÁN
                     </a>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
+
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 12px;">
+        <div class="modal-content rounded-3">
             <div class="modal-header border-0">
-                <h5 class="modal-title" id="modalLabel" style="font-weight: 600;">Xác nhận</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-semibold" id="modalLabel">Xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?
@@ -125,9 +125,11 @@
         </div>
     </div>
 </div>
-<div th:replace="client/fragments/footer :: footer"></div>
+
+<div th:replace="~{client/fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script th:src="@{/js/cart-ajax.js}"></script>
 
