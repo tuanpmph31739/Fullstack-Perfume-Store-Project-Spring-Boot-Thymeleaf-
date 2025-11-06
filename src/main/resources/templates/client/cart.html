@@ -17,7 +17,6 @@
     </div>
 
     <div th:if="${gioHang != null && !gioHang.gioHangChiTiets.isEmpty()}" class="row">
-        <!-- Bảng sản phẩm -->
         <div class="col-lg-8">
             <table class="table align-middle">
                 <thead>
@@ -42,7 +41,10 @@
                         <small class="d-block text-muted"
                                th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml - ' + item.sanPhamChiTiet.nongDo.tenNongDo}"></small>
                     </td>
-                    <td th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
+                    <td class="item-price"
+                        th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
                     <td>
                         <input type="number" class="form-control quantity-input text-center" style="width: 90px;"
                                th:value="${item.soLuong}"
@@ -50,8 +52,10 @@
                                min="1"
                                th:max="${item.sanPhamChiTiet.soLuongTon}">
                     </td>
-                    <td class="fw-medium"
+
+                    <td class="item-row-total fw-medium"
                         th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan.multiply(item.soLuong), 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
                     <td>
                         <button class="btn btn-outline-danger btn-sm remove-item-btn"
                                 th:attr="data-item-id=${item.sanPhamChiTiet.id}" title="Xóa sản phẩm">X</button>
@@ -61,7 +65,6 @@
             </table>
         </div>
 
-        <!-- Tóm tắt đơn hàng -->
         <div class="col-lg-4">
             <div class="card border rounded-3">
                 <div class="card-body p-4">
@@ -89,7 +92,8 @@
 
                     <div th:if="${gioHang.giamGia != null}" class="alert alert-success mt-2 p-2">
                         Đã áp dụng mã: <strong th:text="${gioHang.giamGia.ma}"></strong>
-                        <form th:action="@{/cart/remove-voucher}" method="POST" class="float-end">
+
+                        <form th:action="@{/cart/remove-voucher}" method="POST" class="float-end" id="remove-voucher-form">
                             <button type="submit" class="btn-close"></button>
                         </form>
                     </div>
@@ -104,7 +108,6 @@
     </div>
 </div>
 
-<!-- Modal xác nhận xóa -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3">
@@ -127,9 +130,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script th:src="@{/js/cart-ajax.js}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/cart-ajax.js}"></script>
 
 </body>
 </html>

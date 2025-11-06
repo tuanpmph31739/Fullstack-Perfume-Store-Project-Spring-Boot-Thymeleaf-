@@ -3,6 +3,7 @@ package com.shop.fperfume.repository;
 import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.GioHangChiTiet;
 import com.shop.fperfume.entity.GioHangChiTietId; // Import lớp ID
+import com.shop.fperfume.entity.SanPhamChiTiet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
