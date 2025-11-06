@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 // Kiểu khóa chính là lớp GioHangChiTietId
@@ -21,4 +22,7 @@ public interface GioHangChiTietRepository extends JpaRepository<GioHangChiTiet, 
      */
     @Transactional
     void deleteAllByGioHang(GioHang gioHang);
+
+    Optional<GioHangChiTiet> findByGioHang_IdAndSanPhamChiTiet_Id(Integer idGioHang, Integer idSanPhamChiTiet);
+
 }

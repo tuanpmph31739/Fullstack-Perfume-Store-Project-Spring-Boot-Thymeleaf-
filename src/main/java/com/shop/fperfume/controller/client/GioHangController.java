@@ -4,10 +4,11 @@ import com.shop.fperfume.entity.GiamGia;
 import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.GioHangChiTiet;
 import com.shop.fperfume.entity.NguoiDung;
+import com.shop.fperfume.security.CustomUserDetails; // <-- THÊM IMPORT NÀY
 import com.shop.fperfume.service.client.GioHangClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal; // <-- THÊM IMPORT NÀY
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,29 +26,31 @@ public class GioHangController {
     private GioHangClientService gioHangClientService;
 
     /**
-     * HIỂN THỊ trang giỏ hàng.
-     * (Đã CẬP NHẬT: Thêm logic tính toán tổng tiền)
+     * HIỂN THỊ trang giỏ hàng (ĐÃ SỬA: Dùng khách hàng thật)
      */
     @GetMapping
-    public String viewCart(Model model
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
+    public String viewCart(Model model,
+                           @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
 
-        // TODO: Lấy NguoiDung thật từ Spring Security
-        // Tạm thời Giả lập User ID 2 (Vũ Hoàng Anh)
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+        // === SỬA CODE GIẢ LẬP ===
+        if (userDetails == null) {
+            // (Nếu muốn cho khách vãng lai xem giỏ hàng session, xử lý ở đây)
+            // Tạm thời, yêu cầu đăng nhập
+            return "redirect:/login";
+        }
+        NguoiDung khachHang = userDetails.getUser(); // <-- Lấy NguoiDung từ CustomUserDetails
+        // ======================
 
         GioHang gioHang = gioHangClientService.getCartByUser(khachHang);
 
-        // === LOGIC TÍNH TOÁN BẮT ĐẦU ===
+        // === (Logic tính toán giữ nguyên) ===
         BigDecimal tongTienHang = BigDecimal.ZERO;
         BigDecimal tienGiamGia = BigDecimal.ZERO;
         BigDecimal tongThanhToan = BigDecimal.ZERO;
 
         if (gioHang != null && gioHang.getGioHangChiTiets() != null && !gioHang.getGioHangChiTiets().isEmpty()) {
-            // 1. Tính Tổng Tiền Hàng (Tạm tính)
+            // 1. Tính Tổng Tiền Hàng
             for (GioHangChiTiet item : gioHang.getGioHangChiTiets()) {
-                // Thêm kiểm tra null (để an toàn hơn)
                 if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getGiaBan() != null) {
                     BigDecimal giaBan = item.getSanPhamChiTiet().getGiaBan();
                     BigDecimal soLuong = new BigDecimal(item.getSoLuong());
@@ -55,7 +58,7 @@ public class GioHangController {
                 }
             }
 
-            // 2. Tính Tiền Giảm Giá (Nếu có)
+            // 2. Tính Tiền Giảm Giá
             GiamGia giamGia = gioHang.getGiamGia();
             if (giamGia != null) {
                 if ("PERCENT".equals(giamGia.getLoaiGiam())) {
@@ -67,9 +70,9 @@ public class GioHangController {
             }
         }
 
-        // 3. Tính Tổng Thanh Toán (Chưa bao gồm ship)
+        // 3. Tính Tổng Thanh Toán
         tongThanhToan = tongTienHang.subtract(tienGiamGia);
-        // === LOGIC TÍNH TOÁN KẾT THÚC ===
+        // ======================
 
         model.addAttribute("gioHang", gioHang);
         model.addAttribute("tongTienHang", tongTienHang);
@@ -80,18 +83,21 @@ public class GioHangController {
     }
 
     /**
-     * THÊM sản phẩm vào giỏ (dùng cho AJAX).
+     * THÊM sản phẩm vào giỏ (ĐÃ SỬA: Dùng khách hàng thật)
      */
     @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<?> addItemToCart(
             @RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet,
-            @RequestParam("soLuong") Integer soLuong
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
+            @RequestParam("soLuong") Integer soLuong,
+            @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
 
-        // TODO: Lấy NguoiDung thật
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+        // === SỬA CODE GIẢ LẬP ===
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
+        }
+        NguoiDung khachHang = userDetails.getUser();
+        // ======================
 
         try {
             GioHang gioHang = gioHangClientService.addItemToCart(khachHang, idSanPhamChiTiet, soLuong);
@@ -108,27 +114,24 @@ public class GioHangController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
     /**
-     * CẬP NHẬT số lượng sản phẩm (dùng cho AJAX).
-     * (ĐÃ SỬA LỖI: Bổ sung logic)
+     * CẬP NHẬT số lượng (ĐÃ SỬA: Dùng khách hàng thật)
      */
     @PostMapping("/update")
     @ResponseBody
     public ResponseEntity<?> updateItemQuantity(
             @RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet,
-            @RequestParam("soLuong") Integer soLuong
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
+            @RequestParam("soLuong") Integer soLuong,
+            @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
 
-        // TODO: Lấy NguoiDung thật
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
+        }
+        NguoiDung khachHang = userDetails.getUser();
 
         try {
             gioHangClientService.updateItemQuantity(khachHang, idSanPhamChiTiet, soLuong);
@@ -140,26 +143,23 @@ public class GioHangController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage()); // e.g., "Không đủ hàng..."
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
     /**
-     * XÓA sản phẩm khỏi giỏ (dùng cho AJAX).
-     * (ĐÃ SỬA LỖI: Bổ sung logic)
+     * XÓA sản phẩm (ĐÃ SỬA: Dùng khách hàng thật)
      */
     @PostMapping("/remove")
     @ResponseBody
     public ResponseEntity<?> removeItemFromCart(
-            @RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
+            @RequestParam("idSanPhamChiTiet") Integer idSanPhamChiTiet,
+            @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
 
-        // TODO: Lấy NguoiDung thật
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
+        }
+        NguoiDung khachHang = userDetails.getUser();
 
         try {
             gioHangClientService.removeItemFromCart(khachHang, idSanPhamChiTiet);
@@ -171,25 +171,17 @@ public class GioHangController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    // === CÁC HÀM XỬ LÝ VOUCHER ===
 
-    /**
-     * ÁP DỤNG MÃ GIẢM GIÁ
-     */
     @PostMapping("/apply-voucher")
     public String applyVoucher(@RequestParam("maGiamGia") String maGiamGia,
-                               RedirectAttributes redirectAttributes
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
-        // TODO: Lấy NguoiDung thật
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+                               RedirectAttributes redirectAttributes,
+                               @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
+        if (userDetails == null) return "redirect:/login";
+        NguoiDung khachHang = userDetails.getUser();
 
         try {
             gioHangClientService.applyVoucher(khachHang, maGiamGia);
@@ -201,15 +193,11 @@ public class GioHangController {
         return "redirect:/cart";
     }
 
-    /**
-     * GỠ MÃ GIẢM GIÁ
-     */
     @PostMapping("/remove-voucher")
-    public String removeVoucher(RedirectAttributes redirectAttributes
-            /* @AuthenticationPrincipal NguoiDung khachHang */) {
-        // TODO: Lấy NguoiDung thật
-        NguoiDung khachHang = new NguoiDung();
-        khachHang.setId(2L);
+    public String removeVoucher(RedirectAttributes redirectAttributes,
+                                @AuthenticationPrincipal CustomUserDetails userDetails) { // <-- LẤY USER THẬT
+        if (userDetails == null) return "redirect:/login";
+        NguoiDung khachHang = userDetails.getUser();
 
         try {
             gioHangClientService.removeVoucher(khachHang);

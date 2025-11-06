@@ -1,176 +1,153 @@
-/**
- * File JavaScript (AJAX) xử lý Giỏ Hàng
- * (Sử dụng Bootstrap Modal & Toast cho thông báo chuyên nghiệp)
- */
+document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken = document.querySelector("meta[name='_csrf']")?.content;
+    const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.content;
 
-document.addEventListener("DOMContentLoaded", function() {
-
-    // === KHỞI TẠO CÁC ĐỐI TƯỢNG BOOTSTRAP ===
-    const toastLiveExample = document.getElementById('liveToast');
-    const toastBootstrap = toastLiveExample ? new bootstrap.Toast(toastLiveExample) : null;
-    const toastTitleEl = document.getElementById('toast-title');
-    const toastBodyEl = document.getElementById('toast-body');
-
-    const confirmDeleteModalEl = document.getElementById('confirmDeleteModal');
-    const confirmDeleteModal = confirmDeleteModalEl ? new bootstrap.Modal(confirmDeleteModalEl) : null;
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-    let idToDelete = null; // Biến tạm để lưu ID cần xóa
-
-    // === LOGIC 1: TRANG PRODUCT DETAIL (Thêm vào giỏ) ===
+    /** ==============================
+     * 1️⃣ — THÊM SẢN PHẨM VÀO GIỎ
+     * ============================== */
     const addToCartForm = document.getElementById("addToCartForm");
     if (addToCartForm) {
-        addToCartForm.addEventListener("submit", function(event) {
-            event.preventDefault();
-            const idSanPhamChiTiet = document.getElementById("selectedSanPhamChiTietId").value;
-            const soLuong = document.getElementById("quantityInput").value;
-
-            if (!idSanPhamChiTiet) {
-                showToast("Lỗi", "Vui lòng chọn một dung tích."); // Sửa: Dùng Toast
+        addToCartForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const id = document.getElementById("selectedSanPhamChiTietId").value;
+            const qty = document.getElementById("quantityInput").value;
+            if (!id) {
+                showToast("Cảnh báo", "Vui lòng chọn dung tích!", "warning");
                 return;
             }
-            ajaxAddToCart(idSanPhamChiTiet, soLuong);
+            const headers = { "Content-Type": "application/x-www-form-urlencoded" };
+            if (csrfToken) headers[csrfHeader] = csrfToken;
+
+            fetch("/cart/add", {
+                method: "POST",
+                headers,
+                body: new URLSearchParams({ idSanPhamChiTiet: id, soLuong: qty })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        updateCartIcon(data.cartSize);
+                        showToast("Thành công", data.message, "success");
+                    } else {
+                        showToast("Lỗi", data.message, "danger");
+                    }
+                })
+                .catch(err => showToast("Lỗi", err.message, "danger"));
         });
     }
 
-    // === LOGIC 2: TRANG GIỎ HÀNG (Cập nhật / Xóa) ===
+    /** ==============================
+     * 2️⃣ — XÓA SẢN PHẨM KHỎI GIỎ
+     * ============================== */
+    document.querySelectorAll(".remove-item-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const itemRow = this.closest("tr");
+            const id = this.getAttribute("data-item-id");
 
-    // Bắt sự kiện click vào nút Xóa (class .remove-item-btn)
-    document.querySelectorAll('.remove-item-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            idToDelete = this.getAttribute('data-item-id');
-            // Mở Modal xác nhận (thay vì confirm())
-            if(confirmDeleteModal) {
-                confirmDeleteModal.show();
-            } else {
-                // Fallback (nếu modal chưa tải)
-                if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-                    ajaxRemoveFromCart(idToDelete);
-                }
-            }
+            const headers = { "Content-Type": "application/x-www-form-urlencoded" };
+            if (csrfToken) headers[csrfHeader] = csrfToken;
+
+            fetch("/cart/remove", {
+                method: "POST",
+                headers,
+                body: new URLSearchParams({ idSanPhamChiTiet: id })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        itemRow.remove();
+                        updateTotals();
+                        showToast("Thành công", data.message, "success");
+                    } else {
+                        showToast("Lỗi", data.message, "danger");
+                    }
+                })
+                .catch(err => showToast("Lỗi", err.message, "danger"));
         });
     });
 
-    // Bắt sự kiện click vào nút "Xóa" TRONG MODAL
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', function() {
-            if (idToDelete) {
-                ajaxRemoveFromCart(idToDelete);
-                confirmDeleteModal.hide();
-                idToDelete = null;
+    /** ==============================
+     * 3️⃣ — CẬP NHẬT SỐ LƯỢNG SẢN PHẨM
+     * ============================== */
+    document.querySelectorAll(".quantity-input").forEach(input => {
+        input.addEventListener("change", function () {
+            const id = this.getAttribute("data-item-id");
+            const newQty = parseInt(this.value);
+            if (isNaN(newQty) || newQty <= 0) {
+                showToast("Cảnh báo", "Số lượng không hợp lệ!", "warning");
+                return;
             }
+
+            const headers = { "Content-Type": "application/x-www-form-urlencoded" };
+            if (csrfToken) headers[csrfHeader] = csrfToken;
+
+            fetch("/cart/update", {
+                method: "POST",
+                headers,
+                body: new URLSearchParams({ idSanPhamChiTiet: id, soLuong: newQty })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        updateRowTotal(this);
+                        updateTotals();
+                        showToast("Thành công", data.message, "success");
+                    } else {
+                        showToast("Lỗi", data.message, "danger");
+                    }
+                })
+                .catch(err => showToast("Lỗi", err.message, "danger"));
         });
+    });
+
+    /** ==============================
+     * 4️⃣ — TÍNH LẠI GIÁ SAU KHI CẬP NHẬT
+     * ============================== */
+    function updateRowTotal(inputEl) {
+        const row = inputEl.closest("tr");
+        const priceText = row.querySelector("td:nth-child(3)").textContent.replace(/[^\d]/g, "");
+        const price = parseFloat(priceText);
+        const qty = parseInt(inputEl.value);
+        const subtotalCell = row.querySelector("td:nth-child(5)");
+        const total = price * qty;
+        subtotalCell.textContent = total.toLocaleString("vi-VN") + " ₫";
     }
 
-    // Bắt sự kiện 'change' (thay đổi giá trị) của ô Số Lượng
-    document.querySelectorAll('.quantity-input').forEach(input => {
-        input.addEventListener('change', function() {
-            const idSanPhamChiTiet = this.getAttribute('data-item-id');
-            const soLuong = this.value;
-            ajaxUpdateQuantity(idSanPhamChiTiet, soLuong);
+    function updateTotals() {
+        const rows = document.querySelectorAll("tbody tr");
+        let subtotal = 0;
+        rows.forEach(row => {
+            const subtotalCell = row.querySelector("td:nth-child(5)");
+            if (subtotalCell) {
+                subtotal += parseFloat(subtotalCell.textContent.replace(/[^\d]/g, "")) || 0;
+            }
         });
-    });
+        document.getElementById("cart-subtotal").textContent = subtotal.toLocaleString("vi-VN") + " ₫";
+        document.getElementById("cart-total").textContent = subtotal.toLocaleString("vi-VN") + " ₫";
+        document.getElementById("cart-discount").textContent = "- 0 ₫";
+    }
 
-    // === HÀM HIỂN THỊ TOAST ===
-    function showToast(title, message) {
-        if (!toastBootstrap) {
-             // Fallback nếu toast không tồn tại
-            alert(title + ": " + message);
+    /** ==============================
+     * 5️⃣ — TOAST THÔNG BÁO
+     * ============================== */
+    function showToast(title, message, type = "info") {
+        const toastEl = document.getElementById("liveToast");
+        if (!toastEl) {
+            alert(message);
             return;
         }
-
-        if (toastTitleEl) toastTitleEl.textContent = title;
-        if (toastBodyEl) toastBodyEl.textContent = message;
-
-        toastBootstrap.show();
+        document.getElementById("toast-title").textContent = title;
+        document.getElementById("toast-body").textContent = message;
+        toastEl.className = `toast text-bg-${type}`;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
     }
 
-
-    /**
-     * 1. HÀM AJAX: THÊM SẢN PHẨM
-     */
-    function ajaxAddToCart(idSanPhamChiTiet, soLuong) {
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-
-        fetch('/cart/add', {
-            method: 'POST',
-            headers: headers,
-            body: new URLSearchParams({
-                'idSanPhamChiTiet': idSanPhamChiTiet,
-                'soLuong': soLuong
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateCartIcon(data.cartSize);
-                // === THAY ĐỔI Ở ĐÂY ===
-                showToast("Thành công!", data.message);
-            } else {
-                showToast("Lỗi!", data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast("Lỗi Hệ Thống", "Đã xảy ra lỗi. Vui lòng thử lại.");
-        });
-    }
-
-    /**
-     * 2. HÀM AJAX: XÓA SẢN PHẨM
-     */
-    function ajaxRemoveFromCart(idSanPhamChiTiet) {
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-
-        fetch('/cart/remove', {
-            method: 'POST',
-            headers: headers,
-            body: new URLSearchParams({ 'idSanPhamChiTiet': idSanPhamChiTiet })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                showToast("Lỗi!", data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    /**
-     * 3. HÀM AJAX: CẬP NHẬT SỐ LƯỢNG
-     */
-    function ajaxUpdateQuantity(idSanPhamChiTiet, soLuong) {
-        const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-
-        fetch('/cart/update', {
-            method: 'POST',
-            headers: headers,
-            body: new URLSearchParams({
-                'idSanPhamChiTiet': idSanPhamChiTiet,
-                'soLuong': soLuong
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                showToast("Lỗi!", data.message);
-                window.location.reload();
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    /**
-     * HÀM TIỆN ÍCH: Cập nhật icon giỏ hàng
-     */
-    function updateCartIcon(cartSize) {
-        const cartIcon = document.getElementById("cart-item-count");
-        if (cartIcon) {
-            cartIcon.textContent = cartSize;
-        }
+    /** ==============================
+     * 6️⃣ — CẬP NHẬT ICON GIỎ HÀNG
+     * ============================== */
+    function updateCartIcon(count) {
+        const el = document.getElementById("cart-item-count");
+        if (el) el.textContent = count;
     }
 });
