@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /** ==============================
      * 1️⃣ — THÊM SẢN PHẨM VÀO GIỎ
-     * (Chống double-click)
+     * (SỬA: Thêm kiểm tra số lượng và tồn kho)
      * ============================== */
     const addToCartForm = document.getElementById("addToCartForm");
     if (addToCartForm) {
@@ -17,17 +17,34 @@ document.addEventListener("DOMContentLoaded", function () {
             if (button) button.disabled = true;
 
             const id = document.getElementById("selectedSanPhamChiTietId").value;
-            const qty = document.getElementById("quantityInput").value;
+            // SỬA: Lấy thêm các phần tử input để kiểm tra
+            const qtyInput = document.getElementById("quantityInput");
+            const qty = parseInt(qtyInput.value);
+            const maxStock = parseInt(qtyInput.max); // Lấy tồn kho từ thuộc tính 'max'
+
             if (!id) {
                 showNotification("Cảnh báo", "Vui lòng chọn dung tích!", "warning");
                 if (button) button.disabled = false;
                 return;
             }
 
+            // THÊM: Kiểm tra số lượng và tồn kho ngay tại client
+            if (qty <= 0) {
+                 showNotification("Cảnh báo", "Số lượng phải lớn hơn 0!", "warning");
+                 if (button) button.disabled = false;
+                 return;
+            }
+            if (qty > maxStock) {
+                 showNotification("Lỗi", "Số lượng vượt quá tồn kho! (Tồn kho: " + maxStock + ")", "error");
+                 if (button) button.disabled = false;
+                 return;
+            }
+            // --- HẾT PHẦN THÊM ---
+
             fetch("/cart/add", {
                 method: "POST",
                 headers,
-                body: new URLSearchParams({ idSanPhamChiTiet: id, soLuong: qty })
+                body: new URLSearchParams({ idSanPhamChiTiet: id, soLuong: qty }) // SỬA: dùng qty đã parse
             })
                 .then(res => res.json())
                 .then(data => {
@@ -35,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         updateCartIcon(data.cartSize);
                         showNotification("Thành công", data.message, "success", true); // Toast
                     } else {
-                        showNotification("Lỗi", data.message, "error"); // Popup
+                        showNotification("Lỗi", data.message, "error"); // Popup (VD: Lỗi tồn kho từ server)
                     }
                 })
                 .catch(err => showNotification("Lỗi hệ thống", err.message, "error"))
@@ -46,15 +63,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /** ==============================
-     * 2️⃣ — XÓA SẢN PHẨM (Chỉ dùng SweetAlert2)
-     * (Đã gộp 2.0, 2.5, 2.6 - Sửa lỗi treo trang + double-click)
+     * 2️⃣ — XÓA SẢN PHẨM (Giữ nguyên)
      * ============================== */
     document.querySelectorAll(".remove-item-btn").forEach(btn => {
         btn.addEventListener("click", function () {
             const id = this.getAttribute("data-item-id");
-            const itemRow = this.closest("tr"); // Lưu lại hàng <tr> để xóa
+            const itemRow = this.closest("tr");
 
-            // 1. Dùng SweetAlert để HỎI
             Swal.fire({
                 title: 'Xác nhận xóa?',
                 text: "Bạn có chắc muốn xóa sản phẩm này?",
@@ -66,7 +81,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // 2. Người dùng đã bấm "OK", gửi request
                     fetch("/cart/remove", {
                         method: "POST",
                         headers,
@@ -75,16 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // 3. THÀNH CÔNG (Không tải lại trang)
-                            itemRow.remove(); // Xóa hàng khỏi giao diện
+                            itemRow.remove();
                             updateCartSummary(data.cartSummary);
                             updateCartIcon(data.cartSize);
-
-                            // 4. Dùng SweetAlert (Toast) để BÁO THÀNH CÔNG
                             showNotification(data.message, "", "success", true);
-
                         } else {
-                            // 5. THẤT BẠI (Báo lỗi, ví dụ: double-click)
                             showNotification("Lỗi", data.message, "error");
                         }
                     })
@@ -99,6 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /** ==============================
      * 3️⃣ — CẬP NHẬT SỐ LƯỢNG SẢN PHẨM
+     * (SỬA: Thêm kiểm tra tồn kho)
      * ============================== */
     document.querySelectorAll(".quantity-input").forEach(input => {
         input.addEventListener("change", function () {
@@ -106,11 +116,26 @@ document.addEventListener("DOMContentLoaded", function () {
             const id = this.getAttribute("data-item-id");
             const newQty = parseInt(this.value);
 
+            // THÊM: Lấy tồn kho từ thuộc tính 'max' của input
+            const maxStock = parseInt(this.max);
+
             if (isNaN(newQty) || newQty <= 0) {
                 showNotification("Cảnh báo", "Số lượng không hợp lệ!", "warning");
                 this.disabled = false;
+                // Cân nhắc trả về giá trị cũ
+                // this.value = this.defaultValue;
                 return;
             }
+
+            // THÊM: Kiểm tra tồn kho ngay tại client
+            if (newQty > maxStock) {
+                showNotification("Lỗi", "Số lượng vượt quá tồn kho! (Tồn kho: " + maxStock + ")", "error");
+                this.disabled = false;
+                // Trả về giá trị max
+                this.value = maxStock;
+                return; // Dừng, không gửi request
+            }
+            // --- HẾT PHẦN THÊM ---
 
             fetch("/cart/update", {
                 method: "POST",
@@ -124,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         updateCartSummary(data.cartSummary);
                         updateCartIcon(data.cartSize);
                     } else {
+                        // Logic này của bạn đã đúng, để xử lý lỗi từ server
                         if(data.newValidQuantity) {
                             this.value = data.newValidQuantity;
                             updateRowTotal(this);
@@ -140,7 +166,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /** ==============================
-     * 4️⃣ & 5️⃣ — VOUCHER (AJAX Tải lại trang)
+     * 4️⃣ & 5️⃣ — VOUCHER (Giữ nguyên)
+     * (Logic của bạn đã chính xác)
      * ============================== */
     const voucherForm = document.getElementById("voucher-form");
     if(voucherForm) {
@@ -154,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch("/cart/apply-voucher", { method: "POST", headers, body: formData })
                 .then(res => {
                     if(res.ok) {
-                         location.reload(); // Tải lại trang là cách dễ nhất cho voucher
+                         location.reload();
                     } else {
                         res.json().then(data => {
                             showNotification("Lỗi", data.message || "Không thể áp dụng mã", "error");
@@ -196,6 +223,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /** ==============================
      * CÁC HÀM TIỆN ÍCH (HELPERS)
+     * (Giữ nguyên)
      * ============================== */
 
     function formatCurrency(number) {
@@ -227,7 +255,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if(totalEl) totalEl.textContent = formatCurrency(summaryData.total);
     }
 
-    // Hàm showNotification bây giờ chỉ dùng SweetAlert2
     function showNotification(title, message, iconType = "info", isToast = false) {
         if (isToast) {
             const Toast = Swal.mixin({
@@ -243,7 +270,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             Toast.fire({
                 icon: iconType,
-                title: title // Dùng title cho toast
+                title: title
             });
         } else {
             Swal.fire(title, message, iconType);
