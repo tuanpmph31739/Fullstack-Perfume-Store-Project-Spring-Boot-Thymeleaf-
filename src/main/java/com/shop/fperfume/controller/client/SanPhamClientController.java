@@ -25,16 +25,17 @@ public class SanPhamClientController {
         SanPhamChiTietResponse spct = sanPhamClientService.getById(id);
         if (spct == null) return "redirect:/san-pham";
 
-        // Lấy tất cả dung tích của sản phẩm gốc
         var options = sanPhamClientService.getDungTichOptions(spct.getIdSanPham());
 
-        Integer selectedDungTich = options.isEmpty() ? null : options.get(0).getSoMl();
+        // Sửa: Lấy dung tích của sản phẩm chi tiết hiện tại
+        Integer selectedDungTich = spct.getSoMl();
 
-        model.addAttribute("sanPhamChiTiet", spct);      // biến thể hiện tại
-        model.addAttribute("options", options);          // các lựa chọn dung tích
+        model.addAttribute("sanPhamChiTiet", spct);
+        model.addAttribute("options", options);
         model.addAttribute("selectedSpctId", spct.getId());
         model.addAttribute("selectedDungTich", selectedDungTich);
         model.addAttribute("idSanPham", spct.getIdSanPham());
+        model.addAttribute("soLuongTon", spct.getSoLuongTon()); // Dòng này của bạn đã đúng
         return "client/san_pham/product-detail";
     }
 
@@ -45,9 +46,12 @@ public class SanPhamClientController {
         Optional<SanPhamChiTiet> sanPhamChiTiet = sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
         if (sanPhamChiTiet.isPresent()) {
             SanPhamChiTiet ct = sanPhamChiTiet.get();
+
+            // SỬA: Thêm "soLuongTon" vào response
             return ResponseEntity.ok(Map.of(
                     "giaBan", ct.getGiaBan().toPlainString(),
                     "idSpct", ct.getId().toString(),
+                    "soLuongTon", ct.getSoLuongTon(), // <-- DÒNG MỚI
                     "message", "OK"
             ));
         } else {
@@ -71,7 +75,6 @@ public class SanPhamClientController {
         model.addAttribute("pageSize", pageSize);
         model.addAttribute("totalItems", pageData.getTotalElements());
 
-        // Show dãy số trang (1..N)
         if (pageData.getTotalPages() > 0) {
             List<Integer> pageNumbers = new java.util.ArrayList<>();
             for (int i = 1; i <= pageData.getTotalPages(); i++) pageNumbers.add(i);
@@ -80,10 +83,4 @@ public class SanPhamClientController {
 
         return "client/san_pham/product-list";
     }
-
-
 }
-
-
-
-

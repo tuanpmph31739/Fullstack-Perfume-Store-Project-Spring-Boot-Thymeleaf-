@@ -220,14 +220,32 @@ CREATE TABLE GioHang (
 PRINT N'Bảng GioHang đã được tạo.';
 GO
 
-CREATE TABLE GioHangChiTiet (
-                                IdGioHang INT FOREIGN KEY REFERENCES GioHang(Id),
-                                IdSanPhamChiTiet INT FOREIGN KEY REFERENCES SanPhamChiTiet(Id),
-                                SoLuong INT,
-                                PRIMARY KEY (IdGioHang, IdSanPhamChiTiet)
-);
-PRINT N'Bảng GioHangChiTiet đã được tạo.';
+-- Xóa nếu đã tồn tại (để tránh lỗi khi chạy lại)
+IF OBJECT_ID('dbo.GioHangChiTiet', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE GioHangChiTiet;
+    PRINT N'Đã xóa bảng GioHangChiTiet cũ.';
+END
 GO
+
+CREATE TABLE GioHangChiTiet (
+    IdGioHang INT NOT NULL,
+    IdSanPhamChiTiet INT NOT NULL,
+    SoLuong INT NOT NULL CHECK (SoLuong > 0),
+
+    CONSTRAINT PK_GioHangChiTiet PRIMARY KEY (IdGioHang, IdSanPhamChiTiet),
+
+    CONSTRAINT FK_GioHangChiTiet_GioHang FOREIGN KEY (IdGioHang)
+        REFERENCES GioHang(Id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT FK_GioHangChiTiet_SanPhamChiTiet FOREIGN KEY (IdSanPhamChiTiet)
+        REFERENCES SanPhamChiTiet(Id)
+        ON DELETE CASCADE
+);
+PRINT N'Bảng GioHangChiTiet đã được tạo (chuẩn Hibernate, hỗ trợ khóa tổng hợp).';
+GO
+
 
 -- Thêm các cột Ngày tạo/sửa
 ALTER TABLE SanPham ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATETIME2 DEFAULT GETDATE();
@@ -387,15 +405,7 @@ PRINT N'Đã chèn HoaDonChiTiet mẫu.';
 GO
 -- ======================================================
 
--- CHÈN DỮ LIỆU GIOHANG
-INSERT INTO GioHang (IdKH, NgayTao, NgaySua, IdGiamGia) VALUES
-((SELECT Id FROM NguoiDung WHERE Ma = 'KH002'), '2024-05-12 09:30:00', '2024-05-12 09:30:00', NULL);
-GO
 
--- Chèn Giỏ Hàng Chi Tiết
-INSERT INTO GioHangChiTiet (IdGioHang, IdSanPhamChiTiet, SoLuong) VALUES
-(1, 2, 1);
-GO
 
 PRINT 'Da chen xong toan bo du lieu mau.';
 GO
@@ -406,7 +416,7 @@ GO
 PRINT 'Hoan tat script. Kiem tra du lieu:';
 GO
 
-SELECT * FROM NguoiDung;
+
 SELECT * FROM ThuongHieu;
 SELECT * FROM XuatXu;
 SELECT * FROM DungTich;
@@ -420,6 +430,7 @@ SELECT * FROM GiamGia;
 SELECT * FROM ThanhToan; -- Đã thêm
 SELECT * FROM HoaDon;
 SELECT * FROM HoaDonChiTiet;
+SELECT * FROM NguoiDung;
 SELECT * FROM GioHang;
 SELECT * FROM GioHangChiTiet;
 GO

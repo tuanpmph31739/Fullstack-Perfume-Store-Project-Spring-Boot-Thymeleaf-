@@ -26,7 +26,7 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     private GiamGiaRepository giamGiaRepository;
 
     /**
-     * Lấy giỏ hàng theo người dùng, nếu chưa có thì tạo mới
+     * Lấy giỏ hàng theo người dùng (Giữ nguyên)
      */
     @Override
     public GioHang getCartByUser(NguoiDung khachHang) {
@@ -39,29 +39,59 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     }
 
     /**
-     * Thêm sản phẩm vào giỏ
+     * Thêm sản phẩm vào giỏ (SỬA LỖI KIỂM TRA TỒN KHO)
      */
     @Override
-    public GioHang addItemToCart(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer soLuong) {
+    public GioHang addItemToCart(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer soLuongThem) {
+        // THÊM: Kiểm tra số lượng đầu vào
+        if (soLuongThem <= 0) {
+            throw new RuntimeException("Số lượng phải lớn hơn 0");
+        }
+
+        // --- BƯỚC 1: Lấy sản phẩm và kiểm tra tồn kho ---
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        int soLuongTonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+
+        if (soLuongTonKho == 0) {
+            throw new RuntimeException("Sản phẩm [" + spct.getSanPham().getTenNuocHoa() + "] đã hết hàng");
+        }
+
+        // --- BƯỚC 2: Lấy giỏ hàng và kiểm tra số lượng hiện có ---
         GioHang gioHang = getCartByUser(khachHang);
-
         GioHangChiTietId id = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
-        Optional<GioHangChiTiet> existing = gioHangChiTietRepository.findById(id);
+        Optional<GioHangChiTiet> existing = gioHangChiTietRepository
+                .findByGioHang_IdAndSanPhamChiTiet_Id(gioHang.getId(), idSanPhamChiTiet);
 
+        int soLuongTrongGio = 0;
         if (existing.isPresent()) {
-            // Nếu sản phẩm đã tồn tại → cộng dồn số lượng
+            soLuongTrongGio = existing.get().getSoLuong();
+        }
+
+        // --- BƯỚC 3: Kiểm tra tổng số lượng mong muốn ---
+        int tongSoLuongMongMuon = soLuongTrongGio + soLuongThem;
+
+        if (tongSoLuongMongMuon > soLuongTonKho) {
+            int coTheThem = soLuongTonKho - soLuongTrongGio;
+            if (coTheThem <= 0) {
+                throw new RuntimeException("Bạn đã có tối đa sản phẩm này trong giỏ. Tồn kho: " + soLuongTonKho);
+            }
+            // Ném lỗi với thông báo rõ ràng
+            throw new RuntimeException("Chỉ còn " + soLuongTonKho + " sản phẩm. Bạn chỉ có thể thêm " + coTheThem + " sản phẩm nữa.");
+        }
+
+        // --- BƯỚC 4: Lưu (Nếu mọi thứ hợp lệ) ---
+        if (existing.isPresent()) {
             GioHangChiTiet item = existing.get();
-            item.setSoLuong(item.getSoLuong() + soLuong);
+            item.setSoLuong(tongSoLuongMongMuon); // SỬA: Cập nhật tổng số lượng mới
             gioHangChiTietRepository.save(item);
         } else {
-            // Nếu chưa có → thêm mới
             GioHangChiTiet item = new GioHangChiTiet();
             item.setId(id);
             item.setGioHang(gioHang);
-            item.setSanPhamChiTiet(
-                    sanPhamChiTietRepository.findById(idSanPhamChiTiet)
-                            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm")));
-            item.setSoLuong(soLuong);
+            item.setSanPhamChiTiet(spct); // SỬA: Tái sử dụng spct đã lấy
+            item.setSoLuong(soLuongThem); // Thêm mới
             gioHangChiTietRepository.save(item);
         }
 
@@ -69,7 +99,7 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     }
 
     /**
-     * Cập nhật số lượng sản phẩm trong giỏ hàng
+     * Cập nhật số lượng sản phẩm trong giỏ hàng (SỬA LỖI KIỂM TRA TỒN KHO)
      */
     @Override
     public GioHang updateItemQuantity(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer newSoLuong) {
@@ -80,11 +110,22 @@ public class GioHangClientServiceImpl implements GioHangClientService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng"));
 
         if (newSoLuong <= 0) {
+            // Logic xóa của bạn đã đúng (Giữ nguyên)
             gioHangChiTietRepository.delete(chiTiet);
             if (gioHang.getGioHangChiTiets() != null) {
                 gioHang.getGioHangChiTiets().remove(chiTiet);
             }
         } else {
+            // --- THÊM: KIỂM TRA TỒN KHO ---
+            SanPhamChiTiet spct = chiTiet.getSanPhamChiTiet();
+            int soLuongTonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+
+            if (newSoLuong > soLuongTonKho) {
+                // Ném lỗi -> Controller sẽ bắt và báo cho client
+                throw new RuntimeException("Số lượng cập nhật vượt quá tồn kho! (Tồn kho: " + soLuongTonKho + ")");
+            }
+            // --- HẾT PHẦN KIỂM TRA ---
+
             chiTiet.setSoLuong(newSoLuong);
             gioHangChiTietRepository.save(chiTiet);
         }
@@ -93,7 +134,7 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     }
 
     /**
-     * Xóa một sản phẩm khỏi giỏ hàng (đã fix lỗi ObjectDeletedException)
+     * Xóa một sản phẩm khỏi giỏ hàng (Giữ nguyên)
      */
     @Override
     public GioHang removeItemFromCart(NguoiDung khachHang, Integer idSanPhamChiTiet) {
@@ -104,22 +145,17 @@ public class GioHangClientServiceImpl implements GioHangClientService {
 
         if (chiTietOpt.isPresent()) {
             GioHangChiTiet chiTiet = chiTietOpt.get();
-
-            // Xóa chi tiết khỏi DB
             gioHangChiTietRepository.delete(chiTiet);
 
-            // Xóa khỏi danh sách trong bộ nhớ (tránh lỗi deleted instance)
             if (gioHang.getGioHangChiTiets() != null) {
                 gioHang.getGioHangChiTiets().remove(chiTiet);
             }
         }
-
-        // Không gọi save(gioHang) nữa → tránh lỗi Hibernate merge
         return gioHangRepository.findById(gioHang.getId()).orElse(gioHang);
     }
 
     /**
-     * Áp dụng mã giảm giá
+     * Áp dụng mã giảm giá (Giữ nguyên)
      */
     @Override
     public GioHang applyVoucher(NguoiDung khachHang, String maGiamGia) {
@@ -132,7 +168,7 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     }
 
     /**
-     * Gỡ bỏ mã giảm giá
+     * Gỡ bỏ mã giảm giá (Giữ nguyên)
      */
     @Override
     public GioHang removeVoucher(NguoiDung khachHang) {
