@@ -33,13 +33,9 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**").permitAll()
-                                .requestMatchers("/admin/**")
-                                // để dòng này xong, đổi xong xóa hoặc commen lại
-//                                .permitAll().anyRequest().authenticated()
-                                //song rồi chuyển sang dòng này, DÒNG NÀY MỌI NGƯỜI Sửa lại THEO Ý MỌI NGƯỜI
-                                .hasAnyRole("ADMIN","NHANVIEN")
-                                .anyRequest().authenticated()
+                        .requestMatchers("/", "/register", "/verify", "/css/**", "/js/**", "/images/**").permitAll() // Cho phép trang chủ
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
