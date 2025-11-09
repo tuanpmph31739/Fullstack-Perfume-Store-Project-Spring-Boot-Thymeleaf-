@@ -20,13 +20,13 @@
         <div class="col-md-9">
             <div class="product-toolbar d-flex flex-wrap align-items-center justify-content-between mb-4">
                 <div class="toolbar-left d-flex align-items-center gap-3">
-                    <h1 class="h5 m-0 fw-semibold">Tất cả sản phẩm</h1>
+                    <h1 class="h5 m-0 fw-semibold" th:text="${title}">Danh mục</h1>
                     <span class="muted small" th:text="${totalElements} + ' sản phẩm'">0 sản phẩm</span>
                 </div>
                 <form class="toolbar-right d-flex align-items-center gap-2" method="get" th:action="${selfPath}">
-                    <!-- giữ filter khi đổi sort -->
                     <input type="hidden" name="page" th:value="${currentPage}">
                     <input type="hidden" name="size" th:value="${pageSize}">
+                    <!-- vì là trang theo giới, giữ nguyên radio đã chọn -->
                     <input type="hidden" name="gender" th:value="${selectedGender}">
                     <input type="hidden" name="min" th:value="${minPrice}">
                     <input type="hidden" name="max" th:value="${maxPrice}">
@@ -34,8 +34,7 @@
                            th:each="b : ${selectedBrands}" th:value="${b}"/>
 
                     <select class="form-select form-select-sm sort-select" name="sort"
-                            th:value="${sort}"
-                            onchange="this.form.submit()">
+                            th:value="${sort}" onchange="this.form.submit()">
                         <option value=""                th:selected="${sort == null}">Mặc định</option>
                         <option value="price_asc"       th:selected="${sort == 'price_asc'}">Giá tăng dần</option>
                         <option value="price_desc"      th:selected="${sort == 'price_desc'}">Giá giảm dần</option>
@@ -43,19 +42,6 @@
                         <option value="bestseller"      th:selected="${sort == 'bestseller'}">Bán chạy</option>
                     </select>
                 </form>
-            </div>
-
-            <!-- Chips -->
-            <div class="active-filters d-flex flex-wrap gap-2 mb-4"
-                 th:if="${(selectedBrands != null and !selectedBrands.isEmpty()) or selectedGender != null or minPrice != null or maxPrice != null}">
-                <span class="filter-chip" th:each="b : ${selectedBrands}" th:text="${b}">Brand</span>
-                <span class="filter-chip" th:if="${selectedGender != null}" th:text="${selectedGender}">Giới tính</span>
-                <span class="filter-chip" th:if="${minPrice != null or maxPrice != null}"
-                      th:text="'Giá: ' + (${minPrice != null ? #numbers.formatDecimal(minPrice,0,'POINT',0,'NONE') : '0'})
-                                   + ' - ' + (${maxPrice != null ? #numbers.formatDecimal(maxPrice,0,'POINT',0,'NONE') : '∞'}) + ' ₫'">
-                Giá
-                </span>
-                <a class="clear-all small" th:href="${selfPath}">Xoá bộ lọc</a>
             </div>
 
             <!-- Grid -->

@@ -27,7 +27,7 @@ PRINT 'Bat dau tao cac bang...';
 
 -- Bảng Cấp 1 (Không phụ thuộc)
 CREATE TABLE NguoiDung (
-                           Id BIGINT PRIMARY KEY IDENTITY(1,1),
+                           Id INT PRIMARY KEY IDENTITY(1,1),
                            Ma NVARCHAR(20) UNIQUE,
                            HoTen NVARCHAR(100),
                            Email NVARCHAR(100) NOT NULL UNIQUE,

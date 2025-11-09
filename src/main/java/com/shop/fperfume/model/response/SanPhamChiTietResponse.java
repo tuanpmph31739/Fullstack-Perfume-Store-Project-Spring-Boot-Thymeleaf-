@@ -46,6 +46,10 @@ public class SanPhamChiTietResponse {
     private Long idNhomHuong;
     private String tenNhomHuong;
 
+    // thêm field
+    private String slugThuongHieu;
+
+
     // Constructor chuyển đổi từ SanPhamChiTiet sang SanPhamChiTietResponse
     public SanPhamChiTietResponse(SanPhamChiTiet ct) {
         this.id = ct.getId();
@@ -79,6 +83,12 @@ public class SanPhamChiTietResponse {
                 this.idNhomHuong = ct.getSanPham().getNhomHuong().getId();
                 this.tenNhomHuong = ct.getSanPham().getNhomHuong().getTenNhomHuong();
             }
+            if (ct.getSanPham().getThuongHieu() != null) {
+                this.idThuongHieu = ct.getSanPham().getThuongHieu().getId();
+                this.tenThuongHieu = ct.getSanPham().getThuongHieu().getTenThuongHieu();
+                this.slugThuongHieu = ct.getSanPham().getThuongHieu().getSlug(); // <-- tên getter theo entity của bạn
+            }
+
         }
 
         if (ct.getDungTich() != null) {

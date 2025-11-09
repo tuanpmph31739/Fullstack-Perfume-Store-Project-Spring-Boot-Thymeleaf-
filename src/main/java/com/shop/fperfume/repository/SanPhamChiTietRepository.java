@@ -1,13 +1,13 @@
-package com.shop.fperfume.repository; // Đảm bảo đúng đường dẫn package
+package com.shop.fperfume.repository;
 
-import com.shop.fperfume.entity.SanPhamChiTiet; // Đảm bảo đúng đường dẫn entity
+import com.shop.fperfume.entity.SanPhamChiTiet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository; // Có thể thêm @Repository
+import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,53 +43,8 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
     Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
 
+    // Lấy 1 biến thể (id nhỏ nhất) đại diện mỗi sản phẩm
     @Query("""
-    SELECT spct FROM SanPhamChiTiet spct
-    JOIN FETCH spct.sanPham sp
-    LEFT JOIN FETCH sp.thuongHieu th
-    WHERE spct.id IN (
-        SELECT MIN(ct2.id)
-        FROM SanPhamChiTiet ct2
-        GROUP BY ct2.sanPham.id
-    )
-    """)
-    List<SanPhamChiTiet> findDistinctBySanPham(Pageable pageable);
-
-    @Query("""
-    SELECT DISTINCT spct FROM SanPhamChiTiet spct
-    JOIN FETCH spct.sanPham sp
-    JOIN FETCH sp.thuongHieu th
-    WHERE th.slug = :slug
-    """)
-    List<SanPhamChiTiet> findByThuongHieuSlug(@Param("slug") String slug);
-
-    @Query("""
-SELECT spct FROM SanPhamChiTiet spct
-WHERE spct.sanPham.id = :idSanPham
-  AND spct.dungTich.soMl = :soMl
-""")
-    Optional<SanPhamChiTiet> findFirstBySanPhamIdAndDungTich_SoMl(Integer idSanPham, Integer soMl);
-
-    List<SanPhamChiTiet> findBySanPham_IdOrderByDungTich_SoMlAsc(Integer idSanPham);
-
-    // ✅ Lấy 1 biến thể đại diện cho mỗi sản phẩm (id nhỏ nhất)
-    @Query("""
-        SELECT DISTINCT spct FROM SanPhamChiTiet spct
-        JOIN FETCH spct.sanPham sp
-        LEFT JOIN FETCH sp.thuongHieu th
-        LEFT JOIN FETCH spct.dungTich dt
-        LEFT JOIN FETCH spct.nongDo nd
-        WHERE spct.id IN (
-            SELECT MIN(ct2.id)
-            FROM SanPhamChiTiet ct2
-            GROUP BY ct2.sanPham.id
-        )
-    """)
-    List<SanPhamChiTiet> findAllSanPhamChiTiet();
-
-    // ✅ Nếu muốn hỗ trợ phân trang
-    @Query(
-            value = """
         SELECT spct FROM SanPhamChiTiet spct
         JOIN spct.sanPham sp
         WHERE spct.id IN (
@@ -97,12 +52,99 @@ WHERE spct.sanPham.id = :idSanPham
             FROM SanPhamChiTiet ct2
             GROUP BY ct2.sanPham.id
         )
-      """,
-            countQuery = """
-        SELECT COUNT(DISTINCT spct.sanPham.id)
-        FROM SanPhamChiTiet spct
-      """
-    )
+    """)
     Page<SanPhamChiTiet> findAllSanPhamChiTiet(Pageable pageable);
 
+    @Query("""
+        SELECT DISTINCT spct FROM SanPhamChiTiet spct
+        JOIN FETCH spct.sanPham sp
+        JOIN FETCH sp.thuongHieu th
+        WHERE th.slug = :slug
+    """)
+    List<SanPhamChiTiet> findByThuongHieuSlug(@Param("slug") String slug);
+
+    @Query("""
+        SELECT spct FROM SanPhamChiTiet spct
+        WHERE spct.sanPham.id = :idSanPham
+          AND spct.dungTich.soMl = :soMl
+    """)
+    Optional<SanPhamChiTiet> findFirstBySanPhamIdAndDungTich_SoMl(Integer idSanPham, Integer soMl);
+
+    List<SanPhamChiTiet> findBySanPham_IdOrderByDungTich_SoMlAsc(Integer idSanPham);
+
+
+    @Query(value = """
+        WITH ranked AS (
+            SELECT
+                s.*,
+                ROW_NUMBER() OVER (
+                    PARTITION BY s.IdSanPham
+                    ORDER BY s.GiaBan ASC, s.Id ASC
+                ) AS rn
+            FROM SanPhamChiTiet s
+            JOIN SanPham p      ON p.Id = s.IdSanPham
+            JOIN LoaiNuocHoa l  ON l.Id = p.IdLoai
+            WHERE l.TenLoai = :tenLoai
+        )
+        SELECT * FROM ranked
+        WHERE rn = 1
+        ORDER BY IdSanPham
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+        """,
+            nativeQuery = true)
+    List<SanPhamChiTiet> findDaiDienByLoaiNuocHoa(
+            @Param("tenLoai") String tenLoai,
+            @Param("offset") int offset,
+            @Param("limit") int limit
+    );
+
+    @Query(
+            value = """
+            WITH base AS (
+                SELECT s.*, p.Id AS PId, th.Id AS THId, l.TenLoai AS TenLoai
+                FROM SanPhamChiTiet s
+                JOIN SanPham p          ON p.Id = s.IdSanPham
+                LEFT JOIN ThuongHieu th ON th.Id = p.IdThuongHieu
+                LEFT JOIN LoaiNuocHoa l ON l.Id = p.IdLoai
+                WHERE (:loai IS NULL OR l.TenLoai = :loai)
+                  AND (:brandsSize = 0 OR th.Id IN (:brands))
+                  AND (:minP IS NULL OR s.GiaBan >= :minP)
+                  AND (:maxP IS NULL OR s.GiaBan <= :maxP)
+            ),
+            ranked AS (
+                SELECT base.*,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY base.IdSanPham
+                        ORDER BY base.GiaBan ASC, base.Id ASC
+                    ) AS rn
+                FROM base
+            )
+            SELECT * FROM ranked
+            WHERE rn = 1
+            ORDER BY PId
+            """,
+            countQuery = """
+            WITH base AS (
+                SELECT p.Id AS PId
+                FROM SanPhamChiTiet s
+                JOIN SanPham p          ON p.Id = s.IdSanPham
+                LEFT JOIN ThuongHieu th ON th.Id = p.IdThuongHieu
+                LEFT JOIN LoaiNuocHoa l ON l.Id = p.IdLoai
+                WHERE (:loai IS NULL OR l.TenLoai = :loai)
+                  AND (:brandsSize = 0 OR th.Id IN (:brands))
+                  AND (:minP IS NULL OR s.GiaBan >= :minP)
+                  AND (:maxP IS NULL OR s.GiaBan <= :maxP)
+            )
+            SELECT COUNT(*) FROM (SELECT DISTINCT PId FROM base) t
+            """,
+            nativeQuery = true
+    )
+    Page<SanPhamChiTiet> searchAdvancedOneVariant(
+            @Param("brands") List<Integer> brands,
+            @Param("brandsSize") int brandsSize,
+            @Param("loai") String loai,
+            @Param("minP") BigDecimal minP,
+            @Param("maxP") BigDecimal maxP,
+            Pageable pageable
+    );
 }
