@@ -163,8 +163,8 @@ GO
 
 CREATE TABLE HoaDon (
                         Id INT PRIMARY KEY IDENTITY(1,1),
-                        IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
-                        IdNV BIGINT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                        IdKH INT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                        IdNV INT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
                         Ma NVARCHAR(20) UNIQUE,
                         NgayTao DATETIME2 DEFAULT GETDATE(),
                         NgayThanhToan DATETIME2 NULL,
@@ -212,7 +212,7 @@ GO
 
 CREATE TABLE GioHang (
                          Id INT PRIMARY KEY IDENTITY(1,1),
-                         IdKH BIGINT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                         IdKH INT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
                          NgayTao DATETIME2 DEFAULT GETDATE(),
                          NgaySua DATETIME2 DEFAULT GETDATE(),
                          IdGiamGia INT NULL FOREIGN KEY REFERENCES GiamGia(Id)
@@ -223,25 +223,25 @@ GO
 -- Xóa nếu đã tồn tại (để tránh lỗi khi chạy lại)
 IF OBJECT_ID('dbo.GioHangChiTiet', 'U') IS NOT NULL
 BEGIN
-    DROP TABLE GioHangChiTiet;
-    PRINT N'Đã xóa bảng GioHangChiTiet cũ.';
+DROP TABLE GioHangChiTiet;
+PRINT N'Đã xóa bảng GioHangChiTiet cũ.';
 END
 GO
 
 CREATE TABLE GioHangChiTiet (
-    IdGioHang INT NOT NULL,
-    IdSanPhamChiTiet INT NOT NULL,
-    SoLuong INT NOT NULL CHECK (SoLuong > 0),
+                                IdGioHang INT NOT NULL,
+                                IdSanPhamChiTiet INT NOT NULL,
+                                SoLuong INT NOT NULL CHECK (SoLuong > 0),
 
-    CONSTRAINT PK_GioHangChiTiet PRIMARY KEY (IdGioHang, IdSanPhamChiTiet),
+                                CONSTRAINT PK_GioHangChiTiet PRIMARY KEY (IdGioHang, IdSanPhamChiTiet),
 
-    CONSTRAINT FK_GioHangChiTiet_GioHang FOREIGN KEY (IdGioHang)
-        REFERENCES GioHang(Id)
-        ON DELETE CASCADE,
+                                CONSTRAINT FK_GioHangChiTiet_GioHang FOREIGN KEY (IdGioHang)
+                                    REFERENCES GioHang(Id)
+                                    ON DELETE CASCADE,
 
-    CONSTRAINT FK_GioHangChiTiet_SanPhamChiTiet FOREIGN KEY (IdSanPhamChiTiet)
-        REFERENCES SanPhamChiTiet(Id)
-        ON DELETE CASCADE
+                                CONSTRAINT FK_GioHangChiTiet_SanPhamChiTiet FOREIGN KEY (IdSanPhamChiTiet)
+                                    REFERENCES SanPhamChiTiet(Id)
+                                    ON DELETE CASCADE
 );
 PRINT N'Bảng GioHangChiTiet đã được tạo (chuẩn Hibernate, hỗ trợ khóa tổng hợp).';
 GO
