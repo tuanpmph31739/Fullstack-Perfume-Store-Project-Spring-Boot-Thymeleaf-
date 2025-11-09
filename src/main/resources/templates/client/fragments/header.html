@@ -46,15 +46,14 @@
                         <a class="nav-link fw-medium dropdown-toggle" href="#" id="sanPhamDropdown" role="button"
                            aria-expanded="false" th:href="@{/san-pham/all}">Sản phẩm</a>
                         <ul class="dropdown-menu" aria-labelledby="sanPhamDropdown">
-                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nam}">Nước hoa nam</a></li>
-                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=nu}">Nước hoa nữ</a></li>
-                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=unisex}">Nước hoa unisex</a></li>
-                            <li><a class="dropdown-item" th:href="@{/san-pham?loai=niche}">Nước hoa niche</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-nam}">Nước hoa nam</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-nu}">Nước hoa nữ</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-unisex}">Nước hoa unisex</a></li>
                         </ul>
                     </li>
 
                     <li class="nav-item dropdown position-static hover-mega-dropdown">
-                        <a class="nav-link fw-medium dropdown-toggle" th:href="@{/thuong-hieu}" id="thuongHieuDropdown" role="button"
+                        <a class="nav-link fw-medium dropdown-toggle" th:href="@{/thuong-hieu/all}" id="thuongHieuDropdown" role="button"
                            aria-expanded="false">Thương hiệu</a>
                         <div class="dropdown-menu mega-menu shadow-lg border-0 mt-0 py-4"
                              aria-labelledby="thuongHieuDropdown">
@@ -65,7 +64,7 @@
                                         <div class="p-3 rounded-3 text-white hot-brand-list">
                                             <ul class="list-unstyled mb-0">
                                                 <li th:each="brand : ${brandsHot}">
-                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}" th:text="${brand.tenThuongHieu}"
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.id}}" th:text="${brand.tenThuongHieu}"
                                                        class="text-white text-decoration-none d-block py-1"></a>
                                                 </li>
                                             </ul>
@@ -85,7 +84,7 @@
 
                                         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
                                             <div class="col" th:each="brand : ${brands}">
-                                                <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                <a th:href="@{'/thuong-hieu/' + ${brand.id}}"
                                                    th:text="${brand.tenThuongHieu}"
                                                    class="d-block text-dark text-decoration-none brand-link"></a>
                                             </div>

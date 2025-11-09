@@ -23,7 +23,7 @@
 }
 
 body {
-    font-family: var(--font-pri);
+    font-family: "Segoe UI", sans-serif;
     font-weight: 400;
     color: var(--color-text);
     background-color: #fff;
@@ -251,23 +251,43 @@ body {
 /* ========================================
    ⚪ Carousel indicators
    ======================================== */
-#productCarousel .carousel-indicators {
-    bottom: -40px;
+/* Áp dụng cho indicators của ba carousel riêng biệt */
+#carouselNam .carousel-indicators,
+#carouselNu .carousel-indicators,
+#carouselUnisex .carousel-indicators {
+    bottom: -40px; /* Đẩy xuống dưới thêm (tăng giá trị âm để đẩy xa hơn) */
     justify-content: center;
 }
 
-#productCarousel .carousel-indicators button {
+/* Style cho từng button (dấu chấm) */
+#carouselNam .carousel-indicators button,
+#carouselNu .carousel-indicators button,
+#carouselUnisex .carousel-indicators button {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: #ccc;
+    background-color: #ccc; /* Màu inactive */
     border: none;
     margin: 0 6px;
-    transition: background-color var(--transition-fast);
+    opacity: 0.8; /* Thêm opacity để inactive không quá chói */
+    transition: background-color var(--transition-fast), opacity 0.3s ease; /* Thêm transition cho opacity nếu cần */
 }
 
-#productCarousel .carousel-indicators button.active {
-    background-color: var(--color-primary);
+/* Hover effect để dễ tương tác */
+#carouselNam .carousel-indicators button:hover,
+#carouselNu .carousel-indicators button:hover,
+#carouselUnisex .carousel-indicators button:hover {
+    background-color: #aaa; /* Màu hover trung gian */
+    opacity: 1;
+}
+
+/* Style cho button active */
+#carouselNam .carousel-indicators button.active,
+#carouselNu .carousel-indicators button.active,
+#carouselUnisex .carousel-indicators button.active {
+    background-color: var(--color-primary); /* Giả sử bạn có biến --color-primary (ví dụ: #007bff cho xanh) */
+    opacity: 1;
+    transform: scale(1.2); /* Phóng to nhẹ để nổi bật */
 }
 
 /* ========================================
@@ -550,5 +570,244 @@ body {
     }
 }
 
+/* ===== Tabs phong cách cao cấp ===== */
+#perfumeTab {
+    padding-bottom: 15px;
+}
+
+#perfumeTab .nav-item {
+    margin: 0 8px;
+}
+
+#perfumeTab .nav-link {
+    font-family: "Segoe UI", sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+    color: #555;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    padding: 10px 26px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+}
+
+#perfumeTab .nav-link:hover {
+    color: #111;
+    border-color: #d5b894; /* vàng nhạt nhẹ */
+    background-color: rgba(213, 184, 148, 0.05);
+}
+
+#perfumeTab .nav-link.active {
+    color: #fff;
+    background-color: #d5b894; /* màu vàng sang trọng */
+    border-color: #d5b894;
+    box-shadow: 0 3px 8px rgba(213, 184, 148, 0.3);
+}
+
+/* Responsive: co lại trên mobile */
+@media (max-width: 576px) {
+    #perfumeTab .nav-link {
+        padding: 8px 18px;
+        font-size: 14px;
+    }
+}
+
+/* ====== Sidebar look & feel (Laluz-style) ====== */
+.product-list {
+    --ink: #111;
+    --muted: #6f6f6f;
+    --border: #e9e9e9;
+    --bg: #fff;
+    --soft: #faf8f5;   /* tone nền nhẹ nếu muốn */
+    --accent: #d5b894; /* vàng nhạt sang */
+}
+
+/* Card lọc */
+.filter-box{
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.04);
+}
+
+/* Tiêu đề chính */
+.filter-box h5{
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    margin: 0 0 12px;
+    color: var(--ink);
+}
+
+/* Nhóm filter */
+.filter-category,
+.filter-gender,
+.filter-price{
+    padding: 12px 0;
+    border-top: 1px dashed var(--border);
+}
+.filter-category:first-of-type{ border-top: none; }
+
+.filter-category h6,
+.filter-gender h6,
+.filter-price h6{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 10px;
+    letter-spacing: .2px;
+    text-transform: uppercase;
+}
+
+/* ===== Tuỳ biến checkbox/radio tinh tế ===== */
+.filter-box input[type="checkbox"],
+.filter-box input[type="radio"]{
+    /* ẩn trình duyệt mặc định nhưng vẫn accessible */
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+.filter-box input[type="radio"]{ border-radius: 50%; }
+
+.filter-box input[type="checkbox"]:hover,
+.filter-box input[type="radio"]:hover{
+    border-color: #bbb;
+}
+
+/* trạng thái checked */
+.filter-box input[type="checkbox"]:checked,
+.filter-box input[type="radio"]:checked{
+    border-color: var(--ink);
+    background: var(--ink);
+}
+
+/* dấu tick cho checkbox */
+.filter-box input[type="checkbox"]:checked::after{
+    content: "";
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='14' height='14' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 7l2.2 2.4L11 4' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px 12px no-repeat;
+}
+
+/* chấm tròn cho radio */
+.filter-box input[type="radio"]:checked::after{
+    content: "";
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+
+/* nhãn */
+.filter-box label{
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+.filter-box label span{
+    color: #333;
+}
+
+/* danh sách thương hiệu */
+.filter-category ul{ margin: 0; padding: 0; }
+.filter-category li{
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+}
+
+/* ===== Range (khoảng giá) ===== */
+.filter-price input[type="range"]{
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+    outline: none;
+}
+.filter-price input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+    cursor: pointer;
+}
+.filter-price input[type="range"]::-moz-range-thumb{
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+    cursor: pointer;
+}
+
+.filter-price .small{
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 12px;
+}
+
+/* nút áp dụng/xoá */
+.filter-box .btn{
+    border-radius: 999px;
+    padding: 6px 14px;
+}
+.filter-box .btn-primary{
+    background: var(--ink);
+    border-color: var(--ink);
+}
+.filter-box .btn-primary:hover{
+    filter: brightness(0.9);
+}
+.filter-box .btn-outline-secondary{
+    border-color: var(--border);
+    color: #333;
+    background: #fff;
+}
+.filter-box .btn-outline-secondary:hover{
+    border-color: #bbb;
+    color: #111;
+}
+
+/* ===== Sticky ở desktop như Laluz ===== */
+@media (min-width: 992px){
+    .product-list .col-md-3{
+        position: sticky;
+        top: 88px;               /* chỉnh theo chiều cao header thực tế */
+        align-self: flex-start;
+    }
+}
 
 
+/* ====== BRAND LIST ====== */
+.filter-category ul{
+    margin:0;
+    padding:0;
+    list-style:none;
+    max-height:240px;
+    overflow:auto;
+    padding-right:4px;
+}
+.filter-category ul::-webkit-scrollbar{ width:6px; }
+.filter-category ul::-webkit-scrollbar-thumb{ background:#ddd; border-radius:6px; }
+
+.filter-category li label{
+    width:100%;
+    padding:2px 5px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:background .2s ease;
+}

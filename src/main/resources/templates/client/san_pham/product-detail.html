@@ -1,195 +1,272 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{client/fragments/head :: head}">
-    <link rel="stylesheet" th:href="@{/css/product.css}">
+<head th:replace="client/fragments/head :: head">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${sanPhamChiTiet.tenSanPham} + ' | Fperfume'">Chi tiết sản phẩm</title>
+
+    <!-- CSRF cho JS cũ -->
+
 </head>
 <body>
 
+<!-- Header -->
 <div th:replace="~{client/fragments/header :: header}"></div>
 
-<section class="container-fluid my-5 prod-dt">
-    <div class="row">
-        <div class="col-md-3 d-flex justify-content-center">
-            <div class="product-image">
-                <div id="product-gallery" class="carousel slide" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <img th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" class="d-block w-100" alt="Ảnh sản phẩm">
-                        </div>
-                    </div>
+<main class="container pd-wrap">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+            <li class="breadcrumb-item">
+                <a th:if="${sanPhamChiTiet.idThuongHieu != null}"
+                   th:href="@{/thuong-hieu/{id}(id=${sanPhamChiTiet.idThuongHieu})}"
+                   th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</a>
+                <span th:unless="${sanPhamChiTiet.idThuongHieu != null}"
+                      th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</span>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page"
+                th:text="${sanPhamChiTiet.tenSanPham}">Tên sản phẩm</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- LEFT: Gallery -->
+        <div class="col-lg-4">
+            <div class="pd-gallery">
+                <div class="pd-main-img">
+                    <img id="mainImage" th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" alt="Ảnh sản phẩm" />
+                </div>
+                <div class="pd-thumbs" id="thumbs">
+                    <button type="button" class="active">
+                        <img th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" alt="thumb"/>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <h1 th:text="${sanPhamChiTiet.tenSanPham}">Tên sản phẩm</h1>
-
-            <p class="product-price" id="product-price" th:text="${#numbers.formatDecimal(sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'">Giá sản phẩm</p>
-
-            <div class="product-description">
-                <h5>Mô tả sản phẩm</h5>
-                <p th:text="${sanPhamChiTiet.moTa}">Mô tả sản phẩm</p>
+        <!-- MIDDLE: Summary (giống layout cũ) -->
+        <div class="col-lg-4">
+            <h1 class="pd-title" th:text="${sanPhamChiTiet.tenSanPham}">Tên sản phẩm</h1>
+            <div class="pd-meta d-flex align-items-center gap-2">
+        <span class="text-warning">
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+          <i class="bi bi-star"></i>
+        </span>
+                <span>(<span th:text="${soDanhGia ?: 0}">0</span> đánh giá)</span>
+                <span class="ms-2 badge text-bg-light" th:text="${sanPhamChiTiet.tenLoaiNuocHoa}">Unisex</span>
             </div>
 
-            <form id="addToCartForm">
+            <!-- GIỮ id để JS cũ đọc -->
+            <div class="pd-price" id="product-price"
+                 th:text="${#numbers.formatDecimal(sanPhamChiTiet.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'">0 ₫</div>
 
-                <input type="hidden" id="selectedSanPhamChiTietId" th:value="${sanPhamChiTiet.id}">
-
-                <div class="dung-tich-options">
-                    <label th:each="option : ${options}" class="dung-tich-label">
-                        <input type="radio" name="dung-tich"
+            <!-- Variants (Dung tích) — GIỮ name/ onchange cho JS cũ -->
+            <div class="pd-variants mb-3">
+                <div class="fw-semibold mb-2">Dung tích</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <label th:each="option : ${options}" class="pill"
+                           th:classappend="${option.soMl == selectedDungTich} ? ' active'">
+                        <input type="radio" name="dung-tich" class="dung-tich-radio"
                                th:value="${option.soMl}"
                                th:checked="${option.soMl == selectedDungTich}"
-                               th:onchange="|updatePrice(${option.soMl})|"
-                               class="dung-tich-radio">
-                        <span class="dung-tich-text" th:text="${option.soMl} + 'ml'"></span>
+                               th:onchange="|updatePrice(${option.soMl})|">
+                        <span th:text="${option.soMl} + 'ml'">50ml</span>
                     </label>
                 </div>
+            </div>
 
-                <div class="my-3">
-                    <label for="quantityInput" class="form-label fw-bold">Số lượng:</label>
-                    <input type="number" id="quantityInput" class="form-control"
-                           value="1" min="1"
-                           th:max="${sanPhamChiTiet.soLuongTon}"
-                           th:disabled="${sanPhamChiTiet.soLuongTon <= 0}"
-                           style="width: 100px;">
+            <!-- Quantity + Add to cart — GIỮ ID/NAME đúng để JS cũ bắt được -->
+            <form id="addToCartForm">
+                <input type="hidden" id="selectedSanPhamChiTietId" th:value="${sanPhamChiTiet.id}" />
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="qty-group">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" id="minusBtn"><i class="bi bi-dash"></i></button>
+                        <input type="number" id="quantityInput" class="form-control" value="1" min="1"
+                               th:max="${sanPhamChiTiet.soLuongTon}" th:disabled="${sanPhamChiTiet.soLuongTon <= 0}"
+                               style="width:90px" />
+                        <button class="btn btn-sm btn-outline-secondary" type="button" id="plusBtn"><i class="bi bi-plus"></i></button>
+                    </div>
+                    <div class="text-muted small">Còn <b th:text="${sanPhamChiTiet.soLuongTon}">0</b> SP</div>
                 </div>
 
-                <div class="add-to-cart mt-4">
-                    <button id="addToCartButton" class="btn btn-primary w-100" type="submit"
-                            th:disabled="${sanPhamChiTiet.soLuongTon <= 0}"
-                            style="padding: 12px 20px;">
-                        <i class="bi bi-cart-plus"></i>
+                <div class="mt-3 d-grid gap-2">
+                    <!-- GIỮ span nội bộ để JS thay đổi text -->
+                    <button id="addToCartButton" class="btn btn-buy btn-lg" type="submit"
+                            th:disabled="${sanPhamChiTiet.soLuongTon <= 0}">
+                        <i class="bi bi-bag-plus"></i>
                         <span th:if="${sanPhamChiTiet.soLuongTon > 0}">Thêm vào giỏ hàng</span>
                         <span th:if="${sanPhamChiTiet.soLuongTon <= 0}">Hết hàng</span>
                     </button>
+
+<!--                     (tùy) Link mua ngay nếu bạn dùng-->
+                     <a class="btn btn-outline-dark btn-lg w-100" th:href="@{|/thanh-toan?spct=${sanPhamChiTiet.id}|}">Mua ngay</a>
+
+                    <div class="hotline d-flex align-items-center gap-2 justify-content-center">
+                        <i class="bi bi-telephone"></i><span>HOTLINE</span><b>0397682148</b><span class="text-muted">(9:00 - 22:00)</span>
+                    </div>
                 </div>
-
             </form>
-        </div>
 
-        <div class="col-md-3">
-            <div class="product-table">
-                <h5>Thông tin sản phẩm</h5>
-                <ul class="info-list">
-                    <li class="info-item">
-                        <div class="ic-info">
-                            <img src="/images/thuong-hieu-icon.png" alt="Thương hiệu">
-                        </div>
-                        <p class="txt">Thương hiệu:
-                            <a class="brand-link2" th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</a>
-                        </p>
-                    </li>
-                    <li class="info-item">
-                        <div class="ic-info">
-                            <img src="/images/nong-do-icon.png" alt="Nồng độ">
-                        </div>
-                        <p class="txt">Nồng độ:
-                            <span th:text="${sanPhamChiTiet.tenNongDo}">Nồng độ</span>
-                        </p>
-                    </li>
-                    <li class="info-item">
-                        <div class="ic-info">
-                            <img src="/images/luu-mui-icon.png" alt="Độ lưu mùi">
-                        </div>
-                        <p class="txt">Nhóm hương:
-                            <span th:text="${sanPhamChiTiet.tenNhomHuong}">Nhóm hương</span>
-                        </p>
-                    </li>
-                    <li class="info-item">
-                        <div class="ic-info">
-                            <img src="/images/toa-huong-icon.png" alt="Độ tỏa hương">
-                        </div>
-                        <p class="txt">Mùa thích hợp:
-                            <span th:text="${sanPhamChiTiet.tenMuaThichHop}">Mùa thích hợp</span>
-                        </p>
-                    </li>
-                    <li class="info-item">
-                        <div class="ic-info">
-                            <img src="/images/gioi-tinh-icon.png" alt="Giới tính">
-                        </div>
-                        <p class="txt">Giới tính:
-                            <span th:text="${sanPhamChiTiet.tenLoaiNuocHoa}">Giới tính</span>
-                        </p>
-                    </li>
-                </ul>
+            <!-- Social -->
+            <div class="d-flex align-items-center gap-3 mt-3 text-muted">
+                <span class="small">Chia sẻ:</span>
+                <a href="#" class="text-muted"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="text-muted"><i class="bi bi-instagram"></i></a>
+                <a href="#" class="text-muted"><i class="bi bi-tiktok"></i></a>
+                <button class="btn btn-sm btn-link text-muted" type="button" id="btnWish"><i class="bi bi-heart"></i> Yêu thích</button>
             </div>
         </div>
-    </div>
-</section>
 
+        <!-- RIGHT: Info table -->
+        <div class="col-lg-4">
+            <aside class="pd-info">
+                <h5 class="mb-3">Thông tin sản phẩm</h5>
+                <ul class="info-list">
+                    <li class="info-item">
+                        <div class="ic"><img src="/images/thuong-hieu-icon.png" alt="Brand" style="width:20px;height:20px"></div>
+                        <div>Thương hiệu:
+                            <a class="text-decoration-none"
+                               th:if="${sanPhamChiTiet.idThuongHieu != null}"
+                               th:href="@{/thuong-hieu/{id}(id=${sanPhamChiTiet.idThuongHieu})}"
+                               th:text="${sanPhamChiTiet.tenThuongHieu}">Brand</a>
+                            <span th:unless="${sanPhamChiTiet.idThuongHieu != null}"
+                                  th:text="${sanPhamChiTiet.tenThuongHieu}">Brand</span>
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <div class="ic"><img src="/images/nong-do-icon.png" alt="Concentration" style="width:20px;height:20px"></div>
+                        <div>Nồng độ: <span th:text="${sanPhamChiTiet.tenNongDo}">Eau De Parfum</span></div>
+                    </li>
+                    <li class="info-item">
+                        <div class="ic"><img src="/images/gioi-tinh-icon.png" alt="Gender" style="width:20px;height:20px"></div>
+                        <div>Giới tính: <span th:text="${sanPhamChiTiet.tenLoaiNuocHoa}">Unisex</span></div>
+                    </li>
+                    <li class="info-item">
+                        <div class="ic"><i class="bi bi-upc-scan"></i></div>
+                        <div>SKU: <span th:text="${sanPhamChiTiet.maSKU}"></span></div>
+                    </li>
+                </ul>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Tabs mô tả (tùy chọn) -->
+    <section class="pd-tabs">
+        <!-- Tabs -->
+        <ul class="nav nav-underline pd-tabs-nav" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pane-desc" type="button" role="tab">
+                    MÔ TẢ SẢN PHẨM
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-usage" type="button" role="tab">
+                    SỬ DỤNG &amp; BẢO QUẢN
+                </button>
+            </li>
+        </ul>
+
+        <!-- Content -->
+        <div class="tab-content tab-content-product">
+            <!-- MÔ TẢ -->
+            <div class="tab-pane fade show active" id="pane-desc" role="tabpanel">
+                <div class="pd-box">
+                    <div class="pd-desc-lead"
+                         th:utext="'<strong>Nhóm hương chính:</strong> ' + ${#strings.replace(sanPhamChiTiet.tenNhomHuong, '\n', '<br/>')}">
+                        <strong>Nhóm hương chính:</strong> Hương Gỗ (Woody)
+                    </div>
+                    <div class="pd-desc-body"
+                         th:utext="${#strings.replace(sanPhamChiTiet.moTa, '\n', '<br/>')}">
+                        Mô tả sản phẩm...
+                    </div>
+                </div>
+            </div>
+
+            <!-- SỬ DỤNG & BẢO QUẢN -->
+            <div class="tab-pane fade" id="pane-usage" role="tabpanel">
+                <div class="pd-box">
+                    <h5>CÁCH SỬ DỤNG:</h5>
+                    <ul class="pd-list">
+                        <li>Các vị trí được ưu tiên tiếp xúc là cổ tay, khuỷu tay, sau tai, gáy, cổ trước.</li>
+                        <li>Sau khi xịt nước hoa lên cơ thể, tránh dùng tay chà xát hoặc làm khô da bằng những vật dụng khác, điều này phá vỡ các tầng hương trong nước hoa, khiến nó có thể thay đổi mùi hương hoặc bay mùi nhanh hơn.</li>
+                        <li>Để chai nước hoa cách vị trí cần dùng nước hoa trong khoảng 15-20cm và xịt mạnh, dứt khoát để mật độ phủ của nước hoa được rộng nhất, tăng độ bám tỏa trên da của bạn.</li>
+                        <li>Nước hoa có thể bám tốt hay không tốt tùy thuộc vào thời gian, không gian, cơ địa, chế độ sinh hoạt, ăn uống của bạn.</li>
+                        <li>Bạn nên mang theo nước hoa bên mình hoặc trang bị những mẫu nhỏ tiện dụng.</li>
+                    </ul>
+                    <br>
+                    <h5>CÁCH BẢO QUẢN:</h5>
+                    <ul class="pd-list">
+                        <li>Nước hoa thường không có hạn sử dụng. Tuy nhiên, ở một số loại nước hạn sử dụng được chú thích là từ 24 đến 36 tháng, và tính từ ngày bạn mở sản phẩm và sử dụng lần đầu tiên.</li>
+                        <li>Nên bảo quản nước hoa ở những nơi khô thoáng, mát mẻ, tránh nắng, nóng hoặc quá lạnh, lưu ý không để nước hoa trong cốp xe, những nơi có nhiệt độ nóng lạnh thất thường…</li>
+                        <li>Hạn sử dụng: In trên bao bì sản phẩm</li>
+                        <li>Ngày sản xuất: In trên bao bì sản phẩm</li>
+                        <li>Cảm ơn quý khách đã tin tưởng và lựa chọn F Perfume. Chúng tôi cam kết sẽ mang đến những sản phẩm chính hãng và chất lượng tuyệt vời cho bạn.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
 <div th:replace="~{client/fragments/footer :: footer}"></div>
 
+<!-- Vendor JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <script th:inline="javascript">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    var idSanPham = /*[[${idSanPham}]]*/ null;
-
-    function formatPrice(price) {
-        if (price == null || isNaN(price)) return "N/A";
-        return parseFloat(price).toLocaleString("vi-VN") + " ₫";
-    }
-
-    // Hàm cập nhật giá VÀ TỒN KHO
-    function updatePrice(soMl) {
-        if (!soMl) return;
-
-        // Lấy các phần tử DOM
-        const priceEl = document.getElementById('product-price');
-        const hiddenIdEl = document.getElementById('selectedSanPhamChiTietId');
-        const qtyInputEl = document.getElementById('quantityInput');
-        const submitBtn = document.getElementById('addToCartButton');
-        const btnText = submitBtn.querySelector('span');
-
-        // Gọi API của SanPhamClientController (đã được sửa để trả về soLuongTon)
-        fetch(`/san-pham/${idSanPham}/gia?soMl=${soMl}`)
-            .then(response => response.json())
-            .then(data => {
-                if(data.giaBan && data.idSpct) {
-
-                    // 1. Cập nhật giá
-                    priceEl.innerText = formatPrice(data.giaBan);
-
-                    // 2. Cập nhật ID (Sửa lỗi "undefined")
-                    hiddenIdEl.value = data.idSpct;
-
-                    // 3. Cập nhật Tồn Kho (Quan trọng)
-                    var stock = parseInt(data.soLuongTon || 0);
-                    qtyInputEl.max = stock;
-
-                    // 4. Cập nhật trạng thái
-                    if (stock <= 0) {
-                        qtyInputEl.value = 0; // Đặt giá trị là 0 khi hết hàng
-                        qtyInputEl.disabled = true;
-                        submitBtn.disabled = true;
-                        if (btnText) btnText.innerText = 'Hết hàng';
-                    } else {
-                        qtyInputEl.value = 1; // Reset số lượng về 1
-                        qtyInputEl.disabled = false;
-                        submitBtn.disabled = false;
-                        if (btnText) btnText.innerText = 'Thêm vào giỏ hàng';
-                    }
-                }
-            })
-            .catch(error => console.error('Lỗi khi cập nhật giá:', error));
-    }
-
-    // Tự động chạy khi tải trang (Đã sửa lại logic)
-    document.addEventListener("DOMContentLoaded", function() {
-        var defaultInput = document.querySelector('input[name="dung-tich"]:checked');
-        if (defaultInput) {
-             // Không cần gọi updatePrice, vì Thymeleaf đã render giá trị ban đầu chính xác
-        } else {
-            // Nếu không có gì được check, chọn cái đầu tiên (nếu có)
-             var firstInput = document.querySelector('input[name="dung-tich"]');
-             if(firstInput) {
-                firstInput.checked = true;
-                updatePrice(firstInput.value);
-             }
-        }
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const minusBtn = document.getElementById('minusBtn');
+        const plusBtn = document.getElementById('plusBtn');
+        const qty = document.getElementById('quantityInput');
+        minusBtn?.addEventListener('click',()=>{ const min=parseInt(qty.min||1); qty.value=Math.max(min,(parseInt(qty.value||1)-1)); });
+        plusBtn?.addEventListener('click',()=>{ const max=parseInt(qty.max||999999); qty.value=Math.min(max,(parseInt(qty.value||1)+1)); });
+        // hiển thị active pill
+        document.querySelectorAll('.pd-variants .pill input').forEach(r=>{
+            r.addEventListener('change', ()=>{
+                document.querySelectorAll('.pd-variants .pill').forEach(l=>l.classList.remove('active'));
+                r.closest('.pill')?.classList.add('active');
+            });
+        });
     });
 </script>
 
 <script th:src="@{/js/cart-ajax.js}"></script>
+
+<script th:inline="javascript">
+    var idSanPham = /*[[${idSanPham}]]*/ null;
+    function formatPrice(price){ if(price==null||isNaN(price)) return "N/A"; return parseFloat(price).toLocaleString("vi-VN")+" ₫"; }
+    function updatePrice(soMl){
+        if(!soMl) return;
+        const priceEl=document.getElementById('product-price');
+        const hiddenIdEl=document.getElementById('selectedSanPhamChiTietId');
+        const qtyInputEl=document.getElementById('quantityInput');
+        const submitBtn=document.getElementById('addToCartButton');
+        const btnText=submitBtn.querySelector('span');
+        fetch(`/san-pham/${idSanPham}/gia?soMl=${soMl}`)
+            .then(r=>r.json())
+            .then(data=>{
+                if(data.giaBan && data.idSpct){
+                    priceEl.innerText = formatPrice(data.giaBan);
+                    hiddenIdEl.value = data.idSpct;
+                    const stock = parseInt(data.soLuongTon||0);
+                    qtyInputEl.max = stock;
+                    if (stock<=0){
+                        qtyInputEl.value=0; qtyInputEl.disabled=true; submitBtn.disabled=true;
+                        if(btnText) btnText.innerText='Hết hàng';
+                    } else {
+                        if(parseInt(qtyInputEl.value)<1) qtyInputEl.value=1;
+                        qtyInputEl.disabled=false; submitBtn.disabled=false;
+                        if(btnText) btnText.innerText='Thêm vào giỏ hàng';
+                    }
+                }
+            })
+            .catch(err=>console.error('Lỗi cập nhật giá:',err));
+    }
+</script>
 </body>
 </html>
