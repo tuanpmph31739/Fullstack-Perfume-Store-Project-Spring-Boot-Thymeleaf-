@@ -19,7 +19,8 @@ import java.util.UUID;
 @Service
 public class NguoiDungService {
 
-    private final NguoiDungRepository repo;
+    @Autowired
+    private NguoiDungRepository repo;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -27,10 +28,7 @@ public class NguoiDungService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public NguoiDungService(NguoiDungRepository repo) {
-        this.repo = repo;
-    }
-
+    // --- CRUD cơ bản ---
     public Page<NguoiDung> getAll(String vaiTro, Boolean trangThai, Pageable pageable) {
         return repo.findByFilter(vaiTro, trangThai, pageable);
     }
@@ -47,7 +45,7 @@ public class NguoiDungService {
         repo.deleteById(id);
     }
 
-
+    // --- Đăng ký tài khoản + gửi mail xác minh ---
     public void register(NguoiDung user, String siteURL) {
         user.setMatKhau(passwordEncoder.encode(user.getMatKhau()));
         user.setVerificationCode(UUID.randomUUID().toString());
@@ -60,9 +58,6 @@ public class NguoiDungService {
             throw new RuntimeException("Không thể gửi email xác minh: " + e.getMessage(), e);
         }
     }
-
-
-
 
     public void sendVerificationEmail(NguoiDung user, String siteURL)
             throws MessagingException, UnsupportedEncodingException {
@@ -78,10 +73,11 @@ public class NguoiDungService {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
         helper.setTo(user.getEmail());
         helper.setSubject(subject);
         helper.setText(content, true);
-        helper.setFrom("your_email@gmail.com", "FPerfume");
+        helper.setFrom("famumintouan@gmail.com", "FPerfume");
 
         mailSender.send(message);
     }
@@ -96,15 +92,4 @@ public class NguoiDungService {
         repo.save(user);
         return true;
     }
-    public boolean updatePassword(Long id, String newPassword) {
-        Optional<NguoiDung> userOpt = repo.findById(id);
-        if (userOpt.isPresent()) {
-            NguoiDung user = userOpt.get();
-            user.setMatKhau(passwordEncoder.encode(newPassword)); // Mã hoá lại mật khẩu
-            repo.save(user);
-            return true;
-        }
-        return false;
-    }
-
 }
