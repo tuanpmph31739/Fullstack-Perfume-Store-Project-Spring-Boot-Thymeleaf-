@@ -1,6 +1,5 @@
 package com.shop.fperfume.security;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,17 +19,12 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String redirectURL = request.getContextPath();
+        String redirectURL = "/";
 
-        // Lấy role của người dùng sau khi login
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             String role = authority.getAuthority();
-
-            if (role.equals("ADMIN")) {
+            if (role.equals("ADMIN") || role.equals("NHANVIEN")) {
                 redirectURL = "/admin/san-pham";
-                break;
-            } else if (role.equals("KHACHHANG")) {
-                redirectURL = "/#";
                 break;
             }
         }
