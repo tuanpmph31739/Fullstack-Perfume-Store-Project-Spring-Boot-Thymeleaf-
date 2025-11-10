@@ -3,16 +3,18 @@
         <p>© 2025 FPerfume. All rights reserved.</p>
     </div>
 
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto" id="toast-title" style="font-weight: 600;">Thông báo</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toast-body">
+    <!-- Toast UI -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;">
+        <div id="liveToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-body">Thông báo mẫu.</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/cart-ajax.js}"></script>
 </footer>

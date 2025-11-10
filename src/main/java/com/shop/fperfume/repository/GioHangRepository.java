@@ -13,20 +13,14 @@ import java.util.Optional;
 public interface GioHangRepository extends JpaRepository<GioHang, Integer> {
 
     /**
-     * SỬA HÀM NÀY (PHIÊN BẢN HOÀN CHỈNH):
-     * Dùng @Query với "LEFT JOIN FETCH" lồng nhau để buộc Hibernate
-     * tải luôn mọi thứ chúng ta cần trong trang Giỏ hàng.
-     * (Đây là cách sửa lỗi 'no session' hiệu quả nhất)
+     * Truy vấn giỏ hàng của khách hàng, đồng thời tải luôn các chi tiết liên quan
+     * (giúp tránh lỗi LazyInitializationException khi render trang Thymeleaf).
      */
-    @Query("SELECT g FROM GioHang g " +
+    @Query("SELECT DISTINCT g FROM GioHang g " +
             "LEFT JOIN FETCH g.gioHangChiTiets gct " +
-            // Tải biến thể sản phẩm
             "LEFT JOIN FETCH gct.sanPhamChiTiet spct " +
-            // Tải sản phẩm cha (để lấy tên)
             "LEFT JOIN FETCH spct.sanPham sp " +
-            // Tải dung tích (để lấy soMl)
             "LEFT JOIN FETCH spct.dungTich " +
-            // Tải nồng độ (để lấy ten)
             "LEFT JOIN FETCH spct.nongDo " +
             "WHERE g.khachHang = :khachHang")
     Optional<GioHang> findByKhachHang(@Param("khachHang") NguoiDung khachHang);

@@ -7,192 +7,173 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList; // <-- THÊM IMPORT NÀY
-import java.util.List;     // <-- THÊM IMPORT NÀY
+import java.util.Optional;
 
 @Service
+@Transactional
 public class GioHangClientServiceImpl implements GioHangClientService {
 
-    @Autowired private GioHangRepository gioHangRepo;
-    @Autowired private GioHangChiTietRepository gioHangChiTietRepo;
-    @Autowired private SanPhamChiTietRepository sanPhamChiTietRepo;
-    @Autowired private GiamGiaRepository giamGiaRepo;
-    @Autowired private NguoiDungRepository nguoiDungRepo;
+    @Autowired
+    private GioHangRepository gioHangRepository;
+
+    @Autowired
+    private GioHangChiTietRepository gioHangChiTietRepository;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
+
+    @Autowired
+    private GiamGiaRepository giamGiaRepository;
 
     /**
-     * Logic "Tìm hoặc Tạo"
-     * (Sử dụng @Query JOIN FETCH từ GioHangRepository)
-     *
-     * === ĐÃ SỬA LỖI ===
-     * Đảm bảo 'gioHang.gioHangChiTiets' không bao giờ null,
-     * ngay cả khi giỏ hàng mới được tạo hoặc rỗng.
+     * Lấy giỏ hàng theo người dùng (Giữ nguyên)
      */
     @Override
-    @Transactional
     public GioHang getCartByUser(NguoiDung khachHang) {
-
-        // TODO: Xóa 2 dòng giả lập này khi có đăng nhập
-        // Chúng ta dùng ID 2 (Vũ Hoàng Anh) vì CSDL có dữ liệu giỏ hàng cho user này.
-        NguoiDung user = nguoiDungRepo.findById(2L).orElse(khachHang);
-
-        GioHang gioHang = gioHangRepo.findByKhachHang(user)
+        return gioHangRepository.findByKhachHang(khachHang)
                 .orElseGet(() -> {
-                    // Nếu user chưa có giỏ hàng, tạo mới
-                    GioHang newCart = new GioHang();
-                    newCart.setKhachHang(user);
-                    newCart.setNgayTao(LocalDateTime.now());
-                    newCart.setNgaySua(LocalDateTime.now());
-                    // 1. Khởi tạo danh sách rỗng để tránh lỗi NullPointerException
-                    newCart.setGioHangChiTiets(new ArrayList<>());
-                    return gioHangRepo.save(newCart);
+                    GioHang gioHang = new GioHang();
+                    gioHang.setKhachHang(khachHang);
+                    return gioHangRepository.save(gioHang);
                 });
+    }
 
-        // 2. Nếu giỏ hàng đã tồn tại nhưng list là null (do fetch không tìm thấy),
-        // cũng khởi tạo nó để tránh lỗi NullPointerException
-        if (gioHang.getGioHangChiTiets() == null) {
-            gioHang.setGioHangChiTiets(new ArrayList<>());
+    /**
+     * Thêm sản phẩm vào giỏ (SỬA LỖI KIỂM TRA TỒN KHO)
+     */
+    @Override
+    public GioHang addItemToCart(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer soLuongThem) {
+        // THÊM: Kiểm tra số lượng đầu vào
+        if (soLuongThem <= 0) {
+            throw new RuntimeException("Số lượng phải lớn hơn 0");
         }
 
-        // Dòng này vẫn cần thiết để kích hoạt JOIN FETCH (nếu không dùng @Query)
-        gioHang.getGioHangChiTiets().size();
+        // --- BƯỚC 1: Lấy sản phẩm và kiểm tra tồn kho ---
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        int soLuongTonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+
+        if (soLuongTonKho == 0) {
+            throw new RuntimeException("Sản phẩm [" + spct.getSanPham().getTenNuocHoa() + "] đã hết hàng");
+        }
+
+        // --- BƯỚC 2: Lấy giỏ hàng và kiểm tra số lượng hiện có ---
+        GioHang gioHang = getCartByUser(khachHang);
+        GioHangChiTietId id = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
+        Optional<GioHangChiTiet> existing = gioHangChiTietRepository
+                .findByGioHang_IdAndSanPhamChiTiet_Id(gioHang.getId(), idSanPhamChiTiet);
+
+        int soLuongTrongGio = 0;
+        if (existing.isPresent()) {
+            soLuongTrongGio = existing.get().getSoLuong();
+        }
+
+        // --- BƯỚC 3: Kiểm tra tổng số lượng mong muốn ---
+        int tongSoLuongMongMuon = soLuongTrongGio + soLuongThem;
+
+        if (tongSoLuongMongMuon > soLuongTonKho) {
+            int coTheThem = soLuongTonKho - soLuongTrongGio;
+            if (coTheThem <= 0) {
+                throw new RuntimeException("Bạn đã có tối đa sản phẩm này trong giỏ. Tồn kho: " + soLuongTonKho);
+            }
+            // Ném lỗi với thông báo rõ ràng
+            throw new RuntimeException("Chỉ còn " + soLuongTonKho + " sản phẩm. Bạn chỉ có thể thêm " + coTheThem + " sản phẩm nữa.");
+        }
+
+        // --- BƯỚC 4: Lưu (Nếu mọi thứ hợp lệ) ---
+        if (existing.isPresent()) {
+            GioHangChiTiet item = existing.get();
+            item.setSoLuong(tongSoLuongMongMuon); // SỬA: Cập nhật tổng số lượng mới
+            gioHangChiTietRepository.save(item);
+        } else {
+            GioHangChiTiet item = new GioHangChiTiet();
+            item.setId(id);
+            item.setGioHang(gioHang);
+            item.setSanPhamChiTiet(spct); // SỬA: Tái sử dụng spct đã lấy
+            item.setSoLuong(soLuongThem); // Thêm mới
+            gioHangChiTietRepository.save(item);
+        }
+
+        return gioHangRepository.findById(gioHang.getId()).orElseThrow();
+    }
+
+    /**
+     * Cập nhật số lượng sản phẩm trong giỏ hàng (SỬA LỖI KIỂM TRA TỒN KHO)
+     */
+    @Override
+    public GioHang updateItemQuantity(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer newSoLuong) {
+        GioHang gioHang = getCartByUser(khachHang);
+        GioHangChiTietId id = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
+
+        GioHangChiTiet chiTiet = gioHangChiTietRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng"));
+
+        if (newSoLuong <= 0) {
+            // Logic xóa của bạn đã đúng (Giữ nguyên)
+            gioHangChiTietRepository.delete(chiTiet);
+            if (gioHang.getGioHangChiTiets() != null) {
+                gioHang.getGioHangChiTiets().remove(chiTiet);
+            }
+        } else {
+            // --- THÊM: KIỂM TRA TỒN KHO ---
+            SanPhamChiTiet spct = chiTiet.getSanPhamChiTiet();
+            int soLuongTonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+
+            if (newSoLuong > soLuongTonKho) {
+                // Ném lỗi -> Controller sẽ bắt và báo cho client
+                throw new RuntimeException("Số lượng cập nhật vượt quá tồn kho! (Tồn kho: " + soLuongTonKho + ")");
+            }
+            // --- HẾT PHẦN KIỂM TRA ---
+
+            chiTiet.setSoLuong(newSoLuong);
+            gioHangChiTietRepository.save(chiTiet);
+        }
 
         return gioHang;
     }
 
     /**
-     * Thêm sản phẩm vào giỏ.
-     * Logic này đã chính xác (sử dụng bidirectional association)
+     * Xóa một sản phẩm khỏi giỏ hàng (Giữ nguyên)
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public GioHang addItemToCart(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer soLuong) {
-        if (soLuong <= 0) {
-            throw new IllegalArgumentException("Số lượng phải lớn hơn 0");
-        }
-
-        GioHang gioHang = getCartByUser(khachHang);
-        SanPhamChiTiet spct = sanPhamChiTietRepo.findById(idSanPhamChiTiet)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết"));
-
-        if (spct.getSoLuongTon() < soLuong) {
-            throw new RuntimeException("Không đủ hàng, chỉ còn " + spct.getSoLuongTon() + " sản phẩm.");
-        }
-
-        GioHangChiTietId itemId = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
-
-        // Tìm item trong danh sách (đã được tải bởi JOIN FETCH)
-        GioHangChiTiet existingItem = gioHang.getGioHangChiTiets().stream()
-                .filter(item -> item.getId().equals(itemId))
-                .findFirst().orElse(null);
-
-        if (existingItem != null) {
-            // Đã có -> Cộng dồn
-            int newSoLuong = existingItem.getSoLuong() + soLuong;
-            if (spct.getSoLuongTon() < newSoLuong) {
-                throw new RuntimeException("Số lượng trong giỏ (" + newSoLuong + ") vượt quá tồn kho (" + spct.getSoLuongTon() + ").");
-            }
-            existingItem.setSoLuong(newSoLuong);
-        } else {
-            // Chưa có -> Tạo mới
-            GioHangChiTiet newItem = new GioHangChiTiet();
-            newItem.setId(itemId);
-            newItem.setGioHang(gioHang);
-            newItem.setSanPhamChiTiet(spct);
-            newItem.setSoLuong(soLuong);
-            // Thêm item mới vào danh sách của Cha
-            gioHang.getGioHangChiTiets().add(newItem);
-        }
-
-        gioHang.setNgaySua(LocalDateTime.now());
-        // Chỉ cần save Cha (GioHang),
-        // JPA sẽ tự động cập nhật/thêm ChiTiet (nhờ CascadeType.ALL)
-        return gioHangRepo.save(gioHang);
-    }
-
-    /**
-     * Cập nhật số lượng. Logic này đã chính xác.
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public GioHang updateItemQuantity(NguoiDung khachHang, Integer idSanPhamChiTiet, Integer newSoLuong) {
-        GioHang gioHang = getCartByUser(khachHang);
-
-        if (newSoLuong <= 0) {
-            // Nếu số lượng mới <= 0, gọi hàm xóa
-            return removeItemFromCart(khachHang, idSanPhamChiTiet);
-        }
-
-        SanPhamChiTiet spct = sanPhamChiTietRepo.findById(idSanPhamChiTiet)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết"));
-
-        if (spct.getSoLuongTon() < newSoLuong) {
-            throw new RuntimeException("Không đủ hàng, chỉ còn " + spct.getSoLuongTon() + " sản phẩm.");
-        }
-
-        GioHangChiTietId itemId = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
-        GioHangChiTiet item = gioHang.getGioHangChiTiets().stream()
-                .filter(i -> i.getId().equals(itemId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không có trong giỏ hàng."));
-
-        item.setSoLuong(newSoLuong);
-        gioHang.setNgaySua(LocalDateTime.now());
-        return gioHangRepo.save(gioHang); // Save Cha
-    }
-
-    /**
-     * HÀM REMOVEITEMFROMCART
-     *
-     * === ĐÃ SỬA LỖI ===
-     * Sửa lỗi 'ObjectDeletedException' bằng cách
-     * chỉ xóa item khỏi List của 'gioHang'.
-     * JPA sẽ tự động xóa item (nhờ orphanRemoval=true).
-     */
-    @Override
-    @Transactional
     public GioHang removeItemFromCart(NguoiDung khachHang, Integer idSanPhamChiTiet) {
         GioHang gioHang = getCartByUser(khachHang);
-        GioHangChiTietId itemId = new GioHangChiTietId(gioHang.getId(), idSanPhamChiTiet);
 
-        // 1. Tìm item trong danh sách của giỏ hàng
-        GioHangChiTiet itemToRemove = gioHang.getGioHangChiTiets().stream()
-                .filter(i -> i.getId().equals(itemId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không có trong giỏ hàng."));
+        Optional<GioHangChiTiet> chiTietOpt =
+                gioHangChiTietRepository.findByGioHang_IdAndSanPhamChiTiet_Id(gioHang.getId(), idSanPhamChiTiet);
 
-        // 2. Xóa item khỏi danh sách của Cha (Quan trọng)
-        // Nếu Entity GioHang có @OneToMany(..., orphanRemoval = true)
-        // thì bước này là đủ để Hibernate tự động xóa
-        gioHang.getGioHangChiTiets().remove(itemToRemove);
+        if (chiTietOpt.isPresent()) {
+            GioHangChiTiet chiTiet = chiTietOpt.get();
+            gioHangChiTietRepository.delete(chiTiet);
 
-        // 3. (Xóa dòng này)
-        // gioHangChiTietRepo.delete(itemToRemove); // <-- Dòng này gây lỗi ObjectDeletedException
-
-        gioHang.setNgaySua(LocalDateTime.now());
-        return gioHangRepo.save(gioHang); // Lưu lại Cha
+            if (gioHang.getGioHangChiTiets() != null) {
+                gioHang.getGioHangChiTiets().remove(chiTiet);
+            }
+        }
+        return gioHangRepository.findById(gioHang.getId()).orElse(gioHang);
     }
 
+    /**
+     * Áp dụng mã giảm giá (Giữ nguyên)
+     */
     @Override
-    @Transactional
     public GioHang applyVoucher(NguoiDung khachHang, String maGiamGia) {
         GioHang gioHang = getCartByUser(khachHang);
-        GiamGia giamGia = giamGiaRepo.findByMa(maGiamGia)
-                .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ."));
+        GiamGia voucher = giamGiaRepository.findByMa(maGiamGia)
+                .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ hoặc đã hết hạn"));
 
-        // (Bạn có thể thêm logic kiểm tra ngày hết hạn, số lượng... của GiamGia ở đây)
-
-        gioHang.setGiamGia(giamGia);
-        gioHang.setNgaySua(LocalDateTime.now());
-        return gioHangRepo.save(gioHang);
+        gioHang.setGiamGia(voucher);
+        return gioHangRepository.save(gioHang);
     }
 
+    /**
+     * Gỡ bỏ mã giảm giá (Giữ nguyên)
+     */
     @Override
-    @Transactional
     public GioHang removeVoucher(NguoiDung khachHang) {
         GioHang gioHang = getCartByUser(khachHang);
         gioHang.setGiamGia(null);
-        gioHang.setNgaySua(LocalDateTime.now());
-        return gioHangRepo.save(gioHang);
+        return gioHangRepository.save(gioHang);
     }
 }

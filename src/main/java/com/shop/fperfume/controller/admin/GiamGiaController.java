@@ -2,6 +2,7 @@ package com.shop.fperfume.controller.admin;
 
 import com.shop.fperfume.model.request.GiamGiaRequest;
 import com.shop.fperfume.model.response.GiamGiaResponse;
+import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.service.admin.GiamGiaService;
 import com.shop.fperfume.service.admin.SanPhamService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +19,20 @@ public class GiamGiaController {
     private GiamGiaService giamGiaService;
 
     @Autowired
-    private SanPhamService sanPhamService; // Để hiển thị danh sách sản phẩm khi chọn
+    private SanPhamService sanPhamService;
 
-    // Hiển thị danh sách giảm giá
+    // ✅ Hiển thị danh sách giảm giá có phân trang
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("giamGias", giamGiaService.getAllGiamGia());
+    public String index(Model model,
+                        @RequestParam(defaultValue = "1") Integer page,
+                        @RequestParam(defaultValue = "2") Integer size) {
+
+        PageableObject<GiamGiaResponse> pageableObject = giamGiaService.paging(page, size);
+        model.addAttribute("page", pageableObject);
         return "admin/giam_gia/index";
     }
 
-    // Trang thêm mới
+    // ✅ Trang thêm mới
     @GetMapping("/add")
     public String addForm(Model model) {
         model.addAttribute("giamGiaRequest", new GiamGiaRequest());
@@ -35,7 +40,7 @@ public class GiamGiaController {
         return "admin/giam_gia/add";
     }
 
-    // Xử lý thêm mới
+    // ✅ Xử lý thêm mới
     @PostMapping("/add")
     public String addGiamGia(@ModelAttribute GiamGiaRequest giamGiaRequest,
                              RedirectAttributes redirectAttributes) {
@@ -49,7 +54,7 @@ public class GiamGiaController {
         return "redirect:/admin/giam-gia";
     }
 
-    // Trang chỉnh sửa
+    // ✅ Trang chỉnh sửa
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
@@ -63,7 +68,7 @@ public class GiamGiaController {
         }
     }
 
-    // Xử lý cập nhật
+    // ✅ Cập nhật giảm giá
     @PostMapping("/edit/{id}")
     public String updateGiamGia(@PathVariable Integer id,
                                 @ModelAttribute GiamGiaRequest giamGiaRequest,
@@ -78,7 +83,7 @@ public class GiamGiaController {
         return "redirect:/admin/giam-gia";
     }
 
-    // Xóa giảm giá
+    // ✅ Xóa giảm giá
     @GetMapping("/delete/{id}")
     public String deleteGiamGia(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {

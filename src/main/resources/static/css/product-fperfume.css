@@ -1,0 +1,191 @@
+:root{
+    --fp-bg:#ffffff;
+    --fp-text:#141414;            /* chữ chính */
+    --fp-muted:#6b7280;           /* chữ phụ */
+    --fp-border:#e6e6e6;          /* viền nhạt */
+    --fp-soft:#fbfbfb;            /* nền khối nhẹ */
+    --fp-primary:#111111;
+    --fp-star:#f59e0b;
+
+    /* màu theo ảnh */
+    --fp-price: #cf944f;           /* giá đỏ */
+    --fp-brown:#9c6b53;           /* nút “MUA NGAY” */
+    --fp-brown-600:#8a5f4a;       /* hover */
+}
+
+html{scroll-behavior:smooth}
+body{
+    background:var(--fp-bg); color:var(--fp-text);
+    font-family: "Segoe UI", sans-serif;
+    line-height:1.6;
+}
+
+.pd-wrap{padding-top:1.25rem;padding-bottom:3rem}
+.breadcrumb{--bs-breadcrumb-divider:'›';}
+.breadcrumb a{color:#7a7a7a;text-decoration:none}
+.breadcrumb a:hover{color:#000}
+.container.pd-wrap {
+    max-width: 1400px;  /* từ mặc định 1140/1320 → rộng hơn */
+    padding-left: 20px;  /* giảm padding hai bên */
+    padding-right: 20px;
+}
+/* ===== Gallery (trái) ===== */
+.pd-gallery{position:sticky;top:88px}
+.pd-main-img{
+    background:#fff;border:1px solid var(--fp-border);
+    border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.pd-main-img img{width:100%;display:block}
+.pd-thumbs{margin-top:14px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem}
+.pd-thumbs button{
+    background:#fff;border:2px solid #e4e4e7;border-radius:12px;padding:0;overflow:hidden;
+    transition:.15s ease;box-shadow:none;
+}
+.pd-thumbs button:hover{transform:translateY(-1px)}
+.pd-thumbs img{width:100%;display:block}
+.pd-thumbs button.active{border-color:#c8bfb8}
+
+/* ===== Khối giữa ===== */
+.pd-title{
+    font-size:clamp(1.4rem,2.2vw,1.9rem);font-weight:700;letter-spacing:-.015em;margin-bottom:.35rem;
+}
+.pd-meta{font-size:.95rem;color:var(--fp-muted);border-bottom:1px solid var(--fp-border);padding-bottom:.6rem}
+.pd-meta .text-warning i{color:var(--fp-star)!important}
+
+.pd-price{
+    color:var(--fp-price);font-weight:700;letter-spacing:-.02em;
+    font-size:clamp(1.7rem,2.6vw,2.1rem);margin:.9rem 0 .75rem;
+}
+
+/* Dung tích pill giống ảnh */
+.pd-variants .pill{
+    background:#fff;border:1.8px solid #d4d4d8;border-radius:999px;
+    padding:.5rem 1rem;cursor:pointer;display:inline-flex;gap:.5rem;align-items:center;
+    font-weight:700;color:#111;transition:.15s;
+}
+.pd-variants .pill:hover{border-color:#111}
+.pd-variants .pill input{display:none}
+.pd-variants .pill.active{border-color:#111;color:#111;background:#fff}
+
+/* Số lượng */
+.qty-group{display:flex;align-items:center;gap:.5rem}
+.qty-group .btn-outline-secondary{
+    border-color:#d4d4d8;color:#111;background:#fff
+}
+.qty-group .btn-outline-secondary:hover{border-color:#111}
+#quantityInput{font-weight:700;text-align:center}
+
+/* Nút hành động: trái là viền xám, phải là nâu */
+.btn-cart{
+    background:#fff;border:2px solid #d4d4d8;color:#111;font-weight:800;border-radius:12px;padding:.85rem 1.1rem;
+}
+.btn-cart:hover{border-color:#111}
+
+.btn-buy{ /* giữ ID cũ cho JS, đổi style thành “MUA NGAY” nếu bạn dùng cho nút brown */
+    background:var(--fp-brown);border:0;color:#fff;font-weight:700;letter-spacing:.02em;
+    border-radius:12px;padding:.9rem 1.1rem;box-shadow:0 6px 16px rgba(156,107,83,.18);
+}
+.btn-buy:hover{background:var(--fp-brown-600)}
+
+.hotline{
+    border:0;border-radius:8px;padding:.5rem .8rem;color:#111;background:transparent
+}
+
+/* ===== Khối phải (Thông tin sản phẩm) ===== */
+.pd-info{
+    background:#fff;border:1px solid var(--fp-border);
+    border-radius:18px;padding:1rem 1rem;box-shadow:0 1px 2px rgba(0,0,0,.04)
+}
+.pd-info h5{font-weight:700;margin-bottom:.75rem}
+.info-list{list-style:none;padding:0;margin:0}
+.info-item{display:flex;gap:.75rem;padding:.75rem 0;border-bottom:1px solid #f1f1f1}
+.info-item:last-child{border-bottom:0}
+.ic{
+    width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:8px;
+    border:1px solid var(--fp-border)
+}
+.info-item a{color:#111;text-decoration:none}
+.info-item a:hover{text-decoration:underline}
+
+/* Tabs */
+.pd-tabs{margin-top:2rem}
+.nav-underline .nav-link{color:var(--fp-muted);font-weight:700}
+.nav-underline .nav-link.active{color:#111;border-bottom:3px solid #111}
+.tab-content-product{border:1px solid var(--fp-border);border-radius:14px;padding:1rem;margin-top:.75rem}
+/* Social */
+.text-muted a:hover{color:#111!important}
+/* ===== Tabs giống Laluz ===== */
+.pd-tabs { margin-top: 1rem; }
+
+/* Thanh tab: đậm, in hoa, nằm 1 dòng, có thể cuộn khi chật */
+.pd-tabs-nav {
+    margin-bottom: .75rem;
+    gap: 1.25rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.pd-tabs-nav::-webkit-scrollbar { display: none; }
+
+.pd-tabs-nav .nav-link {
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    width: auto !important;
+    color: #222;
+    opacity: .7;
+    border-bottom: 3px solid transparent;
+    padding: .25rem 0 .6rem;
+}
+.pd-tabs-nav .nav-link:hover { opacity: .9; }
+.pd-tabs-nav .nav-link.active {
+    opacity: 1;
+    color: #000;
+    border-bottom-color: #111;   /* gạch đậm như Laluz */
+}
+
+/* Hộp nội dung (bo tròn + viền + bóng nhẹ) */
+.tab-content-product {
+    border: 1px solid #e9ecef;
+    border-radius: 14px;
+    background: #fff;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.03);
+}
+
+/* Typography to hơn, dễ đọc */
+.pd-box {
+    font-size: clamp(1.05rem, 0.35vw + 1rem, 1.1rem);
+    line-height: 1.85;
+    color: #222;
+}
+/* đoạn mở đầu “Nhóm hương chính” */
+.pd-desc-lead {
+    margin-bottom: .75rem;
+    color: #111;
+}
+.pd-desc-lead strong { font-weight: 600; }
+
+/* mô tả thân */
+.pd-desc-body { color: #2a2a2a; }
+
+/* danh sách gọn, giống bullet mặc định của Laluz */
+.pd-list {
+    margin: 0;                 /* tránh khoảng trắng đầu khối */
+    padding-left: 1.2rem;      /* thụt vừa phải */
+    color: #333;
+}
+.pd-list li { margin: .4rem 0; }
+
+/* Xoá mọi margin-top mặc định ở phần tử đầu tiên trong tab */
+.pd-tabs .tab-pane > *:first-child { margin-top: 0; }
+
+@media (max-width:991.98px){
+    .pd-gallery{position:static}
+    .pd-thumbs{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+
+
+
+

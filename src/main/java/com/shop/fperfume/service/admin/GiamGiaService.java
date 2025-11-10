@@ -26,7 +26,7 @@ public class GiamGiaService {
     @Autowired
     private SanPhamRepository sanPhamRepository;
 
-    // Lấy tất cả giảm giá
+    // ✅ Lấy tất cả giảm giá
     @Transactional
     public List<GiamGiaResponse> getAllGiamGia() {
         return giamGiaRepository.findAll()
@@ -35,7 +35,7 @@ public class GiamGiaService {
                 .toList();
     }
 
-    // Thêm mới giảm giá
+    // ✅ Thêm mới giảm giá
     @Transactional
     public void addGiamGia(GiamGiaRequest giamGiaRequest) {
         String maMoi = giamGiaRequest.getMa().trim();
@@ -46,7 +46,6 @@ public class GiamGiaService {
 
         GiamGia giamGia = MapperUtils.map(giamGiaRequest, GiamGia.class);
 
-        // Gán sản phẩm nếu có
         if (giamGiaRequest.getIdSanPham() != null) {
             SanPham sanPham = sanPhamRepository.findById(giamGiaRequest.getIdSanPham())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + giamGiaRequest.getIdSanPham()));
@@ -58,7 +57,7 @@ public class GiamGiaService {
         giamGiaRepository.save(giamGia);
     }
 
-    // Cập nhật giảm giá
+    // ✅ Cập nhật giảm giá
     @Transactional
     public void updateGiamGia(Integer id, GiamGiaRequest giamGiaRequest) {
         GiamGia giamGia = giamGiaRepository.findById(id)
@@ -69,10 +68,8 @@ public class GiamGiaService {
             throw new RuntimeException("Mã giảm giá '" + maMoi + "' đã tồn tại!");
         }
 
-        // Map các trường từ request sang entity
         MapperUtils.mapToExisting(giamGiaRequest, giamGia);
 
-        // Gán sản phẩm nếu có
         if (giamGiaRequest.getIdSanPham() != null) {
             SanPham sanPham = sanPhamRepository.findById(giamGiaRequest.getIdSanPham())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + giamGiaRequest.getIdSanPham()));
@@ -84,13 +81,13 @@ public class GiamGiaService {
         giamGiaRepository.save(giamGia);
     }
 
-    // Xóa giảm giá
+    // ✅ Xóa giảm giá
     @Transactional
     public void deleteGiamGia(Integer id) {
         giamGiaRepository.deleteById(id);
     }
 
-    // Lấy giảm giá theo ID
+    // ✅ Lấy giảm giá theo ID
     @Transactional
     public GiamGiaResponse getGiamGiaById(Integer id) {
         GiamGia giamGia = giamGiaRepository.findById(id)
@@ -98,14 +95,11 @@ public class GiamGiaService {
         return new GiamGiaResponse(giamGia);
     }
 
-    // Phân trang giảm giá
+    // ✅ Phân trang giảm giá
     @Transactional
     public PageableObject<GiamGiaResponse> paging(Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         Page<GiamGia> page = giamGiaRepository.findAll(pageable);
-        Page<GiamGiaResponse> responses = page.map(GiamGiaResponse::new);
-        return new PageableObject<>(responses);
+        return new PageableObject<>(page.map(GiamGiaResponse::new));
     }
-
-
 }
