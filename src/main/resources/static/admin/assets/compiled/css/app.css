@@ -44,7 +44,13 @@ body{
     transition:left .3s ease;
 }
 #sidebar.inactive{ left:-250px; }
-#main{ margin-left:250px; transition:margin-left .3s ease; }
+#main{ flex: 1;
+    min-width: 0;
+    padding: 24px 28px;
+    margin-left: 250px;          /* khớp với sidebar */
+    display: flex;
+    flex-direction: column;      /* header – content – footer xếp dọc */
+    min-height: 100vh; }
 #sidebar.inactive ~ #main{ margin-left:0; }
 
 #sidebar .logo{ width:60%; border-radius:8px; transition:transform .3s; }
@@ -120,6 +126,9 @@ body{
     border-radius:var(--fp-radius);
     padding:14px 18px;margin-bottom:18px;
     box-shadow:var(--fp-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
 }
 .header .burger-btn{
     display:flex;align-items:center;justify-content:center;

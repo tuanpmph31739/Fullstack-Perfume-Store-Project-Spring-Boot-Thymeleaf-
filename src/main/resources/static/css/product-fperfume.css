@@ -11,6 +11,8 @@
     --fp-price: #cf944f;           /* giá đỏ */
     --fp-brown:#9c6b53;           /* nút “MUA NGAY” */
     --fp-brown-600:#8a5f4a;       /* hover */
+
+    --fp-header-offset: 110px;
 }
 
 html{scroll-behavior:smooth}
@@ -20,7 +22,16 @@ body{
     line-height:1.6;
 }
 
-.pd-wrap{padding-top:1.25rem;padding-bottom:3rem}
+/* Trang chi tiết sản phẩm: chừa khoảng cho header fixed */
+.pd-wrap{
+    padding-top: calc(1.25rem + var(--fp-header-offset));
+    padding-bottom: 3rem;
+}
+/* Trang danh sách sản phẩm (giới tính / tất cả): chừa khoảng header */
+.product-list{
+    padding-top: var(--fp-header-offset);
+}
+
 .breadcrumb{--bs-breadcrumb-divider:'›';}
 .breadcrumb a{color:#7a7a7a;text-decoration:none}
 .breadcrumb a:hover{color:#000}

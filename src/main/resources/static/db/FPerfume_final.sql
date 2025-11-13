@@ -44,16 +44,16 @@ PRINT N'Bảng NguoiDung đã được tạo.';
 GO
 
 CREATE TABLE ThuongHieu (
-                            Id INT PRIMARY KEY IDENTITY(1,1),
-                            Ma NVARCHAR(20) UNIQUE,
-                            Ten NVARCHAR(100),
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Ma NVARCHAR(20) UNIQUE,
+    Ten NVARCHAR(100),
 
-                            Slug NVARCHAR(150) UNIQUE NULL,
+    Slug NVARCHAR(150) UNIQUE NULL,
 
-                            HinhAnh NVARCHAR(255) NULL,
+    HinhAnh NVARCHAR(255) NULL,
 
-                            NgayTao DATETIME2 DEFAULT GETDATE(),
-                            NgaySua DATETIME2 DEFAULT GETDATE()
+    NgayTao DATETIME2 DEFAULT GETDATE(),
+    NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 
@@ -329,9 +329,9 @@ GO
 -- Chèn SanPham (Gốc)
 INSERT INTO SanPham (TenNuocHoa, IdThuongHieu, IdXuatXu, IdLoai, IdMuaThichHop, IdNhomHuong, MoTa)
 VALUES
-(N'Bleu de Chanel', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH01'), (SELECT Id FROM XuatXu WHERE Ma = 'XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nam'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'LANH'), (SELECT Id FROM NhomHuong WHERE Ma = 'WOODY'), N'Mùi hương gỗ thơm nam tính, mạnh mẽ.'),
-(N'Sauvage Dior', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH02'), (SELECT Id FROM XuatXu WHERE Ma = 'XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nam'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'NONG'), (SELECT Id FROM NhomHuong WHERE Ma = 'CITRUS'), N'Hương thơm tươi mát, hoang dã và đầy lôi cuốn.'),
-(N'Gucci Bloom', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH07'), (SELECT Id FROM XuatXu WHERE Ma = 'XX02'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nữ'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'NONG'), (SELECT Id FROM NhomHuong WHERE Ma = 'FLORAL'), N'Một vườn hoa trắng phong phú với hoa huệ, hoa nhài.'),
+(N'Bleu de Chanel EDP', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH01'), (SELECT Id FROM XuatXu WHERE Ma = 'XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nam'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'LANH'), (SELECT Id FROM NhomHuong WHERE Ma = 'WOODY'), N'Chanel Bleu De Chanel EDP sở hữu nhiều tầng hương khác nhau. Hương đầu là vị chanh vàng, ớt hồng và bạc hà. Tầng hương giữa là dưa vàng hoa nhài và gừng. Tầng hương cuối là hương thơm lan tỏa của gỗ tuyết tùng, hổ phách và gỗ đàn hương. Chanel Bleu De Chanel EDP mang đến sự lịch lãm, nam tính và gai góc nhưng cũng ẩn chứa bên trong sự dịu dàng và tinh tế.'),
+(N'Dior Sauvage Eau de Toilette', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH02'), (SELECT Id FROM XuatXu WHERE Ma = 'XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nam'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'NONG'), (SELECT Id FROM NhomHuong WHERE Ma = 'CITRUS'), N'Hương thơm tươi mát, hoang dã và đầy lôi cuốn.'),
+(N'Gucci Bloom EDP', (SELECT Id FROM ThuongHieu WHERE Ma = 'TH07'), (SELECT Id FROM XuatXu WHERE Ma = 'XX02'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai = N'Nữ'), (SELECT Id FROM MuaThichHop WHERE MaMua = 'NONG'), (SELECT Id FROM NhomHuong WHERE Ma = 'FLORAL'), N'Một vườn hoa trắng phong phú với hoa huệ, hoa nhài.'),
 (N'J’adore Dior', (SELECT Id FROM ThuongHieu WHERE Ma='TH02'), (SELECT Id FROM XuatXu WHERE Ma='XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai=N'Nữ'), (SELECT Id FROM MuaThichHop WHERE MaMua='NONG'), (SELECT Id FROM NhomHuong WHERE Ma='FLORAL'), N'Hương hoa trắng sang trọng, biểu tượng của sự nữ tính hiện đại.'),
 (N'Coco Mademoiselle', (SELECT Id FROM ThuongHieu WHERE Ma='TH01'), (SELECT Id FROM XuatXu WHERE Ma='XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai=N'Nữ'), (SELECT Id FROM MuaThichHop WHERE MaMua='LANH'), (SELECT Id FROM NhomHuong WHERE Ma='CITRUS'), N'Hương hoa cam, hoắc hương và xạ hương thanh lịch.'),
 (N'Black Opium', (SELECT Id FROM ThuongHieu WHERE Ma='TH03'), (SELECT Id FROM XuatXu WHERE Ma='XX01'), (SELECT Id FROM LoaiNuocHoa WHERE TenLoai=N'Nữ'), (SELECT Id FROM MuaThichHop WHERE MaMua='LANH'), (SELECT Id FROM NhomHuong WHERE Ma='AROMATIC'), N'Hương cà phê, vani và hoa trắng gợi cảm.'),

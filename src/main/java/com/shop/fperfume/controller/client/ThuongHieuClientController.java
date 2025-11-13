@@ -49,9 +49,6 @@ public class ThuongHieuClientController {
         model.addAttribute("brands", allBrands);                 // dùng cho khối "All"
         model.addAttribute("brandsByLetter", brandsByLetter);    // dùng cho từng chữ cái
 
-        // (debug)
-        System.out.println("brandsByLetter keys = " + brandsByLetter.keySet());
-
         return "client/thuong_hieu/thuong-hieu-tat-ca";
     }
 
@@ -143,17 +140,5 @@ public class ThuongHieuClientController {
     }
 
 
-    // Dùng cho header / dropdown
-    @ModelAttribute("brands")
-    public List<ThuongHieuResponse> getAllBrands() {
-        return thuongHieuClientService.getAllThuongHieu();
-    }
 
-    @ModelAttribute("brandsHot")
-    public List<ThuongHieuResponse> getHotBrands() {
-        return thuongHieuClientService.getAllThuongHieu()
-                .stream()
-                .limit(6)
-                .toList();
-    }
 }

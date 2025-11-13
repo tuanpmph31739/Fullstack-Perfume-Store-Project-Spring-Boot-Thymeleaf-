@@ -31,3 +31,19 @@
         [...triggers].forEach(el => new bootstrap.Tooltip(el));
     });
 
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const productSelect = document.querySelector('select.choices');
+
+        if (productSelect) {
+            new Choices(productSelect, {
+                searchEnabled: true,              // bật search
+                itemSelectText: '',               // bỏ chữ "Press to select"
+                shouldSort: false,                // giữ nguyên thứ tự option
+                placeholder: true,
+                placeholderValue: '-- Chọn sản phẩm --',
+                noResultsText: 'Không tìm thấy sản phẩm',
+                noChoicesText: 'Không có dữ liệu sản phẩm',
+            });
+        }
+    });

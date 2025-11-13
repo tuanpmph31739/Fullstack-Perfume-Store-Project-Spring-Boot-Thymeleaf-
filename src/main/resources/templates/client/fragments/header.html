@@ -1,8 +1,10 @@
 <div th:fragment="header">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
+    <!-- nav bọc toàn bộ header -->
+    <nav id="siteHeader" class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
         <div class="container-fluid d-flex flex-column">
 
-            <div class="d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
+            <!-- PHẦN TRÊN: logo + search + account/cart + toggler -->
+            <div class="navbar-top d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
                 <!-- Logo -->
                 <a class="navbar-brand mx-lg-auto" th:href="@{/}">
                     <img th:src="@{/images/logo-fperfume.png}" alt="F Perfume" style="height: 80px; width: auto;">
@@ -19,7 +21,7 @@
                 </form>
 
                 <!-- Account + Cart -->
-                <div class="d-flex align-items-center gap-4">
+                <div class="d-flex align-items-center gap-4 d-none d-lg-flex">
                     <a th:href="@{/login}" class="text-dark">
                         <i class="bi bi-person fs-5"></i>
                     </a>
@@ -29,7 +31,7 @@
 
                         <span id="cart-item-count"
                               class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              th:if="${session.cartSize != null and session.cartSize > 0}"
+                              th:if="${session.cartSize != null && session.cartSize > 0}"
                               th:text="${session.cartSize}">
                         </span>
                     </a>
@@ -43,7 +45,7 @@
                 </button>
             </div>
 
-            <!-- Menu chính -->
+            <!-- PHẦN DƯỚI: MENU CHÍNH (luôn hiển thị khi cuộn) -->
             <div class="collapse navbar-collapse w-100" id="mainNavbar">
                 <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
 
@@ -103,20 +105,26 @@
 
                                         <div class="mb-3">
                                             <div class="d-flex flex-wrap gap-2">
-                                                <a href="#" class="az-btn active">All</a>
-                                                <a href="#" class="az-btn"
+                                                <!-- Nút ALL -->
+                                                <a href="#" class="az-btn active" data-letter="all">All</a>
+
+                                                <!-- Các nút A–Z -->
+                                                <a href="#"
+                                                   class="az-btn"
                                                    th:each="letter : ${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}"
-                                                   th:text="${letter}"></a>
+                                                   th:text="${letter}"
+                                                   th:attr="data-letter=${letter}"></a>
                                             </div>
                                         </div>
 
-                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-2"
-                                             th:if="${brands != null}">
+                                        <div class="brand-list-scroll" th:if="${brands != null}">
+                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-2">
                                             <div class="col" th:each="brand : ${brands}">
                                                 <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
                                                    th:text="${brand.tenThuongHieu}"
                                                    class="d-block text-dark text-decoration-none brand-link"></a>
                                             </div>
+                                        </div>
                                         </div>
                                         <p class="text-muted mb-0" th:if="${brands == null}">
                                             Đang cập nhật danh sách thương hiệu...

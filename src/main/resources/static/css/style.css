@@ -27,6 +27,7 @@ body {
     font-weight: 400;
     color: var(--color-text);
     background-color: #fff;
+    padding-top: 140px;
 }
 
 /* ========================================
@@ -38,6 +39,47 @@ body {
     padding-bottom: 1.2rem;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
+/* Header dính như LALUZ: luôn bám trên cùng khi cuộn */
+#siteHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    background-color: #ffffff;
+}
+
+
+/* Khối trên: logo + search + icon account/cart + toggler */
+.navbar-top {
+    transition: all 0.3s ease;
+}
+
+/* Khi thu nhỏ (cuộn xuống) – chỉ giữ lại menu chính */
+#siteHeader.navbar-shrink .navbar-top {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+    border-bottom: 0 !important;
+    overflow: hidden;
+}
+
+/* Ẩn bớt logo, search, icon trên màn hình lớn khi đã shrink */
+#siteHeader.navbar-shrink .navbar-brand,
+#siteHeader.navbar-shrink .search-form,
+#siteHeader.navbar-shrink .d-lg-flex {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Cho menu chính gọn hơn một chút khi shrink */
+#siteHeader.navbar-shrink .navbar-nav {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+}
+
 
 .main-nav-wrapper {
     max-width: 1600px;
@@ -518,6 +560,31 @@ body {
 
     max-height: calc(100vh - 80px);
 }
+/* Mega menu Thương hiệu: giới hạn chiều cao + cho phép cuộn */
+.mega-menu {
+    max-height: 70vh;           /* không vượt quá 70% chiều cao màn hình */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Khối cuộn danh sách thương hiệu bên phải */
+.brand-list-scroll {
+    max-height: 330px;          /* chỉnh tùy ý: 300–400px */
+    overflow-y: auto;
+    padding-right: 4px;         /* để khỏi che chữ khi hiện scrollbar */
+}
+
+/* (tuỳ chọn) làm thanh cuộn nhìn gọn hơn trên desktop */
+.brand-list-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.brand-list-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.2);
+    border-radius: 999px;
+}
+.brand-list-scroll::-webkit-scrollbar-track {
+    background-color: transparent;
+}
 
 
 /* Cột bên trái */
@@ -815,4 +882,8 @@ body {
     border-radius:10px;
     cursor:pointer;
     transition:background .2s ease;
+}
+/* Để SweetAlert2 luôn nổi lên trên header */
+.swal2-container {
+    z-index: 2000 !important;
 }
