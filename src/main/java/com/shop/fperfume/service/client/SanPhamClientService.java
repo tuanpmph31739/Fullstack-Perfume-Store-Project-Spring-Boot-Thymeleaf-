@@ -12,8 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class SanPhamClientService {
@@ -21,13 +23,14 @@ public class SanPhamClientService {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    // ✅ Lấy sản phẩm theo thương hiệu (hiển thị 1 biến thể đại diện mỗi sản phẩm)
+    // ✅ Lấy danh sách biến thể theo thương hiệu (đi từ SanPhamChiTiet -> SanPham -> ThuongHieu.slug)
     public List<SanPhamChiTietResponse> getSanPhamByThuongHieu(String slug) {
-        return sanPhamChiTietRepository.findByThuongHieuSlug(slug)
+        return sanPhamChiTietRepository.findBySanPham_ThuongHieu_Slug(slug)
                 .stream()
                 .map(SanPhamChiTietResponse::new)
                 .toList();
     }
+
 
     // ✅ Chi tiết sản phẩm
     public SanPhamChiTietResponse getById(Integer id) {
@@ -98,4 +101,5 @@ public class SanPhamClientService {
 
         return page.map(SanPhamChiTietResponse::new);
     }
+
 }

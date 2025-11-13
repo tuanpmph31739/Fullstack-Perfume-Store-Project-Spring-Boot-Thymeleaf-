@@ -20,7 +20,7 @@
             <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
             <li class="breadcrumb-item">
                 <a th:if="${sanPhamChiTiet.idThuongHieu != null}"
-                   th:href="@{/thuong-hieu/{id}(id=${sanPhamChiTiet.idThuongHieu})}"
+                   th:href="@{/thuong-hieu/{slug}(slug=${sanPhamChiTiet.slugThuongHieu})}"
                    th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</a>
                 <span th:unless="${sanPhamChiTiet.idThuongHieu != null}"
                       th:text="${sanPhamChiTiet.tenThuongHieu}">Thương hiệu</span>
@@ -45,7 +45,6 @@
             </div>
         </div>
 
-        <!-- MIDDLE: Summary (giống layout cũ) -->
         <div class="col-lg-4">
             <h1 class="pd-title" th:text="${sanPhamChiTiet.tenSanPham}">Tên sản phẩm</h1>
             <div class="pd-meta d-flex align-items-center gap-2">
@@ -127,7 +126,7 @@
                         <div>Thương hiệu:
                             <a class="text-decoration-none"
                                th:if="${sanPhamChiTiet.idThuongHieu != null}"
-                               th:href="@{/thuong-hieu/{id}(id=${sanPhamChiTiet.idThuongHieu})}"
+                               th:href="@{/thuong-hieu/{slug}(slug=${sanPhamChiTiet.slugThuongHieu})}"
                                th:text="${sanPhamChiTiet.tenThuongHieu}">Brand</a>
                             <span th:unless="${sanPhamChiTiet.idThuongHieu != null}"
                                   th:text="${sanPhamChiTiet.tenThuongHieu}">Brand</span>

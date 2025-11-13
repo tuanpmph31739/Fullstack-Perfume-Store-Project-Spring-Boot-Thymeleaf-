@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="client/fragments/head :: head"></head>
+<body>
+
+<div th:replace="client/fragments/header :: header"></div>
+
+<main class="py-4"
+      th:with="letters=${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}">
+    <div class="container">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tất cả thương hiệu</li>
+            </ol>
+        </nav>
+
+        <!-- Tiêu đề -->
+        <h1 class="h3 text-uppercase mb-4">Tất cả thương hiệu</h1>
+
+        <!-- Thanh chữ cái A-Z -->
+        <div class="mb-4">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="#brand-all" class="az-btn active">All</a>
+                <a class="az-btn"
+                   th:each="letter : ${letters}"
+                   th:text="${letter}"
+                   th:href="'#brand-' + ${letter}">
+                </a>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH THEO TỪNG CHỮ CÁI (DÙNG ENTRY CỦA MAP) -->
+        <section th:each="entry : ${brandsByLetter}">
+            <div class="border-top pt-4 mt-4"
+                 th:with="letter=${entry.key}"
+                 th:attr="id=${'brand-' + letter}">
+                <h2 class="h5 mb-3" th:text="${letter}">A</h2>
+
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+                    <div class="col" th:each="brand : ${entry.value}">
+                        <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                           class="d-flex flex-column align-items-center text-decoration-none brand-link p-2 border rounded">
+                            <img th:if="${brand.hinhAnh != null}"
+                                 th:src="@{'/images/uploads/thuong-hieu/' + ${brand.hinhAnh}}"
+                                 class="img-fluid mb-2"
+                                 style="max-height:90px; object-fit:contain;">
+                            <!-- <span class="small text-dark text-center" th:text="${brand.tenThuongHieu}"></span> -->
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+</main>
+
+<div th:replace="client/fragments/footer :: footer"></div>
+
+</body>
+</html>

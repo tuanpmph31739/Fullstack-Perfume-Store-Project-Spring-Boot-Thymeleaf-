@@ -82,6 +82,9 @@ public class ThuongHieuController {
 
             model.addAttribute("thuongHieuRequest", requestDto);
             model.addAttribute("currentPath", "/admin/thuong-hieu");
+
+            model.addAttribute("hinhAnhHienTai", responseDto.getHinhAnh());
+
             return "admin/thuong_hieu/edit";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy thương hiệu!");
@@ -99,6 +102,9 @@ public class ThuongHieuController {
         request.setId(id);
 
         if (bindingResult.hasErrors()) {
+            try {
+                model.addAttribute("hinhAnhHienTai", thuongHieuService.getThuongHieuById(id).getHinhAnh());
+            } catch (Exception e) {}
             model.addAttribute("currentPath", "/admin/thuong-hieu");
             return "admin/thuong_hieu/edit";
         }
@@ -114,6 +120,9 @@ public class ThuongHieuController {
             } else {
                 model.addAttribute("errorMessage", "Lỗi: " + e.getMessage());
             }
+            try {
+                model.addAttribute("hinhAnhHienTai", thuongHieuService.getThuongHieuById(id).getHinhAnh());
+            } catch (Exception e2) { /* Bỏ qua */ }
             model.addAttribute("currentPath", "/admin/thuong-hieu");
             return "admin/thuong_hieu/edit";
         }

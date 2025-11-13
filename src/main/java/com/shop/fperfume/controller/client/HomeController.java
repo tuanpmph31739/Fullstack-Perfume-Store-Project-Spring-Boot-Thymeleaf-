@@ -34,11 +34,6 @@ public class HomeController {
         return result;
     }
 
-    @ModelAttribute("brands")
-    public List<ThuongHieuResponse> getAllBrands() {
-        return thuongHieuClientService.getAllThuongHieu();
-    }
-
     @GetMapping("/")
     public String home(Model model) {
 
@@ -62,32 +57,4 @@ public class HomeController {
     }
 
 
-
-
-    @GetMapping("/thuong-hieu/{slug}")
-    public String viewBrandProducts(@PathVariable("slug") String slug, Model model) {
-        ThuongHieuResponse thuongHieu = thuongHieuClientService.getBySlug(slug);
-        if (thuongHieu == null) {
-            return "redirect:/";
-        }
-        List<SanPhamChiTietResponse> sanPhams = sanPhamClientService.getSanPhamByThuongHieu(slug);
-        model.addAttribute("thuongHieu", thuongHieu);
-        model.addAttribute("sanPhams", sanPhams);
-        return "client/thuong-hieu";
-    }
-
-    @GetMapping("/thuong-hieu/all")
-    public String viewAllBrands(Model model) {
-        List<ThuongHieuResponse> allBrands = thuongHieuClientService.getAllThuongHieu();
-        model.addAttribute("brands", allBrands);
-        return "client/thuong-hieu-tat-ca";
-    }
-
-    @ModelAttribute("brandsHot")
-    public List<ThuongHieuResponse> getHotBrands() {
-        return thuongHieuClientService.getAllThuongHieu()
-                .stream()
-                .limit(6)
-                .toList();
-    }
 }

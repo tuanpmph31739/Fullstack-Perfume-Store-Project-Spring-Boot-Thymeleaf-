@@ -14,21 +14,20 @@ public class ThuongHieuClientService {
     private ThuongHieuRepository thuongHieuRepository;
 
     /**
-     * Lấy danh sách tất cả thương hiệu (dùng cho navbar, dropdown,...)
+     * Lấy danh sách tất cả thương hiệu (dùng cho navbar, dropdown,…)
+     * ĐÃ SẮP XẾP THEO TÊN A → Z
      */
     public List<ThuongHieuResponse> getAllThuongHieu() {
-        return thuongHieuRepository.findAll()
+        return thuongHieuRepository.findAllByOrderByTenThuongHieuAsc()
                 .stream()
                 .map(ThuongHieuResponse::new)
                 .toList();
     }
 
-    /**
-     * Lấy thương hiệu theo slug (dùng khi xem trang chi tiết hoặc danh sách sản phẩm theo thương hiệu)
-     */
     public ThuongHieuResponse getBySlug(String slug) {
-        return thuongHieuRepository.findBySlug(slug)
-                .map(ThuongHieuResponse::new)
-                .orElse(null);
+        var entity = thuongHieuRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu: " + slug));
+        return new ThuongHieuResponse(entity);
     }
+
 }
