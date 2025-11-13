@@ -50,6 +50,7 @@ public class SanPhamChiTietController {
     public String viewAdd(Model model) {
         model.addAttribute("sanPhamChiTietRequest", new SanPhamChiTietRequest());
         loadDropdownData(model);
+        model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
         return "admin/san_pham_chi_tiet/add";
     }
 
@@ -79,6 +80,7 @@ public class SanPhamChiTietController {
 
             // Load lại dropdown và trả về form
             loadDropdownData(model);
+            model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/add";
         }
 
@@ -86,9 +88,7 @@ public class SanPhamChiTietController {
     }
 
 
-    /**
-     * === SỬA LẠI HÀM NÀY ĐỂ DÙNG MAPPERUTILS ===
-     */
+
     @GetMapping("/edit/{id}")
     public String viewEdit(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
@@ -100,6 +100,7 @@ public class SanPhamChiTietController {
 
             // 3. Add Request DTO vào model
             model.addAttribute("sanPhamChiTietRequest", requestDto);
+            model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
             // 4. Gửi tên ảnh cũ sang view để hiển thị
             model.addAttribute("hinhAnhHienTai", responseDto.getHinhAnh());
@@ -128,6 +129,7 @@ public class SanPhamChiTietController {
             try {
                 model.addAttribute("hinhAnhHienTai", sanPhamChiTietService.getById(id).getHinhAnh());
             } catch (Exception e) {}
+            model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/edit";
         }
 
@@ -152,6 +154,7 @@ public class SanPhamChiTietController {
             try {
                 model.addAttribute("hinhAnhHienTai", sanPhamChiTietService.getById(id).getHinhAnh());
             } catch (Exception e2) { /* Bỏ qua */ }
+            model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/edit";
         }
 
@@ -161,6 +164,7 @@ public class SanPhamChiTietController {
     @GetMapping("/view/{id}")
     public String view(@PathVariable Integer id, Model model) {
         model.addAttribute("sanPhamChiTietResponse", sanPhamChiTietService.getById(id));
+        model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
         return "admin/san_pham_chi_tiet/view";
     }
 

@@ -147,4 +147,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             @Param("maxP") BigDecimal maxP,
             Pageable pageable
     );
+
+    List<SanPhamChiTiet> findBySanPham_ThuongHieu_Slug(String slug);
 }

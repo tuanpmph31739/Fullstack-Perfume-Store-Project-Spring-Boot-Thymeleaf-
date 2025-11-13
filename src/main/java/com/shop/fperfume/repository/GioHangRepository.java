@@ -22,6 +22,7 @@ public interface GioHangRepository extends JpaRepository<GioHang, Integer> {
             "LEFT JOIN FETCH spct.sanPham sp " +
             "LEFT JOIN FETCH spct.dungTich " +
             "LEFT JOIN FETCH spct.nongDo " +
+            "LEFT JOIN FETCH g.giamGia gg " +
             "WHERE g.khachHang = :khachHang")
     Optional<GioHang> findByKhachHang(@Param("khachHang") NguoiDung khachHang);
 }

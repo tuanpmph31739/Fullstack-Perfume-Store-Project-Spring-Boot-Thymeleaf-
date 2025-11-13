@@ -34,6 +34,7 @@
                             <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Ảnh</th>
                                 <th>Mã Thương hiệu</th>
                                 <th>Tên Thương hiệu</th> <th>Ngày tạo</th> <th>Ngày Sửa</th> <th>Hành động</th>
                             </tr>
@@ -43,6 +44,12 @@
 
                                 <td th:text="${(page.currentPage - 1) * page.size + iterStat.index + 1}"></td>
 
+                                <td>
+                                    <img th:if="${th.hinhAnh != null}"
+                                         th:src="@{'/images/uploads/thuong-hieu/' + ${th.hinhAnh}}"
+                                         alt="Ảnh TH" style="max-width: 50px; max-height: 50px;">
+                                    <span th:unless="${th.hinhAnh != null}">---</span>
+                                </td>
 
                                 <td th:text="${th.maThuongHieu ?: '---'}"></td>
 

@@ -23,7 +23,8 @@
 
                         <form th:action="@{/admin/thuong-hieu/update/{id}(id=${thuongHieuRequest.id})}"
                               method="post"
-                              th:object="${thuongHieuRequest}">
+                              th:object="${thuongHieuRequest}"
+                              enctype="multipart/form-data">
 
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -46,6 +47,15 @@
                                 <div class="invalid-feedback d-block"
                                      th:if="${#fields.hasErrors('tenThuongHieu')}"
                                      th:errors="*{tenThuongHieu}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ảnh thương hiệu</label>
+                                <input type="file" class="form-control" th:field="*{hinhAnh}">
+                                <div class="mt-2" th:if="${thuongHieuRequest.hinhAnh != null}">
+                                    <img th:src="@{/uploads/thuong-hieu/{file}(file=${thuongHieuRequest.hinhAnh})}"
+                                         alt="Ảnh thương hiệu" style="height: 120px; border-radius: 6px;">
+                                </div>
                             </div>
 
                             <div class="text-end mt-4">

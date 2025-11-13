@@ -505,21 +505,20 @@ body {
     display: none;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
+    transform: translateX(-50%);
     transition: all 0.25s ease-in-out;
-
-    /* 🔹 Kích thước linh hoạt */
-    width: 90vw;                  /* chiếm 90% chiều ngang màn hình */
-    max-width: 1000px;            /* không vượt quá 1000px */
+    width: 96vw;
+    max-width: 1320px;
     left: 50%;
-    transform: translateX(-50%) translateY(10px);
-
     border-radius: 0 0 16px 16px;
     background: #fff;
     z-index: 999;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     padding: 1.5rem 2rem;
+
+    max-height: calc(100vh - 80px);
 }
+
 
 /* Cột bên trái */
 .hot-brand-list {
@@ -558,17 +557,23 @@ body {
 }
 
 /* 📱 Responsive cho màn nhỏ */
-@media (max-width: 992px) {
+@media (min-width: 992px) {
     .mega-menu {
-        width: 100vw;             /* chiếm toàn bộ màn hình */
-        max-width: 100%;          /* không giới hạn chiều rộng */
-        left: 0;                  /* căn lề trái */
-        transform: none;
-        border-radius: 0;
-        box-shadow: none;
-        padding: 1rem;
+        width: 100%;
+        max-width: 1200px;                         /* giống container lớn */
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+    }
+
+    /* Chỉ dùng hover để show mega-menu trên desktop */
+    .hover-mega-dropdown:hover > .mega-menu {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
     }
 }
+
 
 /* ===== Tabs phong cách cao cấp ===== */
 #perfumeTab {
