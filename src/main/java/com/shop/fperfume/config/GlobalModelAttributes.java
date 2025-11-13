@@ -15,8 +15,14 @@ public class GlobalModelAttributes {
     private ThuongHieuClientService thuongHieuClientService;
 
     @ModelAttribute("brands")
-    public List<ThuongHieuResponse> populateBrands() {
+    public List<ThuongHieuResponse> getAllBrands() {
         return thuongHieuClientService.getAllThuongHieu();
     }
-
+    @ModelAttribute("brandsHot")
+    public List<ThuongHieuResponse> getHotBrands() {
+        return thuongHieuClientService.getAllThuongHieu()
+                .stream()
+                .limit(6)
+                .toList();
+    }
 }

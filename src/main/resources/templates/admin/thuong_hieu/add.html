@@ -19,11 +19,11 @@
                     <div class="card-header">
                         <h5>Thông tin Thương hiệu</h5>
                     </div>
+                    <div class="card-body">
                         <form th:action="@{/admin/thuong-hieu/save}"
                               th:object="${thuongHieuRequest}"
                               method="post"
-                              enctype="multipart/form-data"
-                              class="card p-4 shadow-sm">
+                              enctype="multipart/form-data">
 
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -58,6 +58,8 @@
                             </div>
 
                         </form>
+                    </div>
+
                 </div>
                 </div>
             </section>

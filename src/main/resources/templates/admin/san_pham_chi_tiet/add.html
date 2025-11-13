@@ -8,14 +8,19 @@
     <div id="main">
         <header th:replace="~{/admin/fragments/header :: header}"></header>
         <div class="page-heading">
-            <h3 class="text-center mb-4">Thêm Chi Tiết Sản Phẩm</h3>
+            <h3 class="">Thêm sản phẩm chi tiết</h3>
+        </div>
+        <section class="row">
+        <div class="card">
+        <div class="card-header">
+            <h5>Thông tin chi tiết sản phẩm</h5>
         </div>
 
+            <div class="card-body">
         <form th:action="@{/admin/san-pham-chi-tiet/save}"
               th:object="${sanPhamChiTietRequest}"
               method="post"
-              enctype="multipart/form-data"
-              class="card p-4 shadow-sm">
+              enctype="multipart/form-data">
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -63,7 +68,7 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">Giá nhập</label>
                     <input type="number" th:field="*{giaNhap}" class="form-control" placeholder="Nhập giá nhập" required>
                     <div class="invalid-feedback d-block"
@@ -71,21 +76,20 @@
                          th:errors="*{giaNhap}"></div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">Giá bán</label>
                     <input type="number" th:field="*{giaBan}" class="form-control" placeholder="Nhập giá bán" required>
                     <div class="invalid-feedback d-block"
                          th:if="${#fields.hasErrors('giaBan')}"
                          th:errors="*{giaBan}"></div>
                 </div>
-            </div>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">Số lượng tồn</label>
                     <input type="number" min="0" th:field="*{soLuongTon}" class="form-control" placeholder="Nhập số lượng tồn" required>
                 </div>
             </div>
+
 
             <div class="mb-3">
                 <label class="form-label d-block">Trạng thái</label>
@@ -101,12 +105,14 @@
                 <input type="file" th:field="*{hinhAnh}" class="form-control">
             </div>
 
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-primary px-4">Lưu</button>
-                <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-secondary px-4 ms-2">Quay lại</a>
+            <div class="text-end">
+                <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-secondary">Quay lại</a>
+                <button type="submit" class="btn btn-primary">Lưu</button>
             </div>
         </form>
-
+            </div>
+        </div>
+        </section>
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
     </div>
 </div>

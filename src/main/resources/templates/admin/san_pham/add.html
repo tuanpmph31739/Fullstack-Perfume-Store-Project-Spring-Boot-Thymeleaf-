@@ -38,6 +38,20 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label class="form-label">Thương hiệu</label>
+                                    <select class="form-select choices" th:field="*{idThuongHieu}" required>
+                                        <option value="">-- Chọn thương hiệu --</option>
+                                        <option th:each="thh : ${listThuongHieu}"
+                                                th:value="${thh.id}"
+                                                th:text="${thh.tenThuongHieu}"></option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idThuongHieu')}"
+                                         th:errors="*{idThuongHieu}"></div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <label class="form-label">Loại nước hoa</label>
                                     <select class="form-select" th:field="*{idLoaiNuocHoa}" required>
                                         <option value="">-- Chọn loại nước hoa --</option>
@@ -49,23 +63,7 @@
                                          th:if="${#fields.hasErrors('idLoaiNuocHoa')}"
                                          th:errors="*{idLoaiNuocHoa}"></div>
                                 </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Thương hiệu</label>
-                                    <select class="form-select" th:field="*{idThuongHieu}" required>
-                                        <option value="">-- Chọn thương hiệu --</option>
-                                        <option th:each="thh : ${listThuongHieu}"
-                                                th:value="${thh.id}"
-                                                th:text="${thh.tenThuongHieu}"></option>
-                                    </select>
-                                    <div class="invalid-feedback d-block"
-                                         th:if="${#fields.hasErrors('idThuongHieu')}"
-                                         th:errors="*{idThuongHieu}"></div>
-                                </div>
-
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label">Xuất xứ</label>
                                     <select class="form-select" th:field="*{idXuatXu}" required>
                                         <option value="">-- Chọn quốc gia --</option>
@@ -77,8 +75,23 @@
                                          th:if="${#fields.hasErrors('idXuatXu')}"
                                          th:errors="*{idXuatXu}"></div>
                                 </div>
+                            </div>
 
-                                <div class="col-md-4">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nhóm hương</label>
+                                    <select class="form-select" th:field="*{idNhomHuong}">
+                                        <option value="">-- Chọn nhóm hương --</option>
+                                        <option th:each="nh : ${listNhomHuong}"
+                                                th:value="${nh.id}"
+                                                th:text="${nh.tenNhomHuong}"></option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idNhomHuong')}"
+                                         th:errors="*{idNhomHuong}"></div>
+                                </div>
+
+                                <div class="col-md-6">
                                     <label class="form-label">Mùa thích hợp</label>
                                     <select class="form-select" th:field="*{idMuaThichHop}" required>
                                         <option value="">-- Chọn mùa thích hợp --</option>
@@ -90,19 +103,6 @@
                                          th:if="${#fields.hasErrors('idMuaThichHop')}"
                                          th:errors="*{idMuaThichHop}"></div>
                                 </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Nhóm hương</label>
-                                <select class="form-select" th:field="*{idNhomHuong}">
-                                    <option value="">-- Chọn nhóm hương --</option>
-                                    <option th:each="nh : ${listNhomHuong}"
-                                            th:value="${nh.id}"
-                                            th:text="${nh.tenNhomHuong}"></option>
-                                </select>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('idNhomHuong')}"
-                                     th:errors="*{idNhomHuong}"></div>
                             </div>
 
                             <div class="mb-3">
