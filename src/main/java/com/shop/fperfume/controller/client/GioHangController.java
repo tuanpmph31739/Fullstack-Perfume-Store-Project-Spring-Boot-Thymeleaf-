@@ -8,6 +8,7 @@ import com.shop.fperfume.entity.SanPhamChiTiet;
 import com.shop.fperfume.security.CustomUserDetails;
 import com.shop.fperfume.service.client.GioHangClientService;
 import com.shop.fperfume.repository.SanPhamChiTietRepository;
+import com.shop.fperfume.service.client.CartHelperService; // <<< THÊM IMPORT MỚI
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.*;
 
-/**
- * Giỏ hàng hỗ trợ:
- * - User đăng nhập: dùng DB (GioHang, GioHangChiTiet)
- * - Khách vãng lai: dùng Session (Map<Integer, Integer> = <idSpct, soLuong>)
- */
 @Controller
 @RequestMapping("/cart")
 public class GioHangController {
@@ -36,8 +32,11 @@ public class GioHangController {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
+    @Autowired
+    private CartHelperService cartHelperService; // <<< THÊM SERVICE MỚI
+
     /* =========================================================
-     * 1. HIỂN THỊ GIỎ HÀNG
+     * 1. HIỂN THỊ GIỎ HÀNG (ĐÃ SỬA)
      * ========================================================= */
     @GetMapping
     public String viewCart(Model model,
@@ -48,19 +47,19 @@ public class GioHangController {
         Map<String, Object> cartData;
 
         if (userDetails != null) {
-            // --- ĐÃ ĐĂNG NHẬP: dùng giỏ DB như cũ ---
+            // --- ĐÃ ĐĂNG NHẬP ---
             NguoiDung khachHang = userDetails.getUser();
             GioHang gioHang = gioHangClientService.getCartByUser(khachHang);
             gioHangToView = gioHang;
-            cartData = calculateCartData(gioHang);
+            cartData = cartHelperService.calculateCartData(gioHang); // <<< SỬA
         } else {
-            // --- CHƯA ĐĂNG NHẬP: build GioHang "ảo" từ session ---
+            // --- CHƯA ĐĂNG NHẬP ---
             @SuppressWarnings("unchecked")
             Map<Integer, Integer> guestCart =
                     (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
 
-            gioHangToView = buildVirtualCartFromSession(guestCart);
-            cartData = calculateCartData(gioHangToView);
+            gioHangToView = cartHelperService.buildVirtualCartFromSession(guestCart); // <<< SỬA
+            cartData = cartHelperService.calculateCartData(gioHangToView); // <<< SỬA
         }
 
         model.addAttribute("gioHang", gioHangToView);
@@ -72,7 +71,7 @@ public class GioHangController {
     }
 
     /* =========================================================
-     * 2. THÊM SẢN PHẨM VÀO GIỎ (AJAX)
+     * 2. THÊM SẢN PHẨM VÀO GIỎ (AJAX) (ĐÃ SỬA)
      * ========================================================= */
     @PostMapping("/add")
     @ResponseBody
@@ -89,7 +88,7 @@ public class GioHangController {
             }
 
             if (userDetails != null) {
-                // ===== ĐÃ ĐĂNG NHẬP → dùng service cũ =====
+                // ===== ĐÃ ĐĂNG NHẬP (Giữ nguyên) =====
                 NguoiDung khachHang = userDetails.getUser();
                 GioHang gioHang = gioHangClientService.addItemToCart(khachHang, idSanPhamChiTiet, soLuong);
                 Map<String, Object> response = createAjaxResponse(gioHang, "Đã thêm sản phẩm vào giỏ hàng!");
@@ -97,7 +96,7 @@ public class GioHangController {
                 return ResponseEntity.ok(response);
 
             } else {
-                // ===== CHƯA ĐĂNG NHẬP → dùng SESSION =====
+                // ===== CHƯA ĐĂNG NHẬP (Logic nghiệp vụ giữ nguyên) =====
                 @SuppressWarnings("unchecked")
                 Map<Integer, Integer> guestCart =
                         (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
@@ -105,31 +104,24 @@ public class GioHangController {
                     guestCart = new HashMap<>();
                 }
 
+                // (Logic kiểm tra tồn kho của GUEST giữ nguyên)
                 SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet)
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
                 int tonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                 int currentQty = guestCart.getOrDefault(idSanPhamChiTiet, 0);
                 int totalDesired = currentQty + soLuong;
-
-                if (tonKho <= 0) {
-                    throw new RuntimeException("Sản phẩm đã hết hàng");
-                }
+                if (tonKho <= 0) { throw new RuntimeException("Sản phẩm đã hết hàng"); }
                 if (totalDesired > tonKho) {
                     int coTheThem = tonKho - currentQty;
-                    if (coTheThem <= 0) {
-                        throw new RuntimeException("Bạn đã thêm tối đa sản phẩm này trong giỏ. Tồn kho: " + tonKho);
-                    }
-                    throw new RuntimeException("Chỉ còn " + tonKho +
-                            " sản phẩm. Bạn chỉ có thể thêm " + coTheThem + " sản phẩm nữa.");
+                    if (coTheThem <= 0) { throw new RuntimeException("Bạn đã thêm tối đa sản phẩm này trong giỏ. Tồn kho: " + tonKho); }
+                    throw new RuntimeException("Chỉ còn " + tonKho + " sản phẩm. Bạn chỉ có thể thêm " + coTheThem + " sản phẩm nữa.");
                 }
 
-                // Cập nhật map trong session
                 guestCart.put(idSanPhamChiTiet, totalDesired);
                 session.setAttribute(SESSION_CART_KEY, guestCart);
 
                 // Tạo GioHang ảo để tái sử dụng logic tính tổng / response
-                GioHang virtualCart = buildVirtualCartFromSession(guestCart);
+                GioHang virtualCart = cartHelperService.buildVirtualCartFromSession(guestCart); // <<< SỬA
                 Map<String, Object> response = createAjaxResponse(virtualCart, "Đã thêm sản phẩm vào giỏ hàng!");
                 System.out.println(">>> /cart/add (GUEST) spctId = " + idSanPhamChiTiet + ", soLuong = " + soLuong);
                 return ResponseEntity.ok(response);
@@ -141,7 +133,7 @@ public class GioHangController {
     }
 
     /* =========================================================
-     * 3. CẬP NHẬT SỐ LƯỢNG (AJAX)
+     * 3. CẬP NHẬT SỐ LƯỢNG (AJAX) (ĐÃ SỬA)
      * ========================================================= */
     @PostMapping("/update")
     @ResponseBody
@@ -155,28 +147,25 @@ public class GioHangController {
             if (soLuong == null) soLuong = 0;
 
             if (userDetails != null) {
-                // ===== USER: dùng DB =====
+                // ===== USER: (Giữ nguyên) =====
                 NguoiDung khachHang = userDetails.getUser();
                 GioHang gioHang = gioHangClientService.updateItemQuantity(khachHang, idSanPhamChiTiet, soLuong);
                 Map<String, Object> response = createAjaxResponse(gioHang, "Cập nhật số lượng thành công!");
                 return ResponseEntity.ok(response);
 
             } else {
-                // ===== GUEST: dùng SESSION =====
+                // ===== GUEST: (Logic nghiệp vụ giữ nguyên) =====
                 @SuppressWarnings("unchecked")
                 Map<Integer, Integer> guestCart =
                         (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
-                if (guestCart == null) {
-                    guestCart = new HashMap<>();
-                }
+                if (guestCart == null) { guestCart = new HashMap<>(); }
 
                 if (soLuong <= 0) {
-                    // Xóa khỏi giỏ
                     guestCart.remove(idSanPhamChiTiet);
                 } else {
+                    // (Logic kiểm tra tồn kho của GUEST giữ nguyên)
                     SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet)
                             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
                     int tonKho = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                     if (soLuong > tonKho) {
                         throw new RuntimeException("Số lượng cập nhật vượt quá tồn kho! (Tồn kho: " + tonKho + ")");
@@ -186,7 +175,7 @@ public class GioHangController {
 
                 session.setAttribute(SESSION_CART_KEY, guestCart);
 
-                GioHang virtualCart = buildVirtualCartFromSession(guestCart);
+                GioHang virtualCart = cartHelperService.buildVirtualCartFromSession(guestCart); // <<< SỬA
                 Map<String, Object> response = createAjaxResponse(virtualCart, "Cập nhật số lượng thành công!");
                 return ResponseEntity.ok(response);
             }
@@ -197,7 +186,7 @@ public class GioHangController {
     }
 
     /* =========================================================
-     * 4. XÓA SẢN PHẨM (AJAX)
+     * 4. XÓA SẢN PHẨM (AJAX) (ĐÃ SỬA)
      * ========================================================= */
     @PostMapping("/remove")
     @ResponseBody
@@ -208,25 +197,23 @@ public class GioHangController {
 
         try {
             if (userDetails != null) {
-                // ===== USER: DB =====
+                // ===== USER: (Giữ nguyên) =====
                 NguoiDung khachHang = userDetails.getUser();
                 GioHang gioHang = gioHangClientService.removeItemFromCart(khachHang, idSanPhamChiTiet);
                 Map<String, Object> response = createAjaxResponse(gioHang, "Đã xóa sản phẩm khỏi giỏ hàng.");
                 return ResponseEntity.ok(response);
 
             } else {
-                // ===== GUEST: SESSION =====
+                // ===== GUEST: (Giữ nguyên) =====
                 @SuppressWarnings("unchecked")
                 Map<Integer, Integer> guestCart =
                         (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
-                if (guestCart == null) {
-                    guestCart = new HashMap<>();
-                }
+                if (guestCart == null) { guestCart = new HashMap<>(); }
 
                 guestCart.remove(idSanPhamChiTiet);
                 session.setAttribute(SESSION_CART_KEY, guestCart);
 
-                GioHang virtualCart = buildVirtualCartFromSession(guestCart);
+                GioHang virtualCart = cartHelperService.buildVirtualCartFromSession(guestCart); // <<< SỬA
                 Map<String, Object> response = createAjaxResponse(virtualCart, "Đã xóa sản phẩm khỏi giỏ hàng.");
                 return ResponseEntity.ok(response);
             }
@@ -237,22 +224,20 @@ public class GioHangController {
     }
 
     /* =========================================================
-     * 5. VOUCHER (tạm thời vẫn yêu cầu đăng nhập)
+     * 5. VOUCHER (Giữ nguyên)
      * ========================================================= */
     @PostMapping("/apply-voucher")
     @ResponseBody
     public ResponseEntity<?> applyVoucher(@RequestParam("maGiamGia") String maGiamGia,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-
+        // (Giữ nguyên logic)
         if (userDetails == null) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
         }
         NguoiDung khachHang = userDetails.getUser();
-
         try {
             gioHangClientService.applyVoucher(khachHang, maGiamGia);
             return ResponseEntity.ok().build();
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
@@ -261,103 +246,38 @@ public class GioHangController {
     @PostMapping("/remove-voucher")
     @ResponseBody
     public ResponseEntity<?> removeVoucher(@AuthenticationPrincipal CustomUserDetails userDetails) {
-
+        // (Giữ nguyên logic)
         if (userDetails == null) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
         }
         NguoiDung khachHang = userDetails.getUser();
-
         try {
             gioHangClientService.removeVoucher(khachHang);
             return ResponseEntity.ok().build();
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
     /* =========================================================
-     * 6. HELPER: Build GioHang "ảo" từ session
+     * 6. HELPER: Build GioHang "ảo" (XÓA BỎ)
      * ========================================================= */
-    private GioHang buildVirtualCartFromSession(Map<Integer, Integer> guestCart) {
-        GioHang gioHang = new GioHang();
-        if (guestCart == null || guestCart.isEmpty()) {
-            gioHang.setGioHangChiTiets(Collections.emptyList());
-            return gioHang;
-        }
-
-        List<GioHangChiTiet> chiTietList = new ArrayList<>();
-
-        for (Map.Entry<Integer, Integer> entry : guestCart.entrySet()) {
-            Integer spctId = entry.getKey();
-            Integer soLuong = entry.getValue();
-
-            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(spctId).orElse(null);
-            if (spct == null) continue;
-
-            GioHangChiTiet item = new GioHangChiTiet();
-            // Id composite có thể để null, vì ta chỉ hiển thị, không save
-            item.setGioHang(gioHang);
-            item.setSanPhamChiTiet(spct);
-            item.setSoLuong(soLuong);
-
-            chiTietList.add(item);
-        }
-
-        gioHang.setGioHangChiTiets(chiTietList);
-        // Guest không dùng voucher nên set null
-        gioHang.setGiamGia(null);
-        return gioHang;
-    }
+    // private GioHang buildVirtualCartFromSession(...) { ... } // <<< ĐÃ XÓA
 
     /* =========================================================
-     * 7. HELPER: Tính toán tiền
+     * 7. HELPER: Tính toán tiền (ĐÃ SỬA)
      * ========================================================= */
     private Map<String, Object> calculateCartData(GioHang gioHang) {
-        BigDecimal tongTienHang = BigDecimal.ZERO;
-        BigDecimal tienGiamGia = BigDecimal.ZERO;
-        BigDecimal tongThanhToan;
-        int cartSize = 0;
-
-        if (gioHang != null && gioHang.getGioHangChiTiets() != null && !gioHang.getGioHangChiTiets().isEmpty()) {
-
-            for (GioHangChiTiet item : gioHang.getGioHangChiTiets()) {
-                cartSize += item.getSoLuong();
-
-                if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getGiaBan() != null) {
-                    BigDecimal giaBan = item.getSanPhamChiTiet().getGiaBan();
-                    BigDecimal soLuong = new BigDecimal(item.getSoLuong());
-                    tongTienHang = tongTienHang.add(giaBan.multiply(soLuong));
-                }
-            }
-
-            GiamGia giamGia = gioHang.getGiamGia();
-            if (giamGia != null) {
-                if ("PERCENT".equals(giamGia.getLoaiGiam())) {
-                    tienGiamGia = tongTienHang.multiply(giamGia.getGiaTri().divide(new BigDecimal(100)));
-                } else {
-                    tienGiamGia = giamGia.getGiaTri();
-                }
-                tienGiamGia = tienGiamGia.min(tongTienHang);
-            }
-        }
-
-        tongThanhToan = tongTienHang.subtract(tienGiamGia);
-
-        Map<String, Object> cartData = new HashMap<>();
-        cartData.put("tongTienHang", tongTienHang);
-        cartData.put("tienGiamGia", tienGiamGia);
-        cartData.put("tongThanhToan", tongThanhToan);
-        cartData.put("cartSize", cartSize);
-
-        return cartData;
+        // <<< SỬA: Gọi service helper >>>
+        return cartHelperService.calculateCartData(gioHang);
     }
 
     /* =========================================================
-     * 8. HELPER: Tạo JSON trả về cho AJAX
+     * 8. HELPER: Tạo JSON trả về cho AJAX (ĐÃ SỬA)
      * ========================================================= */
     private Map<String, Object> createAjaxResponse(GioHang gioHang, String message) {
-        Map<String, Object> cartData = calculateCartData(gioHang);
+        // <<< SỬA: Gọi service helper >>>
+        Map<String, Object> cartData = cartHelperService.calculateCartData(gioHang);
 
         Map<String, Object> cartSummary = new HashMap<>();
         cartSummary.put("subtotal", cartData.get("tongTienHang"));

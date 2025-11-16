@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{client/fragments/head :: head}"></head>
+<body>
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<div class="container my-5">
+    <h2 class="text-center mb-4 fw-semibold">THÔNG TIN ĐẶT HÀNG</h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/order/submit}" method="POST" th:object="${checkoutForm}">
+        <div class="row">
+
+            <div class="col-lg-7">
+                <h4 class="mb-3">Thông tin giao hàng</h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Họ và tên *</label>
+                    <input type="text" class="form-control" th:field="*{tenNguoiNhan}">
+                    <div th:if="${#fields.hasErrors('tenNguoiNhan')}"
+                         th:errors="*{tenNguoiNhan}" class="text-danger small"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7 mb-3">
+                        <label class="form-label">Số điện thoại *</label>
+                        <input type="tel" class="form-control" th:field="*{sdt}">
+                        <div th:if="${#fields.hasErrors('sdt')}"
+                             th:errors="*{sdt}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" th:field="*{email}">
+                        <div th:if="${#fields.hasErrors('email')}"
+                             th:errors="*{email}" class="text-danger small"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Địa chỉ nhận hàng *</label>
+                    <textarea class="form-control" rows="3" th:field="*{diaChi}"></textarea>
+                    <div th:if="${#fields.hasErrors('diaChi')}"
+                         th:errors="*{diaChi}" class="text-danger small"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phương thức thanh toán *</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" th:field="*{idThanhToan}" value="1" id="thanhToan1">
+                        <label class="form-check-label" for="thanhToan1">
+                            Thanh toán khi nhận hàng (COD)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" th:field="*{idThanhToan}" value="2" id="thanhToan2">
+                        <label class="form-check-label" for="thanhToan2">
+                            Thanh toán qua VNPay
+                        </label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('idThanhToan')}"
+                         th:errors="*{idThanhToan}" class="text-danger small"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card border rounded-3" style="position: sticky; top: 20px;">
+                    <div class="card-body p-4">
+                        <h4 class="fw-semibold">ĐƠN HÀNG CỦA BẠN</h4>
+
+                        <ul class="list-group list-group-flush mt-3">
+                            <li th:each="item : ${gioHang.gioHangChiTiets}"
+                                class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <span th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}"></span>
+                                    <small class="d-block text-muted"
+                                           th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml x ' + item.soLuong}"></small>
+                                </div>
+                                <span th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan.multiply(item.soLuong), 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0 mt-3">
+                                <span>Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </li>
+                            <li th:if="${tienGiamGia > 0}" class="list-group-item d-flex justify-content-between px-0 text-danger">
+                                <span>Giảm giá</span>
+                                <span th:text="'- ' + ${#numbers.formatDecimal(tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span>Phí vận chuyển</span>
+                                <span>30.000 ₫</span>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between px-0 fw-semibold fs-5 mt-2">
+                                <span>Tổng cộng</span>
+                                <span class="text-primary"
+                                      th:text="${#numbers.formatDecimal(tongThanhToan + 30000, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </li>
+                        </ul>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-4 fw-semibold"
+                                style="background-color: var(--color-primary); border: none; padding: 12px 0;">
+                            ĐẶT HÀNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

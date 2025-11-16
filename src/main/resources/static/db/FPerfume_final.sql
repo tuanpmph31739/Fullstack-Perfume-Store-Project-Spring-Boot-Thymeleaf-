@@ -177,7 +177,7 @@ CREATE TABLE HoaDon (
                         TenNguoiNhan NVARCHAR(100),
                         DiaChi NVARCHAR(255),
                         Sdt NVARCHAR(20),
-                        TinhTrang INT,
+                        TrangThai NVARCHAR(100) NULL,
 
     -- 1. Tổng tiền hàng (SUM từ HoaDonChiTiet)
                         TongTienHang DECIMAL(20, 0) NOT NULL DEFAULT 0,
@@ -797,7 +797,7 @@ PRINT N'Đã chèn ThanhToan mẫu.';
 GO
 
 -- Chèn Hóa Đơn mẫu
-INSERT INTO HoaDon (IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, TinhTrang, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan, IdThanhToan)
+INSERT INTO HoaDon (IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, TrangThai, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan, IdThanhToan)
 VALUES
 (
     (SELECT Id FROM NguoiDung WHERE Ma = 'KH001'), -- IdKH
