@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{client/fragments/head :: head}"></head>
+<body>
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-danger text-center shadow-sm">
+                <div class="card-body p-5">
+                    <h2 class="text-danger fw-bold">❌ Thanh toán thất bại</h2>
+
+                    <p class="lead mt-3">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+
+                    <div th:if="${errorMessage}" class="alert alert-danger mt-3"
+                         th:text="${errorMessage}">
+                        Lý do thất bại...
+                    </div>
+
+                    <p>Giỏ hàng của bạn vẫn được giữ nguyên. Vui lòng thử lại.</p>
+
+                    <a th:href="@{/cart}" class="btn btn-primary mt-4" style="background-color: var(--color-primary); border: none;">
+                        Quay lại giỏ hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
