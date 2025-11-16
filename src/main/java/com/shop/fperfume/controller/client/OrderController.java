@@ -111,6 +111,8 @@ public class OrderController {
         GioHang cart;
         NguoiDung khachHang = (userDetails != null) ? userDetails.getUser() : null;
 
+        System.out.println("DEBUG: ID ThanhToan nhan duoc: " + checkoutInfo.getIdThanhToan());
+
         // === 1. LẤY LẠI GIỎ HÀNG (Giống hệt logic của GET) ===
         if (khachHang != null) {
             cart = gioHangClientService.getCartByUser(khachHang);

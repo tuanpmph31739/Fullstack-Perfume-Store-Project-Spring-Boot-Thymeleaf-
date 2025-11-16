@@ -18,7 +18,7 @@ import java.util.*;
 public class VnPayService {
 
     @Autowired
-    private VNPayConfig vnPayConfig; //
+    private VNPayConfig vnPayConfig;
 
     // Hàm tạo chữ ký HmacSHA512
     public String hmacSHA512(final String key, final String data) {
@@ -59,18 +59,12 @@ public class VnPayService {
     // Hàm chính: Tạo URL thanh toán
     public String createPaymentUrl(HoaDon hoaDon, HttpServletRequest request) throws UnsupportedEncodingException {
 
-        // Mã hóa đơn (dùng Mã HD thay vì ID)
         String vnp_TxnRef = hoaDon.getMa();
-
-        // Tổng tiền (VNPay yêu cầu nhân 100 và bỏ phần thập phân)
         long amount = hoaDon.getTongThanhToan().longValue() * 100L;
-
         String vnp_IpAddr = getIpAddress(request);
-
-        // Lấy thông tin từ Config
         String vnp_TmnCode = vnPayConfig.getTmnCode();
         String vnp_HashSecret = vnPayConfig.getHashSecret();
-        String vnp_ReturnUrl = vnPayConfig.getReturnUrl(); //
+        String vnp_ReturnUrl = vnPayConfig.getReturnUrl();
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -106,14 +100,17 @@ public class VnPayService {
             String fieldName = itr.next();
             String fieldValue = vnp_Params.get(fieldName);
             if ((fieldValue != null) && (fieldValue.length() > 0)) {
+
+                // === SỬA LỖI: CHUYỂN US_ASCII THÀNH UTF_8 ===
                 // Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
                 // Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                 query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
+                // === KẾT THÚC SỬA LỖI ===
 
                 if (itr.hasNext()) {
                     query.append('&');
@@ -126,6 +123,6 @@ public class VnPayService {
         String vnp_SecureHash = hmacSHA512(vnp_HashSecret, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
 
-        return vnPayConfig.getPayUrl() + "?" + queryUrl; //
+        return vnPayConfig.getPayUrl() + "?" + queryUrl;
     }
 }
