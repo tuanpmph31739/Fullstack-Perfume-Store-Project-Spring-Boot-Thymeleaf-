@@ -1,12 +1,12 @@
 package com.shop.fperfume.service.admin;
 
 import com.shop.fperfume.entity.GiamGia;
-import com.shop.fperfume.entity.SanPham;
+import com.shop.fperfume.entity.SanPhamChiTiet;
 import com.shop.fperfume.model.request.GiamGiaRequest;
 import com.shop.fperfume.model.response.GiamGiaResponse;
 import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.repository.GiamGiaRepository;
-import com.shop.fperfume.repository.SanPhamRepository;
+import com.shop.fperfume.repository.SanPhamChiTietRepository;
 import com.shop.fperfume.util.MapperUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,9 @@ public class GiamGiaService {
     private GiamGiaRepository giamGiaRepository;
 
     @Autowired
-    private SanPhamRepository sanPhamRepository;
+    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    // ✅ Lấy tất cả giảm giá
+    // Lấy tất cả giảm giá
     @Transactional
     public List<GiamGiaResponse> getAllGiamGia() {
         return giamGiaRepository.findAll()
@@ -35,67 +35,93 @@ public class GiamGiaService {
                 .toList();
     }
 
-    // ✅ Thêm mới giảm giá
+    // ================================
+    //  Thêm mới
+    // ================================
     @Transactional
-    public void addGiamGia(GiamGiaRequest giamGiaRequest) {
-        String maMoi = giamGiaRequest.getMa().trim();
+    public void addGiamGia(GiamGiaRequest request) {
 
-        if (giamGiaRepository.existsByMa(maMoi)) {
-            throw new RuntimeException("Mã giảm giá '" + maMoi + "' đã tồn tại!");
+        if (giamGiaRepository.existsByMa(request.getMa().trim())) {
+            throw new RuntimeException("Mã giảm giá '" + request.getMa() + "' đã tồn tại!");
         }
 
-        GiamGia giamGia = MapperUtils.map(giamGiaRequest, GiamGia.class);
+        GiamGia giamGia = MapperUtils.map(request, GiamGia.class);
 
-        if (giamGiaRequest.getIdSanPham() != null) {
-            SanPham sanPham = sanPhamRepository.findById(giamGiaRequest.getIdSanPham())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + giamGiaRequest.getIdSanPham()));
-            giamGia.setSanPham(sanPham);
+        // ⭐ soLuong
+        giamGia.setSoLuong(request.getSoLuong());
+
+        // ⭐ Xác định phạm vi áp dụng tự động
+        if (request.getIdSanPhamChiTiet() != null) {
+            giamGia.setPhamViApDung("SANPHAM");
+
+            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(request.getIdSanPhamChiTiet())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Không tìm thấy sản phẩm chi tiết với ID: " + request.getIdSanPhamChiTiet()
+                    ));
+            giamGia.setSanPhamChiTiet(spct);
+
         } else {
-            giamGia.setSanPham(null);
+            giamGia.setPhamViApDung("TOAN_CUA_HANG");
+            giamGia.setSanPhamChiTiet(null);
         }
 
         giamGiaRepository.save(giamGia);
     }
 
-    // ✅ Cập nhật giảm giá
+    // ================================
+    //  Cập nhật
+    // ================================
     @Transactional
-    public void updateGiamGia(Integer id, GiamGiaRequest giamGiaRequest) {
-        GiamGia giamGia = giamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá với ID: " + id));
+    public void updateGiamGia(Integer id, GiamGiaRequest request) {
 
-        String maMoi = giamGiaRequest.getMa().trim();
+        GiamGia giamGia = giamGiaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá ID: " + id));
+
+        String maMoi = request.getMa().trim();
+
         if (!giamGia.getMa().equals(maMoi) && giamGiaRepository.existsByMa(maMoi)) {
             throw new RuntimeException("Mã giảm giá '" + maMoi + "' đã tồn tại!");
         }
 
-        MapperUtils.mapToExisting(giamGiaRequest, giamGia);
+        MapperUtils.mapToExisting(request, giamGia);
 
-        if (giamGiaRequest.getIdSanPham() != null) {
-            SanPham sanPham = sanPhamRepository.findById(giamGiaRequest.getIdSanPham())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + giamGiaRequest.getIdSanPham()));
-            giamGia.setSanPham(sanPham);
+        // ⭐ soLuong
+        giamGia.setSoLuong(request.getSoLuong());
+
+        // ⭐ Cập nhật phạm vi áp dụng tự động
+        if (request.getIdSanPhamChiTiet() != null) {
+            giamGia.setPhamViApDung("SANPHAM");
+
+            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(request.getIdSanPhamChiTiet())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Không tìm thấy sản phẩm chi tiết với ID: " + request.getIdSanPhamChiTiet()
+                    ));
+            giamGia.setSanPhamChiTiet(spct);
+
         } else {
-            giamGia.setSanPham(null);
+            giamGia.setPhamViApDung("TOAN_CUA_HANG");
+            giamGia.setSanPhamChiTiet(null);
         }
 
         giamGiaRepository.save(giamGia);
     }
 
-    // ✅ Xóa giảm giá
+    // Xóa
     @Transactional
     public void deleteGiamGia(Integer id) {
         giamGiaRepository.deleteById(id);
     }
 
-    // ✅ Lấy giảm giá theo ID
+    // Lấy theo ID
     @Transactional
     public GiamGiaResponse getGiamGiaById(Integer id) {
-        GiamGia giamGia = giamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá với ID: " + id));
-        return new GiamGiaResponse(giamGia);
+        return new GiamGiaResponse(
+                giamGiaRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá ID: " + id))
+        );
     }
 
-    // ✅ Phân trang giảm giá
+    // Phân trang
     @Transactional
     public PageableObject<GiamGiaResponse> paging(Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);

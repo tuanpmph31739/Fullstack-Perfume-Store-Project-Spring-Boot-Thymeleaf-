@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,15 +14,26 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class GiamGiaRequest {
 
-    private Integer id;           // Khớp với kiểu trong Entity (Integer)
+    private Integer id;
 
-    private String ma;            // Mã giảm giá
-    private String ten;           // Tên giảm giá
-    private String loaiGiam;      // 'PERCENT' hoặc 'AMOUNT'
-    private BigDecimal giaTri;    // Giá trị giảm
-    private Integer soLuong;      // Số lượng mã phát hành
-    private LocalDate ngayBatDau; // Dùng LocalDate thay vì LocalDateTime để khớp Entity
-    private LocalDate ngayKetThuc;
-    private Integer trangThai;    // Trạng thái: 1=active, 0=inactive
-    private Integer idSanPham;       // ID sản phẩm (Long để khớp với Entity SanPham)
+    private String ma;              // Mã giảm giá
+    private String ten;             // Tên giảm giá
+    private String moTa;            // Mô tả (tùy chọn)
+
+    private String loaiGiam;        // 'PERCENT' hoặc 'AMOUNT'
+    private BigDecimal giaTri;      // Giá trị giảm
+
+    private Integer soLuong;        // ⭐ THÊM — số lượng mã giảm giá
+
+    private BigDecimal donHangToiThieu; // Đơn hàng tối thiểu
+    private BigDecimal giamToiDa;       // Giảm tối đa (chỉ dùng khi %)
+
+    private LocalDateTime ngayBatDau;
+    private LocalDateTime ngayKetThuc;
+
+    private Boolean trangThai;          // true/false
+
+    private String phamViApDung;        // SANPHAM / TOAN_CUA_HANG
+
+    private Integer idSanPhamChiTiet;   // Liên kết SPCT (nullable)
 }
