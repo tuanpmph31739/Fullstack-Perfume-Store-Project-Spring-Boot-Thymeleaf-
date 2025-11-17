@@ -26,19 +26,17 @@
                               enctype="multipart/form-data">
 
                             <!-- Mã SKU -->
-                            <div class="mb-3">
-                                <label class="form-label">Mã SKU</label>
-                                <input type="text" class="form-control" th:field="*{maSKU}" placeholder="Nhập mã SKU" required>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('maSKU')}"
-                                     th:errors="*{maSKU}"></div>
-                            </div>
-
-                            <!-- Chọn Sản phẩm - Dung tích - Nồng độ -->
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Mã SKU</label>
+                                    <input type="text" class="form-control" th:field="*{maSKU}" placeholder="Nhập mã SKU" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('maSKU')}"
+                                         th:errors="*{maSKU}"></div>
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label">Sản phẩm</label>
-                                    <select class="form-select" th:field="*{idSanPham}" required>
+                                    <select class="form-select choices" th:field="*{idSanPham}" required>
                                         <option value="">-- Chọn sản phẩm --</option>
                                         <option th:each="sp : ${listSanPham}"
                                                 th:value="${sp.id}"
@@ -50,7 +48,11 @@
                                          th:errors="*{idSanPham}"></div>
                                 </div>
 
-                                <div class="col-md-4">
+                            </div>
+
+                            <!-- Chọn Sản phẩm - Dung tích - Nồng độ -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <label class="form-label">Dung tích</label>
                                     <select class="form-select" th:field="*{idDungTich}" required>
                                         <option value="">-- Chọn dung tích --</option>
@@ -60,8 +62,7 @@
                                         </option>
                                     </select>
                                 </div>
-
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label">Nồng độ</label>
                                     <select class="form-select" th:field="*{idNongDo}" required>
                                         <option value="">-- Chọn nồng độ --</option>

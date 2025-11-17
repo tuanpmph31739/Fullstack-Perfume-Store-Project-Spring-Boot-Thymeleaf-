@@ -23,10 +23,13 @@ public class ThuongHieuResponse {
 
     private LocalDateTime ngaySua;
 
+    private String hinhAnh;
+
     public ThuongHieuResponse(ThuongHieu th) {
         this.id = th.getId();
         this.maThuongHieu = th.getMaThuongHieu();
         this.tenThuongHieu = th.getTenThuongHieu();
+        this.hinhAnh = th.getHinhAnh();
         this.slug = th.getSlug();
         this.ngayTao = th.getNgayTao();
         this.ngaySua = th.getNgaySua();

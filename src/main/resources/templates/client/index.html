@@ -42,7 +42,7 @@
             <img src="/images/Nasomatto-logo.png" alt="Nasomatto">
         </a>
 
-        <a href="/thuong-hieu/roja" class="brand-item">
+        <a href="/thuong-hieu/roja-parfums" class="brand-item">
             <img src="/images/roja-logo.png" alt="Roja Parfums">
         </a>
 
@@ -58,11 +58,11 @@
             <img src="/images/Le-labo-logo.png" alt="Le Labo">
         </a>
 
-        <a href="/thuong-hieu/mfk" class="brand-item">
+        <a href="/thuong-hieu/maison-francis-kurkdjian-mfk" class="brand-item">
             <img src="/images/mfk-logo.png" alt="MFK">
         </a>
 
-        <a href="/thuong-hieu/by-kilian" class="brand-item">
+        <a href="/thuong-hieu/kilian" class="brand-item">
             <img src="/images/Kilian.png" alt="By Kilian">
         </a>
 
@@ -113,7 +113,7 @@
                                         </div>
                                         <div class="product-info">
                                             <p class="brand-name">
-                                                <a th:href="@{'/thuong-hieu/' + ${sp.idThuongHieu}}"
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
                                                    th:text="${sp.tenThuongHieu ?: '---'}"></a>
                                             </p>
                                             <hr class="brand-divider">
@@ -158,7 +158,7 @@
                                         </div>
                                         <div class="product-info">
                                             <p class="brand-name">
-                                                <a th:href="@{'/thuong-hieu/' + ${sp.idThuongHieu}}"
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
                                                    th:text="${sp.tenThuongHieu ?: '---'}"></a>
                                             </p>
                                             <hr class="brand-divider">
@@ -203,7 +203,7 @@
                                         </div>
                                         <div class="product-info">
                                             <p class="brand-name">
-                                                <a th:href="@{'/thuong-hieu/' + ${sp.idThuongHieu}}"
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
                                                    th:text="${sp.tenThuongHieu ?: '---'}"></a>
                                             </p>
                                             <hr class="brand-divider">

@@ -16,5 +16,70 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/cart-ajax.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const header = document.getElementById('siteHeader');
+            if (!header) return;
+
+            const SHRINK_OFFSET = 140; // cuộn qua ~140px thì bắt đầu thu header
+
+            function handleScroll() {
+                if (window.scrollY > SHRINK_OFFSET) {
+                    header.classList.add('navbar-shrink');
+                } else {
+                    header.classList.remove('navbar-shrink');
+                }
+            }
+
+            handleScroll();                // chạy lúc vừa load
+            window.addEventListener('scroll', handleScroll);
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Lọc thương hiệu theo A-Z trong mega menu
+            const megaMenu = document.querySelector('.mega-menu');
+            if (!megaMenu) return;
+
+            const azButtons = megaMenu.querySelectorAll('.az-btn');
+            const brandLinks = megaMenu.querySelectorAll('.brand-link');
+
+            if (!azButtons.length || !brandLinks.length) return;
+
+            azButtons.forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const letter = this.dataset.letter; // "all" hoặc "A","B",...
+
+                    // Toggle class active cho nút A-Z
+                    azButtons.forEach(function (b) {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+
+                    // Lọc danh sách thương hiệu
+                    brandLinks.forEach(function (link) {
+                        const col = link.closest('.col');
+                        if (!col) return;
+
+                        const name = (link.textContent || '').trim();
+                        if (!name) {
+                            col.style.display = 'none';
+                            return;
+                        }
+
+                        const firstChar = name.charAt(0).toUpperCase();
+
+                        if (letter === 'all' || firstChar === letter) {
+                            col.style.display = '';
+                        } else {
+                            col.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
 </footer>

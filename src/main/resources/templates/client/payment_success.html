@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{client/fragments/head :: head}"></head>
+<body>
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-success text-center shadow-sm">
+                <div class="card-body p-5">
+                    <h2 class="text-success fw-bold">🎉 Đặt hàng thành công!</h2>
+                    <p class="lead mt-3">Cảm ơn bạn đã mua hàng tại FPerfume. Đơn hàng của bạn đã được ghi nhận.</p>
+
+                    <div th:if="${hoaDon != null}" class="mt-4 text-start p-4 bg-light rounded">
+                        <h5 class="fw-semibold">Tóm tắt đơn hàng</h5>
+                        <hr>
+                        <p><strong>Mã đơn hàng:</strong> <span th:text="${hoaDon.ma}">HD-XXXX</span></p>
+                        <p><strong>Tổng thanh toán:</strong>
+                            <span class="fw-bold text-primary"
+                                  th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'">0 ₫</span>
+                        </p>
+                        <p><strong>Trạng thái:</strong>
+                            <span class="badge bg-success" th:if="${hoaDon.trangThai == 'ĐÃ XÁC NHẬN'}">Đã xác nhận (Đã thanh toán)</span>
+                            <span class="badge bg-warning text-dark" th:if="${hoaDon.trangThai == 'CHỜ XÁC NHẬN'}">Chờ xác nhận (COD)</span>
+                        </p>
+                        <hr>
+                        <h6 class="fw-semibold">Thông tin giao hàng</h6>
+                        <p th:text="${hoaDon.tenNguoiNhan}" class="mb-0"></p>
+                        <p th:text="${hoaDon.sdt}" class="mb-0"></p>
+                        <p th:text="${hoaDon.diaChi}" class="mb-0"></p>
+                    </div>
+
+                    <a th:href="@{/}" class="btn btn-primary mt-4" style="background-color: var(--color-primary); border: none;">
+                        Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

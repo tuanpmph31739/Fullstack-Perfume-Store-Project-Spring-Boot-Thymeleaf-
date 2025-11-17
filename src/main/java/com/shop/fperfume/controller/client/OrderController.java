@@ -1,108 +1,209 @@
 package com.shop.fperfume.controller.client;
 
 import com.shop.fperfume.DTO.CheckoutRequestDTO;
+import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.NguoiDung;
+import com.shop.fperfume.repository.HoaDonRepository; // <<< THÊM: Để dùng ở trang success
+import com.shop.fperfume.security.CustomUserDetails;
+import com.shop.fperfume.service.client.CartHelperService;
+import com.shop.fperfume.service.client.GioHangClientService;
 import com.shop.fperfume.service.client.HoaDonClientService;
-//import com.shop.fperfume.service.VnPayService; // (Chúng ta sẽ tạo service này ở bước sau)
-//import com.shop.fperfume.service.EmailService; // (Service gửi mail)
+import com.shop.fperfume.service.client.VnPayService; // <<< THÊM: Dịch vụ VNPay
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal; // Dùng để lấy user đăng nhập
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @Controller
-@RequestMapping("/order") // Tiền tố chung cho các URL liên quan đến đơn hàng
+@RequestMapping("/order")
 public class OrderController {
 
-    @Autowired
-    private HoaDonClientService hoaDonClientService;
+    private static final String SESSION_CART_KEY = "GUEST_CART"; // Giống trong GioHangController
 
-    // (Chúng ta sẽ @Autowired 2 service này ở bước tiếp theo)
-    // @Autowired
-    // private VnPayService vnPayService;
-
-    // @Autowired
-    // private EmailService emailService;
+    // === Tiêm (Inject) tất cả service cần thiết ===
+    @Autowired private HoaDonClientService hoaDonClientService;
+    @Autowired private GioHangClientService gioHangClientService;
+    @Autowired private CartHelperService cartHelperService;
+    @Autowired private VnPayService vnPayService;
+    @Autowired private HoaDonRepository hoaDonRepository; // Dùng cho trang success
 
     /**
-     * Xử lý khi người dùng nhấn nút "Hoàn tất Đặt hàng" từ form checkout.
+     * HIỂN THỊ TRANG CHECKOUT
+     * Logic "thông minh": Tự điền form nếu đã đăng nhập.
+     */
+    @GetMapping("/checkout")
+    public String showCheckoutPage(Model model,
+                                   HttpSession session,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        GioHang cart;
+        // Dùng DTO bạn đã cung cấp
+        CheckoutRequestDTO checkoutRequest = new CheckoutRequestDTO();
+
+        if (userDetails != null) {
+            // === 1. ĐÃ ĐĂNG NHẬP ===
+            NguoiDung khachHang = userDetails.getUser();
+            cart = gioHangClientService.getCartByUser(khachHang);
+
+            // TỰ ĐỘNG ĐIỀN FORM (Giả sử NguoiDung có các trường này)
+            checkoutRequest.setTenNguoiNhan(khachHang.getHoTen());
+            checkoutRequest.setSdt(khachHang.getSdt());
+            checkoutRequest.setDiaChi(khachHang.getDiaChi());
+            checkoutRequest.setEmail(khachHang.getEmail());
+
+        } else {
+            // === 2. LÀ KHÁCH (GUEST) ===
+            @SuppressWarnings("unchecked")
+            Map<Integer, Integer> guestCartMap =
+                    (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
+
+            if (guestCartMap == null || guestCartMap.isEmpty()) {
+                return "redirect:/cart"; // Giỏ rỗng thì về giỏ hàng
+            }
+            cart = cartHelperService.buildVirtualCartFromSession(guestCartMap);
+            // Form checkoutRequest sẽ rỗng
+        }
+
+        // Kiểm tra lại nếu giỏ hàng rỗng
+        if (cart.getGioHangChiTiets() == null || cart.getGioHangChiTiets().isEmpty()) {
+            return "redirect:/cart";
+        }
+
+        Map<String, Object> cartData = cartHelperService.calculateCartData(cart);
+
+        model.addAttribute("gioHang", cart);
+        model.addAttribute("tongTienHang", cartData.get("tongTienHang"));
+        model.addAttribute("tienGiamGia", cartData.get("tienGiamGia"));
+        model.addAttribute("tongThanhToan", cartData.get("tongThanhToan"));
+        model.addAttribute("checkoutForm", checkoutRequest); // Gửi form ra view
+
+        // TODO: Bạn cần lấy danh sách phương thức thanh toán và gửi qua model
+        // model.addAttribute("phuongThucThanhToans", thanhToanRepository.findAll());
+
+        return "client/checkout"; // Trả về trang checkout.html
+    }
+
+
+    /**
+     * XỬ LÝ ĐẶT HÀNG (CHO CẢ GUEST VÀ USER)
      */
     @PostMapping("/submit")
     public Object submitOrder(
-            @ModelAttribute("checkoutForm") CheckoutRequestDTO checkoutInfo,
-            // @AuthenticationPrincipal NguoiDung khachHang, // <-- Cách lấy user lý tưởng nếu dùng Spring Security
-            HttpServletRequest request, // Cần cho VNPay
-            RedirectAttributes redirectAttributes) {
+            @Validated @ModelAttribute("checkoutForm") CheckoutRequestDTO checkoutInfo,
+            BindingResult bindingResult,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request,
+            HttpSession session,
+            RedirectAttributes redirectAttributes,
+            Model model) {
 
-        // --- BƯỚC TẠM THỜI: Lấy user (Vì chưa có Spring Security) ---
-        // TODO: Thay thế bằng @AuthenticationPrincipal khi có Spring Security
-        // Giả sử chúng ta lấy user_id=1 (Admin) để test
-        NguoiDung khachHang = new NguoiDung(); // Cần thay thế
-        khachHang.setId(1L); // <<<<<<<<<<< GIẢ LẬP USER ID = 1
-        // (Bạn cần một hàm NguoiDungRepository.findById(1L) ở đây)
-        // --- HẾT BƯỚC TẠM THỜI ---
+        GioHang cart;
+        NguoiDung khachHang = (userDetails != null) ? userDetails.getUser() : null;
+
+        System.out.println("DEBUG: ID ThanhToan nhan duoc: " + checkoutInfo.getIdThanhToan());
+
+        // === 1. LẤY LẠI GIỎ HÀNG (Giống hệt logic của GET) ===
+        if (khachHang != null) {
+            cart = gioHangClientService.getCartByUser(khachHang);
+        } else {
+            @SuppressWarnings("unchecked")
+            Map<Integer, Integer> guestCartMap =
+                    (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
+            cart = cartHelperService.buildVirtualCartFromSession(guestCartMap);
+        }
+
+        // === 2. KIỂM TRA VALIDATION FORM ===
+        // TODO: Thêm annotation (@NotBlank, @NotNull) vào file CheckoutRequestDTO.java
+        if (bindingResult.hasErrors()) {
+            // Nếu form lỗi, trả lại trang checkout và hiển thị lỗi
+            Map<String, Object> cartData = cartHelperService.calculateCartData(cart);
+            model.addAttribute("gioHang", cart);
+            model.addAttribute("tongTienHang", cartData.get("tongTienHang"));
+            model.addAttribute("tienGiamGia", cartData.get("tienGiamGia"));
+            model.addAttribute("tongThanhToan", cartData.get("tongThanhToan"));
+
+            // TODO: Nhớ thêm lại danh sách phương thức thanh toán
+            // model.addAttribute("phuongThucThanhToans", thanhToanRepository.findAll());
+            return "client/checkout"; // Trả về trang checkout.html
+        }
+
+        if (cart.getGioHangChiTiets() == null || cart.getGioHangChiTiets().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng của bạn bị rỗng!");
+            return "redirect:/cart";
+        }
 
         try {
-            // === 1. GỌI SERVICE ĐỂ TẠO HÓA ĐƠN ===
-            // Toàn bộ logic (tính tiền, kiểm tra kho) nằm trong service này.
-            HoaDon hoaDon = hoaDonClientService.createOrderFromCart(khachHang, checkoutInfo);
+            // === 3. GỌI SERVICE ĐỂ TẠO HÓA ĐƠN ===
+            HoaDon hoaDon = hoaDonClientService.createOrder(cart, khachHang, checkoutInfo);
 
-            // === 2. XỬ LÝ KẾT QUẢ (PHỤ THUỘC VÀO THANH TOÁN) ===
+            // === 4. XÓA GIỎ HÀNG SAU KHI THÀNH CÔNG ===
+            if (khachHang == null) {
+                // Chỉ xóa session nếu là GUEST
+                session.removeAttribute(SESSION_CART_KEY);
+            }
+            // (Nếu là USER, HoaDonServiceImpl đã tự động xóa giỏ hàng DB)
+
+            // === 5. XỬ LÝ KẾT QUẢ (PHỤ THUỘC VÀO THANH TOÁN) ===
             String trangThai = hoaDon.getTrangThai();
 
             if (trangThai.equals("CHỜ XÁC NHẬN")) {
-                //
-                // ----- LÃNH VỰC CỦA COD (VÀ EMAIL) -----
-                //
-
-                // (Tùy chọn: Gửi email xác nhận ngay lập tức)
-                // emailService.sendOrderConfirmationEmail(hoaDon);
-
+                // ----- LÃNH VỰC CỦA COD -----
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Đặt hàng thành công! Mã đơn hàng của bạn là: " + hoaDon.getMa());
-
-                // Trả về một trang HTML "Đặt hàng thành công"
-                return "redirect:/order/success";
+                return "redirect:/order/success/" + hoaDon.getId();
 
             } else if (trangThai.equals("ĐANG CHỜ THANH TOÁN")) {
-                //
                 // ----- LÃNH VỰC CỦA VNPAY -----
-                //
-
-                // (Code này sẽ chạy ở bước tiếp theo, khi chúng ta tạo VnPayService)
-
-                // String paymentUrl = vnPayService.createPaymentUrl(hoaDon, request);
-
-                // Chuyển hướng trình duyệt của người dùng sang cổng VNPay
-                // return new RedirectView(paymentUrl);
-
-                // Tạm thời, vì chưa có VnPayService, chúng ta báo lỗi
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "Chức năng VNPay đang được bảo trì. Vui lòng chọn COD.");
-                return "redirect:/cart";
+                String paymentUrl = vnPayService.createPaymentUrl(hoaDon, request);
+                // Chuyển hướng người dùng sang VNPay
+                return new RedirectView(paymentUrl);
 
             } else {
-                // Trường hợp không mong muốn
                 redirectAttributes.addFlashAttribute("errorMessage", "Trạng thái đơn hàng không xác định.");
                 return "redirect:/cart";
             }
 
-        } catch (RuntimeException e) {
-            // === 3. XỬ LÝ LỖI (VÍ DỤ: HẾT HÀNG) ===
-            // Bất kỳ lỗi nào (như "Hết hàng") từ Service sẽ được bắt ở đây.
+        } catch (Exception e) {
+            // === 6. XỬ LÝ LỖI (VÍ DỤ: HẾT HÀNG, LỖI TẠO URL) ===
             redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi: " + e.getMessage());
-            // Quay trở lại giỏ hàng và hiển thị lỗi
             return "redirect:/cart";
         }
     }
 
-    // (Bạn cũng cần tạo một @GetMapping("/order/success") để hiển thị trang HTML thành công)
+    /**
+     * THÊM: Trang hiển thị khi đặt hàng thành công (cho cả COD và VNPay)
+     */
+    @GetMapping("/success/{id}")
+    public String orderSuccess(@PathVariable("id") Integer hoaDonId, Model model) {
+
+        // Lấy lại hóa đơn để hiển thị thông tin
+        HoaDon hoaDon = hoaDonRepository.findById(hoaDonId).orElse(null);
+        if (hoaDon == null) {
+            return "redirect:/"; // Không tìm thấy đơn
+        }
+
+        model.addAttribute("hoaDon", hoaDon);
+        return "client/payment_success"; // (Bạn cần tạo trang HTML này)
+    }
+
+    /**
+     * THÊM: Trang hiển thị khi thanh toán VNPay thất bại
+     * (PaymentController sẽ redirect về đây)
+     */
+    @GetMapping("/failure")
+    public String orderFailure(Model model) {
+        model.addAttribute("errorMessage", "Thanh toán không thành công hoặc đã bị hủy.");
+        return "client/payment_failure"; // (Bạn cần tạo trang HTML này)
+    }
 }

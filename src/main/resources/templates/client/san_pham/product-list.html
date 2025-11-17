@@ -72,6 +72,10 @@
                                 </div>
                             </div>
                             <div class="product-info">
+                                <p class="brand-name">
+                                    <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
+                                       th:text="${sp.tenThuongHieu ?: '---'}"></a>
+                                </p>
                                 <h6 class="product-name">
                                     <a th:href="@{'/san-pham/' + ${sp.id}}"
                                        th:text="${sp.tenSanPham ?: '---'}"></a>

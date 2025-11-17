@@ -20,9 +20,10 @@
                         <h5>Thông tin Thương hiệu</h5>
                     </div>
                     <div class="card-body">
-
-                        <form th:action="@{/admin/thuong-hieu/save}" method="post"
-                              th:object="${thuongHieuRequest}">
+                        <form th:action="@{/admin/thuong-hieu/save}"
+                              th:object="${thuongHieuRequest}"
+                              method="post"
+                              enctype="multipart/form-data">
 
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -46,6 +47,10 @@
                                      th:if="${#fields.hasErrors('tenThuongHieu')}"
                                      th:errors="*{tenThuongHieu}"></div>
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hình ảnh</label>
+                                <input type="file" th:field="*{hinhAnh}" class="form-control">
+                            </div>
 
                             <div class="text-end mt-4">
                                 <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
@@ -54,6 +59,7 @@
 
                         </form>
                     </div>
+
                 </div>
                 </div>
             </section>
