@@ -5,38 +5,57 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class GiamGiaResponse {
 
-    private Integer id;           // Entity GiamGia thường dùng Integer cho id
+    private Integer id;
     private String ma;
     private String ten;
+    private String moTa;
+
     private String loaiGiam;
     private BigDecimal giaTri;
-    private Integer soLuong;
-    private LocalDate ngayBatDau;
-    private LocalDate ngayKetThuc;
-    private Integer trangThai;
-    private Integer idSanPham;       // Đổi sang Long để đồng bộ với SanPham entity
-    private String tenSanPham;
 
-    public GiamGiaResponse(GiamGia giamGia) {
-        this.id = giamGia.getId();
-        this.ma = giamGia.getMa();
-        this.ten = giamGia.getTen();
-        this.loaiGiam = giamGia.getLoaiGiam();
-        this.giaTri = giamGia.getGiaTri();
-        this.soLuong = giamGia.getSoLuong();
-        this.ngayBatDau = giamGia.getNgayBatDau();
-        this.ngayKetThuc = giamGia.getNgayKetThuc();
-        this.trangThai = giamGia.getTrangThai();
+    private Integer soLuong;           // ⭐ THÊM – số lượng mã giảm giá
 
-        if (giamGia.getSanPham() != null) {
-            this.idSanPham = giamGia.getSanPham().getId();
-            this.tenSanPham = giamGia.getSanPham().getTenNuocHoa(); // đổi đúng theo entity
+    private BigDecimal donHangToiThieu;
+    private BigDecimal giamToiDa;
+
+    private LocalDateTime ngayBatDau;
+    private LocalDateTime ngayKetThuc;
+
+    private Boolean trangThai;
+    private String phamViApDung;
+
+    private Integer idSanPhamChiTiet;
+    private String tenSanPhamChiTiet;
+
+    public GiamGiaResponse(GiamGia gg) {
+        this.id = gg.getId();
+        this.ma = gg.getMa();
+        this.ten = gg.getTen();
+        this.moTa = gg.getMoTa();
+
+        this.loaiGiam = gg.getLoaiGiam();
+        this.giaTri = gg.getGiaTri();
+
+        this.soLuong = gg.getSoLuong();  // ⭐ LẤY TỪ ENTITY
+
+        this.donHangToiThieu = gg.getDonHangToiThieu();
+        this.giamToiDa = gg.getGiamToiDa();
+
+        this.ngayBatDau = gg.getNgayBatDau();
+        this.ngayKetThuc = gg.getNgayKetThuc();
+
+        this.trangThai = gg.getTrangThai();
+        this.phamViApDung = gg.getPhamViApDung();
+
+        if (gg.getSanPhamChiTiet() != null) {
+            this.idSanPhamChiTiet = gg.getSanPhamChiTiet().getId();
+            this.tenSanPhamChiTiet = gg.getSanPhamChiTiet().getMaSKU();
         }
     }
 }

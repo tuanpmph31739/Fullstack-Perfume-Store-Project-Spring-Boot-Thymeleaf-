@@ -44,16 +44,16 @@ PRINT N'Bảng NguoiDung đã được tạo.';
 GO
 
 CREATE TABLE ThuongHieu (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    Ma NVARCHAR(20) UNIQUE,
-    Ten NVARCHAR(100),
+                            Id INT PRIMARY KEY IDENTITY(1,1),
+                            Ma NVARCHAR(20) UNIQUE,
+                            Ten NVARCHAR(100),
 
-    Slug NVARCHAR(150) UNIQUE NULL,
+                            Slug NVARCHAR(150) UNIQUE NULL,
 
-    HinhAnh NVARCHAR(255) NULL,
+                            HinhAnh NVARCHAR(255) NULL,
 
-    NgayTao DATETIME2 DEFAULT GETDATE(),
-    NgaySua DATETIME2 DEFAULT GETDATE()
+                            NgayTao DATETIME2 DEFAULT GETDATE(),
+                            NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 
@@ -139,18 +139,33 @@ PRINT N'Bảng SanPhamChiTiet đã được tạo.';
 GO
 
 CREATE TABLE GiamGia (
-                         Id INT PRIMARY KEY IDENTITY(1,1),
-                         Ma NVARCHAR(20) UNIQUE NOT NULL,
-                         Ten NVARCHAR(100),
-                         LoaiGiam NVARCHAR(20),
-                         GiaTri DECIMAL(10,2),
-                         SoLuong INT NOT NULL DEFAULT 0,
-                         NgayBatDau DATE,
-                         NgayKetThuc DATE,
-                         TrangThai INT DEFAULT 1,
-                         IdSanPham INT NULL FOREIGN KEY REFERENCES SanPham(Id)
+                         Id INT IDENTITY(1,1) PRIMARY KEY,
+
+                         Ma NVARCHAR(50) NOT NULL UNIQUE,
+                         Ten NVARCHAR(255) NOT NULL,
+                         MoTa NVARCHAR(MAX) NULL,
+
+                         LoaiGiam VARCHAR(20) NOT NULL CHECK (LoaiGiam IN ('PERCENT', 'AMOUNT')),
+                         GiaTri DECIMAL(10, 2) NOT NULL,
+
+                         SoLuong INT NOT NULL DEFAULT 0, -- ⭐ THÊM Ở ĐÂY
+
+                         DonHangToiThieu DECIMAL(18, 2) NOT NULL DEFAULT 0,
+                         GiamToiDa DECIMAL(18, 2) NULL,
+
+                         NgayBatDau DATETIME NOT NULL,
+                         NgayKetThuc DATETIME NOT NULL,
+
+                         TrangThai BIT NOT NULL DEFAULT 1,
+
+                         PhamViApDung VARCHAR(30) NOT NULL CHECK (PhamViApDung IN ('SANPHAM', 'TOAN_CUA_HANG')),
+
+                         IdSanPhamChiTiet INT NULL,
+                         CONSTRAINT FK_GiamGia_SanPhamChiTiet
+                             FOREIGN KEY (IdSanPhamChiTiet)
+                                 REFERENCES SanPhamChiTiet(Id)
 );
-PRINT N'Bảng GiamGia đã được tạo.';
+PRINT N'Bảng GiamGia đã được tạo!';
 GO
 
 -- ======================================================
@@ -776,10 +791,60 @@ PRINT N'Đã chèn SanPhamChiTiet mẫu.';
 GO
 
 -- Chèn Giảm Giá
-INSERT INTO GiamGia (Ma, Ten, LoaiGiam, GiaTri, SoLuong, NgayBatDau, NgayKetThuc, TrangThai)
+INSERT INTO GiamGia
+(Ma, Ten, MoTa, LoaiGiam, GiaTri, SoLuong, DonHangToiThieu, GiamToiDa,
+ NgayBatDau, NgayKetThuc, TrangThai, PhamViApDung, IdSanPhamChiTiet)
 VALUES
-('GG10', N'Giảm 10% toàn bộ đơn hàng', 'PERCENT', 10, 100, '2024-05-01', '2024-12-31', 1),
-('GG100K', N'Giảm 100.000đ cho đơn từ 1 triệu', 'AMOUNT', 100000, 50, '2024-06-01', '2024-12-31', 1);
+-- 1. Giảm 10% cho sản phẩm chi tiết ID 1
+('GGSP10', N'Giảm 10% sản phẩm', N'Áp dụng cho sản phẩm ID 1',
+ 'PERCENT', 10, 100, 0, 50000,
+ GETDATE(), DATEADD(DAY, 30, GETDATE()), 1, 'SANPHAM', 1),
+
+-- 2. Giảm 50.000đ cho sản phẩm chi tiết ID 2
+('GGSP50K', N'Giảm 50.000đ', N'Áp dụng cho sản phẩm 2',
+ 'AMOUNT', 50000, 50, 0, NULL,
+ GETDATE(), DATEADD(DAY, 20, GETDATE()), 1, 'SANPHAM', 2),
+
+-- 3. Giảm 15% toàn cửa hàng (giảm tối đa 100.000đ)
+('GG15ALL', N'Giảm 15% toàn shop', N'Áp dụng toàn cửa hàng',
+ 'PERCENT', 15, 9999, 200000, 100000,
+ GETDATE(), DATEADD(DAY, 40, GETDATE()), 1, 'TOAN_CUA_HANG', NULL),
+
+-- 4. Giảm 30K cho đơn hàng từ 150K
+('GG30K', N'Giảm 30K đơn 150K', N'Áp dụng toàn shop',
+ 'AMOUNT', 30000, 300, 150000, NULL,
+ GETDATE(), DATEADD(DAY, 15, GETDATE()), 1, 'TOAN_CUA_HANG', NULL),
+
+-- 5. Giảm 20% cho sản phẩm chi tiết ID 3
+('GG20SP', N'Giảm 20% SP', N'Áp dụng SP ID 3',
+ 'PERCENT', 20, 80, 0, 70000,
+ GETDATE(), DATEADD(DAY, 45, GETDATE()), 1, 'SANPHAM', 3),
+
+-- 6. Giảm 100K cho sản phẩm chi tiết ID 4
+('GG100K', N'Giảm 100.000đ', N'Áp dụng SP 4',
+ 'AMOUNT', 100000, 40, 0, NULL,
+ GETDATE(), DATEADD(DAY, 25, GETDATE()), 1, 'SANPHAM', 4),
+
+-- 7. Giảm 25% toàn cửa hàng – max 150k, tối thiểu 300k
+('GG25ALL', N'Giảm 25% toàn shop', N'Siêu ưu đãi lớn',
+ 'PERCENT', 25, 500, 300000, 150000,
+ GETDATE(), DATEADD(DAY, 60, GETDATE()), 1, 'TOAN_CUA_HANG', NULL),
+
+-- 8. Giảm 40K cho SP ID 5
+('GG40K', N'Giảm 40.000đ', N'Chỉ áp dụng SP 5',
+ 'AMOUNT', 40000, 120, 0, NULL,
+ GETDATE(), DATEADD(DAY, 10, GETDATE()), 1, 'SANPHAM', 5),
+
+-- 9. Giảm 5% toàn cửa hàng
+('GG5ALL', N'Giảm 5% toàn shop', N'Mã nhỏ dùng nhiều',
+ 'PERCENT', 5, 9999, 0, NULL,
+ GETDATE(), DATEADD(DAY, 90, GETDATE()), 1, 'TOAN_CUA_HANG', NULL),
+
+-- 10. Giảm 70K đơn hàng tối thiểu 400K
+('GG70K', N'Giảm 70.000đ', N'Áp dụng toàn shop',
+ 'AMOUNT', 70000, 200, 400000, NULL,
+ GETDATE(), DATEADD(DAY, 50, GETDATE()), 1, 'TOAN_CUA_HANG', NULL);
+
 GO
 PRINT N'Đã chèn GiamGia mẫu.';
 GO
