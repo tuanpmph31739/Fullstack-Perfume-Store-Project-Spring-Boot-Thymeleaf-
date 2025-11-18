@@ -2,17 +2,17 @@ package com.shop.fperfume.controller.client;
 
 import com.shop.fperfume.config.VNPayConfig;
 import com.shop.fperfume.entity.HoaDon;
-import com.shop.fperfume.entity.NguoiDung; // Cần thêm
+import com.shop.fperfume.entity.NguoiDung;
 import com.shop.fperfume.repository.HoaDonRepository;
-import com.shop.fperfume.service.client.GioHangClientService; // Cần thêm
+import com.shop.fperfume.service.client.GioHangClientService;
 import com.shop.fperfume.service.client.VnPayService;
-import com.shop.fperfume.security.CustomUserDetails; // Cần thêm
+import com.shop.fperfume.security.CustomUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession; // Cần thêm
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication; // Cần thêm
-import org.springframework.security.core.context.SecurityContextHolder; // Cần thêm
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,25 +27,15 @@ import java.util.*;
 @RequestMapping("/payment")
 public class PaymentController {
 
-    @Autowired
-    private VNPayConfig vnPayConfig;
+    @Autowired private VNPayConfig vnPayConfig;
+    @Autowired private HoaDonRepository hoaDonRepository;
+    @Autowired private VnPayService vnPayService;
+    @Autowired private GioHangClientService gioHangClientService;
 
-    @Autowired
-    private HoaDonRepository hoaDonRepository;
-
-    @Autowired
-    private VnPayService vnPayService;
-
-    @Autowired
-    private GioHangClientService gioHangClientService; // Inject service để xóa giỏ hàng DB
-
-    private static final String SESSION_CART_KEY = "GUEST_CART"; // Key session giỏ hàng
+    private static final String SESSION_CART_KEY = "GUEST_CART";
 
     @GetMapping("/vnpay/return")
-    public String vnpayReturn(HttpServletRequest request, Model model, HttpSession session) { // Thêm HttpSession
-
-        // ... (Đoạn code lấy tham số và tính toán hash giữ nguyên như cũ) ...
-        // 1. Lấy tham số
+    public String vnpayReturn(HttpServletRequest request, Model model, HttpSession session) {
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
             String fieldName = params.nextElement();
@@ -55,12 +45,10 @@ public class PaymentController {
             }
         }
 
-        // 2. Lấy chữ ký
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
         if (fields.containsKey("vnp_SecureHashType")) fields.remove("vnp_SecureHashType");
         if (fields.containsKey("vnp_SecureHash")) fields.remove("vnp_SecureHash");
 
-        // 3. Tạo hash
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
@@ -73,9 +61,7 @@ public class PaymentController {
                     hashData.append(fieldName);
                     hashData.append('=');
                     hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
-                    if (itr.hasNext()) {
-                        hashData.append('&');
-                    }
+                    if (itr.hasNext()) hashData.append('&');
                 }
             }
         } catch (UnsupportedEncodingException e) {
@@ -85,13 +71,12 @@ public class PaymentController {
         String vnp_HashSecret = vnPayConfig.getHashSecret();
         String secureHash = vnPayService.hmacSHA512(vnp_HashSecret, hashData.toString());
 
-        // 4. Kiểm tra chữ ký
         if (vnp_SecureHash.equals(secureHash)) {
             String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
             String vnp_TxnRef = request.getParameter("vnp_TxnRef");
 
             if ("00".equals(vnp_ResponseCode)) {
-                // === GIAO DỊCH THÀNH CÔNG ===
+                // === THÀNH CÔNG ===
                 HoaDon hoaDon = hoaDonRepository.findByMa(vnp_TxnRef).orElse(null);
 
                 if (hoaDon != null) {
@@ -100,44 +85,31 @@ public class PaymentController {
                         hoaDon.setNgayThanhToan(java.time.LocalDateTime.now());
                         hoaDonRepository.save(hoaDon);
 
-                        // ============================================================
-                        // >>> THÊM ĐOẠN CODE NÀY ĐỂ XÓA GIỎ HÀNG <<<
-                        // ============================================================
+                        // >>> XÓA GIỎ HÀNG TẠI ĐÂY (VÌ ĐÃ THANH TOÁN XONG) <<<
 
-                        // 1. Kiểm tra xem người dùng có đăng nhập không
-                        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-                            // A. Nếu là thành viên -> Xóa giỏ hàng trong Database
-                            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                            NguoiDung nguoiDung = userDetails.getUser();
-                            // Gọi hàm xóa giỏ hàng của User (Bạn cần đảm bảo Service có hàm này)
-                            // Ví dụ: gioHangClientService.clearCart(nguoiDung);
-                            // Hoặc xóa thủ công nếu chưa có hàm clear:
-                            try {
-                                // Logic xóa giỏ hàng DB ở đây, ví dụ:
-                                // gioHangRepository.deleteByNguoiDung(nguoiDung);
-                                // Tạm thời để session remove cho chắc chắn nếu logic DB chưa sẵn sàng
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
+                        // 1. Xóa DB nếu là User
+                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
+                            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+                            gioHangClientService.clearCart(userDetails.getUser());
                         }
 
-                        // 2. Xóa giỏ hàng trong Session (Cho cả khách và User để đảm bảo sạch sẽ)
+                        // 2. Xóa Session (luôn làm để sạch rác)
                         session.removeAttribute(SESSION_CART_KEY);
-
-                        // ============================================================
                     }
                     return "redirect:/order/success/" + hoaDon.getId();
                 } else {
-                    model.addAttribute("errorMessage", "Lỗi: Không tìm thấy đơn hàng " + vnp_TxnRef);
+                    model.addAttribute("errorMessage", "Không tìm thấy đơn hàng.");
                     return "client/payment_failure";
                 }
             } else {
-                model.addAttribute("errorMessage", "Thanh toán không thành công. Mã lỗi: " + vnp_ResponseCode);
+                // === THẤT BẠI HOẶC HỦY ===
+                // >>> KHÔNG XÓA GIỎ HÀNG Ở ĐÂY <<<
+                model.addAttribute("errorMessage", "Giao dịch không thành công (Mã lỗi: " + vnp_ResponseCode + ")");
                 return "client/payment_failure";
             }
         } else {
-            model.addAttribute("errorMessage", "Thanh toán thất bại: Sai chữ ký VNPay!");
+            model.addAttribute("errorMessage", "Lỗi bảo mật: Sai chữ ký VNPay!");
             return "client/payment_failure";
         }
     }
