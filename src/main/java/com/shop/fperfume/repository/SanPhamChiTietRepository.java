@@ -147,6 +147,11 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             @Param("maxP") BigDecimal maxP,
             Pageable pageable
     );
-
+//    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN FETCH spct.sanPham sp")
+//    List<SanPhamChiTiet> findAllWithSanPham();
+    @Query("SELECT spct FROM SanPhamChiTiet spct " +
+            "JOIN FETCH spct.sanPham sp " +
+            "LEFT JOIN FETCH spct.dungTich dt") // Thêm dòng này
+    List<SanPhamChiTiet> findAllWithSanPham();
     List<SanPhamChiTiet> findBySanPham_ThuongHieu_Slug(String slug);
 }
