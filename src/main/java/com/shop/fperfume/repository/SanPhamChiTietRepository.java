@@ -27,12 +27,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             "LEFT JOIN FETCH spct.nongDo nd ")
     List<SanPhamChiTiet> findAllFetchingRelationships();
 
-    @Query(value = "SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
-            "LEFT JOIN FETCH spct.sanPham sp " +
-            "LEFT JOIN FETCH spct.dungTich dt " +
-            "LEFT JOIN FETCH spct.nongDo nd ",
-            countQuery = "SELECT COUNT(spct) FROM SanPhamChiTiet spct")
-    Page<SanPhamChiTiet> findAllFetchingRelationships(Pageable pageable);
 
     @Query("SELECT DISTINCT spct FROM SanPhamChiTiet spct " +
             "LEFT JOIN FETCH spct.sanPham sp " +
@@ -43,7 +37,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
     Optional<SanPhamChiTiet> findByMaSKU(String maSKU);
 
-    // Lấy 1 biến thể (id nhỏ nhất) đại diện mỗi sản phẩm
     @Query("""
         SELECT spct FROM SanPhamChiTiet spct
         JOIN spct.sanPham sp
@@ -55,13 +48,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     """)
     Page<SanPhamChiTiet> findAllSanPhamChiTiet(Pageable pageable);
 
-    @Query("""
-        SELECT DISTINCT spct FROM SanPhamChiTiet spct
-        JOIN FETCH spct.sanPham sp
-        JOIN FETCH sp.thuongHieu th
-        WHERE th.slug = :slug
-    """)
-    List<SanPhamChiTiet> findByThuongHieuSlug(@Param("slug") String slug);
 
     @Query("""
         SELECT spct FROM SanPhamChiTiet spct
@@ -149,4 +135,26 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     );
 
     List<SanPhamChiTiet> findBySanPham_ThuongHieu_Slug(String slug);
+
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
+        JOIN spct.sanPham sp
+        LEFT JOIN spct.dungTich dt
+        LEFT JOIN spct.nongDo nd
+    WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(sp.tenNuocHoa) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND (:sku IS NULL OR :sku = '' OR LOWER(spct.maSKU) LIKE LOWER(CONCAT('%', :sku, '%')))
+      AND (:giaMin IS NULL OR spct.giaBan >= :giaMin)
+      AND (:giaMax IS NULL OR spct.giaBan <= :giaMax)
+      AND (:dungTichId IS NULL OR dt.id = :dungTichId)
+      AND (:nongDoId IS NULL OR nd.id = :nongDoId)
+""")
+    Page<SanPhamChiTiet> searchSanPhamChiTiet(@Param("keyword") String keyword,
+                                              @Param("sku") String sku,
+                                              @Param("giaMin") BigDecimal giaMin,
+                                              @Param("giaMax") BigDecimal giaMax,
+                                              @Param("dungTichId") Integer dungTichId,
+                                              @Param("nongDoId") Integer nongDoId,
+                                              Pageable pageable);
+
 }

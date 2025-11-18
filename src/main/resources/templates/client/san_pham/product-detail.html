@@ -77,6 +77,7 @@
             <!-- Quantity + Add to cart — GIỮ ID/NAME đúng để JS cũ bắt được -->
             <form id="addToCartForm">
                 <input type="hidden" id="selectedSanPhamChiTietId" th:value="${sanPhamChiTiet.id}" />
+                <input type="hidden" id="redirectCheckout" value="false"/>
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="qty-group">
                         <button class="btn btn-sm btn-outline-secondary" type="button" id="minusBtn"><i class="bi bi-dash"></i></button>
@@ -98,7 +99,11 @@
                     </button>
 
 <!--                     (tùy) Link mua ngay nếu bạn dùng-->
-                     <a class="btn btn-outline-dark btn-lg w-100" th:href="@{|/thanh-toan?spct=${sanPhamChiTiet.id}|}">Mua ngay</a>
+                    <button type="button"
+                            id="buyNowButton"
+                            class="btn btn-outline-dark btn-lg w-100">
+                        Mua ngay
+                    </button>
 
                     <div class="hotline d-flex align-items-center gap-2 justify-content-center">
                         <i class="bi bi-telephone"></i><span>HOTLINE</span><b>0397682148</b><span class="text-muted">(9:00 - 22:00)</span>

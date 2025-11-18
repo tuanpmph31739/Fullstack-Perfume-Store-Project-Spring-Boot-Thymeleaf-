@@ -4,7 +4,7 @@ import com.shop.fperfume.model.request.GiamGiaRequest;
 import com.shop.fperfume.model.response.GiamGiaResponse;
 import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.service.admin.GiamGiaService;
-import com.shop.fperfume.service.admin.SanPhamService;
+import com.shop.fperfume.service.admin.SanPhamChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,79 +19,124 @@ public class GiamGiaController {
     private GiamGiaService giamGiaService;
 
     @Autowired
-    private SanPhamService sanPhamService;
+    private SanPhamChiTietService sanPhamChiTietService;
 
-    // ✅ Hiển thị danh sách giảm giá có phân trang
+    // ================================
+    //  Danh sách giảm giá
+    // ================================
     @GetMapping
     public String index(Model model,
                         @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "2") Integer size) {
+                        @RequestParam(defaultValue = "10") Integer size) {
 
         PageableObject<GiamGiaResponse> pageableObject = giamGiaService.paging(page, size);
         model.addAttribute("page", pageableObject);
         return "admin/giam_gia/index";
     }
 
-    // ✅ Trang thêm mới
+    // ================================
+    //  Trang thêm mới
+    // ================================
     @GetMapping("/add")
     public String addForm(Model model) {
+
         model.addAttribute("giamGiaRequest", new GiamGiaRequest());
-        model.addAttribute("sanPhams", sanPhamService.getAllSanPham());
+        model.addAttribute("sanPhamChiTietList", sanPhamChiTietService.getAllSanPhamChiTiet());
+
         return "admin/giam_gia/add";
     }
 
-    // ✅ Xử lý thêm mới
+    // ================================
+    //  Xử lý thêm mới
+    // ================================
     @PostMapping("/add")
-    public String addGiamGia(@ModelAttribute GiamGiaRequest giamGiaRequest,
+    public String addGiamGia(@ModelAttribute GiamGiaRequest request,
                              RedirectAttributes redirectAttributes) {
+
         try {
-            giamGiaService.addGiamGia(giamGiaRequest);
+            giamGiaService.addGiamGia(request);
             redirectAttributes.addFlashAttribute("success", "Thêm giảm giá thành công!");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/giam-gia";
+
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/giam-gia/add";
         }
-        return "redirect:/admin/giam-gia";
     }
 
-    // ✅ Trang chỉnh sửa
+    // ================================
+    //  Trang sửa giảm giá
+    // ================================
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+    public String editForm(@PathVariable Integer id,
+                           Model model,
+                           RedirectAttributes redirectAttributes) {
+
         try {
-            GiamGiaResponse giamGiaResponse = giamGiaService.getGiamGiaById(id);
-            model.addAttribute("giamGiaRequest", giamGiaResponse);
-            model.addAttribute("sanPhams", sanPhamService.getAllSanPham());
+            GiamGiaResponse response = giamGiaService.getGiamGiaById(id);
+
+            // Convert response → request để bind form
+            GiamGiaRequest request = new GiamGiaRequest();
+            request.setId(response.getId());
+            request.setMa(response.getMa());
+            request.setTen(response.getTen());
+            request.setMoTa(response.getMoTa());
+            request.setLoaiGiam(response.getLoaiGiam());
+            request.setGiaTri(response.getGiaTri());
+            request.setDonHangToiThieu(response.getDonHangToiThieu());
+            request.setGiamToiDa(response.getGiamToiDa());
+            request.setNgayBatDau(response.getNgayBatDau());
+            request.setNgayKetThuc(response.getNgayKetThuc());
+            request.setTrangThai(response.getTrangThai());
+            request.setPhamViApDung(response.getPhamViApDung());
+            request.setIdSanPhamChiTiet(response.getIdSanPhamChiTiet());
+            request.setSoLuong(response.getSoLuong());
+
+            model.addAttribute("giamGiaRequest", request);
+            model.addAttribute("sanPhamChiTietList", sanPhamChiTietService.getAllSanPhamChiTiet());
+
             return "admin/giam_gia/edit";
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/giam-gia";
         }
     }
 
-    // ✅ Cập nhật giảm giá
+    // ================================
+    //  Xử lý cập nhật
+    // ================================
     @PostMapping("/edit/{id}")
     public String updateGiamGia(@PathVariable Integer id,
-                                @ModelAttribute GiamGiaRequest giamGiaRequest,
+                                @ModelAttribute GiamGiaRequest request,
                                 RedirectAttributes redirectAttributes) {
+
         try {
-            giamGiaService.updateGiamGia(id, giamGiaRequest);
+            giamGiaService.updateGiamGia(id, request);
             redirectAttributes.addFlashAttribute("success", "Cập nhật giảm giá thành công!");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/giam-gia";
+
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/giam-gia/edit/" + id;
         }
-        return "redirect:/admin/giam-gia";
     }
 
-    // ✅ Xóa giảm giá
+    // ================================
+    //  Xóa
+    // ================================
     @GetMapping("/delete/{id}")
-    public String deleteGiamGia(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    public String deleteGiamGia(@PathVariable Integer id,
+                                RedirectAttributes redirectAttributes) {
+
         try {
             giamGiaService.deleteGiamGia(id);
             redirectAttributes.addFlashAttribute("success", "Xóa giảm giá thành công!");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
+
         return "redirect:/admin/giam-gia";
     }
 }

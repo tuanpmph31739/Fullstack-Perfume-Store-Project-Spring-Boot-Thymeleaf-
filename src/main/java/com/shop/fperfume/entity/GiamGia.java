@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "GiamGia")
@@ -19,37 +18,44 @@ public class GiamGia {
     @Column(name = "Id")
     private Integer id;
 
-    @Column(name = "Ma", unique = true, nullable = false)
+    @Column(name = "Ma", nullable = false, unique = true)
     private String ma;
 
-    @Column(name = "Ten")
+    @Column(name = "Ten", nullable = false)
     private String ten;
 
-    @Column(name = "LoaiGiam")
-    private String loaiGiam; // 'PERCENT' hoặc 'AMOUNT'
+    @Column(name = "MoTa")
+    private String moTa;
 
-    @Column(name = "GiaTri")
+    @Column(name = "LoaiGiam", nullable = false)
+    private String loaiGiam; // PERCENT hoặc AMOUNT
+
+    @Column(name = "GiaTri", nullable = false)
     private BigDecimal giaTri;
 
     @Column(name = "SoLuong", nullable = false)
-    private Integer soLuong;
+    private Integer soLuong;  // ⭐ Thêm trường số lượng
 
-    @Column(name = "NgayBatDau")
-    private LocalDate ngayBatDau;
+    @Column(name = "DonHangToiThieu")
+    private BigDecimal donHangToiThieu;
 
-    @Column(name = "NgayKetThuc")
-    private LocalDate ngayKetThuc;
+    @Column(name = "GiamToiDa")
+    private BigDecimal giamToiDa;
 
-    @Column(name = "TrangThai")
-    private Integer trangThai;
+    @Column(name = "NgayBatDau", nullable = false)
+    private LocalDateTime ngayBatDau;
 
-    // --- Mối quan hệ ---
+    @Column(name = "NgayKetThuc", nullable = false)
+    private LocalDateTime ngayKetThuc;
 
-    @OneToMany(mappedBy = "giamGia", fetch = FetchType.LAZY)
-    private List<HoaDon> hoaDons;
+    @Column(name = "TrangThai", nullable = false)
+    private Boolean trangThai;
 
-    // Liên kết với SanPham (có thể null nếu giảm giá toàn cửa hàng)
+    @Column(name = "PhamViApDung", nullable = false)
+    private String phamViApDung; // SANPHAM hoặc TOAN_CUA_HANG
+
+    // Liên kết sản phẩm chi tiết (nullable nếu toàn cửa hàng)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IdSanPham")
-    private SanPham sanPham;
+    @JoinColumn(name = "IdSanPhamChiTiet")
+    private SanPhamChiTiet sanPhamChiTiet;
 }

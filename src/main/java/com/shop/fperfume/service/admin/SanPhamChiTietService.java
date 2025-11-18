@@ -14,11 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,12 +90,40 @@ public class SanPhamChiTietService {
                 .toList();
     }
 
-    public PageableObject<SanPhamChiTietResponse> paging(Integer pageNo, Integer pageSize){
-        Pageable pageable = PageRequest.of(pageNo-1, pageSize);
-        Page<SanPhamChiTiet> page = sanPhamChiTietRepository.findAllFetchingRelationships(pageable);
-        Page<SanPhamChiTietResponse> responses = page.map(SanPhamChiTietResponse::new);
-        return new PageableObject<>(responses);
+    public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo, Integer pageSize) {
+        return getPage(pageNo, pageSize,  null, null, null, null, null, null);
     }
+
+    public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo, Integer pageSize,
+                                                          String keyword,
+                                                          String sku,
+                                                          BigDecimal giaMin,
+                                                          BigDecimal giaMax,
+                                                          Integer dungTichId,
+                                                          Integer nongDoId) {
+        if (pageNo == null || pageNo < 1) {
+            pageNo = 1;
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+
+        Page<SanPhamChiTiet> pageEntity =
+                sanPhamChiTietRepository.searchSanPhamChiTiet(
+                        keyword,
+                        sku,
+                        giaMin,
+                        giaMax,
+                        dungTichId,
+                        nongDoId,
+                        pageable
+                );
+
+        // Dùng constructor SanPhamChiTietResponse(SanPhamChiTiet ct) bạn đã có sẵn
+        Page<SanPhamChiTietResponse> pageResponse = pageEntity.map(SanPhamChiTietResponse::new);
+
+        return new PageableObject<>(pageResponse);
+    }
+
 
     @Transactional
     public void addSanPhamChiTiet(SanPhamChiTietRequest sanPhamChiTietRequest) {

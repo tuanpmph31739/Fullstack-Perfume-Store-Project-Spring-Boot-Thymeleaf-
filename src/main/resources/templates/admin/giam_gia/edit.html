@@ -3,20 +3,22 @@
 <head th:replace="~{/admin/fragments/head :: head}"></head>
 <body>
 <div class="wrapper">
+
     <!-- Sidebar -->
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
+
         <!-- Header -->
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
         <div class="page-heading">
             <div class="page-title">
                 <div class="row">
-                    <div class="col-12 col-md-6 order-md-1 order-last">
+                    <div class="col-12 col-md-6">
                         <h3>Chỉnh Sửa Giảm Giá</h3>
                     </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first text-end">
+                    <div class="col-12 col-md-6 text-end">
                         <a th:href="@{/admin/giam-gia}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Quay lại danh sách
                         </a>
@@ -28,90 +30,134 @@
         <div class="page-content">
             <section class="row">
                 <div class="card">
+
                     <div class="card-header">
                         <h5>Chỉnh Sửa Giảm Giá</h5>
                     </div>
+
                     <div class="card-body">
+
                         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-                        <form th:action="@{/admin/giam-gia/edit/{id}(id=${giamGiaRequest.id})}" th:object="${giamGiaRequest}" method="post">
+
+                        <form th:action="@{/admin/giam-gia/edit/{id}(id=${giamGiaRequest.id})}"
+                              th:object="${giamGiaRequest}" method="post">
 
                             <div class="row">
+
+                                <!-- Mã -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Mã Giảm Giá:</label>
                                     <input type="text" th:field="*{ma}" class="form-control" required>
                                 </div>
 
+                                <!-- Tên -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Tên Giảm Giá:</label>
                                     <input type="text" th:field="*{ten}" class="form-control" required>
                                 </div>
 
+                                <!-- Mô tả -->
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Mô Tả:</label>
+                                    <textarea th:field="*{moTa}" class="form-control" rows="3"></textarea>
+                                </div>
+
+                                <!-- Loại giảm -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Loại Giảm:</label>
                                     <select th:field="*{loaiGiam}" class="form-control" required>
                                         <option value="">-- Chọn loại giảm --</option>
-                                        <option value="PERCENT">Giảm theo phần trăm</option>
-                                        <option value="AMOUNT">Giảm theo tiền</option>
+                                        <option value="PERCENT">Giảm %</option>
+                                        <option value="AMOUNT">Giảm tiền</option>
                                     </select>
                                 </div>
 
+                                <!-- Giá trị -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Giá Trị:</label>
-                                    <input type="number" step="0.01" th:field="*{giaTri}" class="form-control" required>
+                                    <input type="number" th:field="*{giaTri}" class="form-control" step="0.01" required>
                                 </div>
 
+                                <!-- Số lượng -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Số Lượng:</label>
                                     <input type="number" th:field="*{soLuong}" class="form-control" min="0">
                                 </div>
 
+                                <!-- Đơn hàng tối thiểu -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Đơn hàng tối thiểu:</label>
+                                    <input type="number" th:field="*{donHangToiThieu}" class="form-control" min="0">
+                                </div>
+
+                                <!-- Giảm tối đa -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Giảm tối đa:</label>
+                                    <input type="number" th:field="*{giamToiDa}" class="form-control" min="0">
+                                </div>
+
+                                <!-- Ngày bắt đầu -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày Bắt Đầu:</label>
+                                    <input type="datetime-local"
+                                           class="form-control"
+                                           name="ngayBatDau"
+                                           th:value="${#temporals.format(giamGiaRequest.ngayBatDau, 'yyyy-MM-dd''T''HH:mm')}"
+                                           required>
+                                </div>
+
+                                <!-- Ngày kết thúc -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày Kết Thúc:</label>
+                                    <input type="datetime-local"
+                                           class="form-control"
+                                           name="ngayKetThuc"
+                                           th:value="${#temporals.format(giamGiaRequest.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm')}"
+                                           required>
+                                </div>
+
+                                <!-- Trạng thái -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Trạng Thái:</label>
                                     <select th:field="*{trangThai}" class="form-control">
-                                        <option value="1">Đang hoạt động</option>
-                                        <option value="0">Ngưng hoạt động</option>
+                                        <option value="true">Đang áp dụng</option>
+                                        <option value="false">Ngừng</option>
                                     </select>
                                 </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Ngày Bắt Đầu:</label>
-                                    <input type="date" name="ngayBatDau" class="form-control"
-                                           th:value="${#temporals.format(giamGiaRequest.ngayBatDau, 'yyyy-MM-dd')}" required>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Ngày Kết Thúc:</label>
-                                    <input type="date" name="ngayKetThuc" class="form-control"
-                                           th:value="${#temporals.format(giamGiaRequest.ngayKetThuc, 'yyyy-MM-dd')}" required>
-                                </div>
-
+                                <!-- Sản phẩm áp dụng -->
                                 <div class="col-md-12 mb-3">
-                                    <label class="form-label">Sản Phẩm Áp Dụng:</label>
-                                    <select class="form-control" th:field="*{idSanPham}">
-                                        <option value="">-- Áp dụng toàn cửa hàng --</option>
-                                        <option th:each="sp : ${sanPhams}"
+                                    <label class="form-label">Sản phẩm áp dụng:</label>
+                                    <select th:field="*{idSanPhamChiTiet}" class="form-control">
+                                        <option value="">-- Toàn cửa hàng --</option>
+                                        <option th:each="sp : ${sanPhamChiTietList}"
                                                 th:value="${sp.id}"
-                                                th:text="${sp.tenNuocHoa}">
+                                                th:text="${sp.tenSanPham}">
                                         </option>
                                     </select>
                                 </div>
+
                             </div>
 
-                            <div class="text-end mt-3">
-                                <button type="submit" class="btn btn-primary">
+                            <div class="text-end">
+                                <button class="btn btn-primary" type="submit">
                                     <i class="bi bi-save"></i> Cập nhật
                                 </button>
+
                                 <a th:href="@{/admin/giam-gia}" class="btn btn-secondary">
                                     <i class="bi bi-x-circle"></i> Hủy
                                 </a>
                             </div>
+
                         </form>
                     </div>
                 </div>
+
             </section>
         </div>
 
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+
     </div>
 </div>
 
