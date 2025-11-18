@@ -34,7 +34,9 @@
                         <span th:unless="${sanPhamChiTietResponse.hinhAnh != null}">---</span>
 
                         <div class="mt-3">
-                            <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-secondary">Quay lại</a>
+                            <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                                ← Quay lại
+                            </a>
                             <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${sanPhamChiTietResponse.id})}" class="btn btn-primary">Chỉnh sửa</a>
                         </div>
                     </div>

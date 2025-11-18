@@ -48,12 +48,40 @@ public class SanPhamService {
                 .toList();
     }
 
-    public PageableObject<SanPhamResponse>paging(Integer pageNo, Integer pageSize){
-        Pageable pageable = PageRequest.of(pageNo-1, pageSize);
-        Page<SanPham>page = sanPhamRepository.findAll(pageable);
-        Page<SanPhamResponse>responses = page.map(SanPhamResponse::new);
+    // Giữ hàm cũ để nơi khác gọi vẫn dùng được (không filter)
+    public PageableObject<SanPhamResponse> paging(Integer pageNo, Integer pageSize) {
+        return paging(pageNo, pageSize, null, null, null, null, null);
+    }
+
+    // Hàm mới: có nhận điều kiện filter
+    public PageableObject<SanPhamResponse> paging(Integer pageNo,
+                                                  Integer pageSize,
+                                                  String keyword,
+                                                  Long loaiId,
+                                                  Long thuongHieuId,
+                                                  Long nhomHuongId,
+                                                  Long muaId) {
+
+        if (pageNo == null || pageNo < 1) {
+            pageNo = 1;
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+
+        // dùng query searchSanPham ở Repository
+        Page<SanPham> page = sanPhamRepository.searchSanPham(
+                keyword,
+                loaiId,
+                thuongHieuId,
+                nhomHuongId,
+                muaId,
+                pageable
+        );
+
+        Page<SanPhamResponse> responses = page.map(SanPhamResponse::new);
         return new PageableObject<>(responses);
     }
+
 
     @Transactional
     public SanPham addSanPham(SanPhamRequest sanPhamRequest) {

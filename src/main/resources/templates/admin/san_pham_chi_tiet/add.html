@@ -21,6 +21,8 @@
               th:object="${sanPhamChiTietRequest}"
               method="post"
               enctype="multipart/form-data">
+            <input type="hidden" name="backUrl"
+                   th:value="${backUrl != null} ? ${backUrl} : ${param.backUrl}" />
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -106,7 +108,9 @@
             </div>
 
             <div class="text-end">
-                <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-secondary">Quay lại</a>
+                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                    ← Quay lại
+                </a>
                 <button type="submit" class="btn btn-primary">Lưu</button>
             </div>
         </form>
