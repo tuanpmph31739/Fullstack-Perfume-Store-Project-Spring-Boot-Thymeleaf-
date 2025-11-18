@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface NguoiDungRepository extends JpaRepository<NguoiDung, Long> {
@@ -17,4 +18,8 @@ public interface NguoiDungRepository extends JpaRepository<NguoiDung, Long> {
 
     Optional<NguoiDung> findByEmail(String email);
     Optional<NguoiDung> findByVerificationCode(String code);
+    List<NguoiDung> findBySdtContainingOrHoTenContaining(String sdt, String hoTen);
+    List<NguoiDung> findByVaiTro(String vaiTro);
+
+    Optional<Object> findById(Integer idKhachHang);
 }

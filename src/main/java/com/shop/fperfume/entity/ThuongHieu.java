@@ -37,4 +37,5 @@ public class ThuongHieu {
     @Column(name = "HinhAnh")
     private String hinhAnh;
 
+
 }
