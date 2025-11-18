@@ -41,5 +41,6 @@ public interface GioHangClientService {
      */
     GioHang removeVoucher(NguoiDung khachHang);
 
+    void clearCart(NguoiDung khachHang);
 
 }

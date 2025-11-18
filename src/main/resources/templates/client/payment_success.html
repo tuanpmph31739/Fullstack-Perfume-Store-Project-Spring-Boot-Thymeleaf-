@@ -4,34 +4,116 @@
 <body>
 <div th:replace="~{client/fragments/header :: header}"></div>
 
+<style>
+    .success-icon-box {
+        width: 80px;
+        height: 80px;
+        background-color: #d1e7dd;
+        color: #198754;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .card-success {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .receipt-header {
+        background-color: #fff;
+        position: relative;
+        z-index: 1;
+    }
+    .receipt-body {
+        background-color: #f8f9fa;
+        border-top: 1px dashed #dee2e6;
+        position: relative;
+    }
+    /* Tạo hiệu ứng răng cưa cho hóa đơn (Option) */
+    .receipt-body::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 0;
+        width: 100%;
+        height: 10px;
+        background: radial-gradient(circle, transparent, transparent 50%, #f8f9fa 50%, #f8f9fa 100%) -7px -8px / 16px 16px repeat-x;
+        transform: rotate(180deg);
+    }
+</style>
+
+<div class="container my-5 py-5">
 <div class="container pd-wrap my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-success text-center shadow-sm">
-                <div class="card-body p-5">
-                    <h2 class="text-success fw-bold">🎉 Đặt hàng thành công!</h2>
-                    <p class="lead mt-3">Cảm ơn bạn đã mua hàng tại FPerfume. Đơn hàng của bạn đã được ghi nhận.</p>
+        <div class="col-lg-7 col-md-9">
+            <div class="card card-success">
+                <div class="card-body receipt-header text-center p-5 pb-4">
+                    <div class="success-icon-box mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+                            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                        </svg>
+                    </div>
+                    <h2 class="fw-bold text-success">Đặt hàng thành công!</h2>
+                    <p class="text-muted">Cảm ơn bạn đã mua sắm tại FPerfume.</p>
 
-                    <div th:if="${hoaDon != null}" class="mt-4 text-start p-4 bg-light rounded">
-                        <h5 class="fw-semibold">Tóm tắt đơn hàng</h5>
-                        <hr>
-                        <p><strong>Mã đơn hàng:</strong> <span th:text="${hoaDon.ma}">HD-XXXX</span></p>
-                        <p><strong>Tổng thanh toán:</strong>
-                            <span class="fw-bold text-primary"
-                                  th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'">0 ₫</span>
-                        </p>
-                        <p><strong>Trạng thái:</strong>
-                            <span class="badge bg-success" th:if="${hoaDon.trangThai == 'ĐÃ XÁC NHẬN'}">Đã xác nhận (Đã thanh toán)</span>
-                            <span class="badge bg-warning text-dark" th:if="${hoaDon.trangThai == 'CHỜ XÁC NHẬN'}">Chờ xác nhận (COD)</span>
-                        </p>
-                        <hr>
-                        <h6 class="fw-semibold">Thông tin giao hàng</h6>
-                        <p th:text="${hoaDon.tenNguoiNhan}" class="mb-0"></p>
-                        <p th:text="${hoaDon.sdt}" class="mb-0"></p>
-                        <p th:text="${hoaDon.diaChi}" class="mb-0"></p>
+                    <div class="mt-3">
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fs-6 fw-normal"
+                              th:if="${hoaDon.trangThai == 'ĐÃ XÁC NHẬN'}">
+                            <i class="bi bi-credit-card me-1"></i> Đã thanh toán thành công
+                        </span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill fs-6 fw-normal"
+                              th:if="${hoaDon.trangThai == 'CHỜ XÁC NHẬN'}">
+                             <i class="bi bi-box-seam me-1"></i> Thanh toán khi nhận hàng (COD)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body receipt-body p-4 px-md-5" th:if="${hoaDon != null}">
+                    <h5 class="fw-bold mb-4">Chi tiết đơn hàng</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-5 text-muted">Mã đơn hàng:</div>
+                        <div class="col-7 fw-bold text-end text-dark" th:text="${hoaDon.ma}">HD-XXXX</div>
                     </div>
 
-                    <a th:href="@{/}" class="btn btn-primary mt-4" style="background-color: var(--color-primary); border: none;">
+                    <div class="row mb-3">
+                        <div class="col-5 text-muted">Ngày đặt:</div>
+                        <div class="col-7 text-end" th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm')}">18/11/2025</div>
+                    </div>
+
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-5 text-muted">Tổng thanh toán:</div>
+                        <div class="col-7 text-end">
+                            <span class="fs-4 fw-bold text-primary"
+                                  style="color: var(--color-primary) !important;"
+                                  th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'">0 ₫</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" style="border-style: dashed; opacity: 0.3;">
+
+                    <h6 class="fw-bold mb-3"><i class="bi bi-geo-alt me-2 text-primary"></i>Thông tin giao hàng</h6>
+                    <div class="bg-white p-3 rounded border">
+                        <p class="mb-1 fw-bold" th:text="${hoaDon.tenNguoiNhan}">Nguyễn Văn A</p>
+                        <p class="mb-1 small text-muted" th:text="${hoaDon.sdt}">0909xxxxxx</p>
+                        <p class="mb-0 small text-muted" th:text="${hoaDon.diaChi}">Số 1, Đường ABC...</p>
+                    </div>
+
+                    <div class="alert alert-info mt-4 small d-flex align-items-start" role="alert">
+                        <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                        <div>
+                            Thông tin chi tiết đơn hàng đã được gửi tới email của bạn.
+                            Vui lòng kiểm tra hòm thư (bao gồm cả mục Spam).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white p-4 text-center border-0 rounded-bottom">
+                    <a th:href="@{/}" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm"
+                       style="background-color: var(--color-primary); border: none;">
                         Tiếp tục mua sắm
                     </a>
                 </div>

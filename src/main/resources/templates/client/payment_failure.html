@@ -4,25 +4,64 @@
 <body>
 <div th:replace="~{client/fragments/header :: header}"></div>
 
+<style>
+    .failure-icon-box {
+        width: 80px;
+        height: 80px;
+        background-color: #f8d7da;
+        color: #dc3545;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .card-failure {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="container my-5 py-5">
 <div class="container pd-wrap my-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-danger text-center shadow-sm">
-                <div class="card-body p-5">
-                    <h2 class="text-danger fw-bold">❌ Thanh toán thất bại</h2>
-
-                    <p class="lead mt-3">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
-
-                    <div th:if="${errorMessage}" class="alert alert-danger mt-3"
-                         th:text="${errorMessage}">
-                        Lý do thất bại...
+        <div class="col-md-8 col-lg-6">
+            <div class="card card-failure p-4">
+                <div class="card-body text-center">
+                    <div class="failure-icon-box mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                        </svg>
                     </div>
 
-                    <p>Giỏ hàng của bạn vẫn được giữ nguyên. Vui lòng thử lại.</p>
+                    <h2 class="fw-bold text-danger mb-3">Thanh toán thất bại</h2>
 
-                    <a th:href="@{/cart}" class="btn btn-primary mt-4" style="background-color: var(--color-primary); border: none;">
-                        Quay lại giỏ hàng
-                    </a>
+                    <p class="text-muted mb-4">Rất tiếc, giao dịch của bạn không thể thực hiện được lúc này.</p>
+
+                    <div th:if="${errorMessage}" class="alert alert-danger d-inline-block px-4 py-2 rounded-pill mb-4" role="alert">
+                        <small><i class="bi bi-exclamation-circle me-2"></i><span th:text="${errorMessage}">Lý do thất bại...</span></small>
+                    </div>
+
+                    <div class="bg-light p-3 rounded mb-4 text-start">
+                        <h6 class="fw-bold mb-2 text-dark">Điều này có nghĩa là gì?</h6>
+                        <ul class="small text-muted mb-0 ps-3">
+                            <li>Tài khoản chưa bị trừ tiền (hoặc sẽ được hoàn lại).</li>
+                            <li>Giỏ hàng của bạn vẫn được giữ nguyên.</li>
+                            <li>Bạn có thể thử lại với phương thức thanh toán khác.</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <a th:href="@{/cart}" class="btn btn-dark px-4 py-2">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Thử lại ngay
+                        </a>
+                        <a th:href="@{/}" class="btn btn-outline-secondary px-4 py-2">
+                            Về trang chủ
+                        </a>
+                    </div>
+
+                    <p class="mt-4 mb-0 small text-muted">Cần hỗ trợ? Liên hệ hotline: <strong>1900 xxxx</strong></p>
                 </div>
             </div>
         </div>
