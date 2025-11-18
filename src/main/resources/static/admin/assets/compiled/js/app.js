@@ -47,3 +47,29 @@
             });
         }
     });
+
+    function setupPriceInput(displayId, hiddenId) {
+        const displayInput = document.getElementById(displayId);
+        const hiddenInput  = document.getElementById(hiddenId);
+        if (!displayInput || !hiddenInput) return;
+
+        displayInput.addEventListener('input', function () {
+            // Lấy toàn bộ số trong input
+            let raw = this.value.replace(/\D/g, '');
+
+            // Không cho nhỏ hơn 0
+            let num = parseInt(raw || '0', 10);
+            if (num < 0) num = 0;
+
+            // Gán vào hidden (giá trị thật gửi lên server)
+            hiddenInput.value = num.toString();
+
+            // Format có dấu chấm ngăn cách hàng nghìn để hiển thị
+            this.value = num > 0 ? num.toLocaleString('vi-VN') : '';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setupPriceInput('giaMinDisplay', 'giaMin');
+        setupPriceInput('giaMaxDisplay', 'giaMax');
+    });

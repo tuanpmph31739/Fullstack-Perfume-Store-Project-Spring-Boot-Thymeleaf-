@@ -23,6 +23,7 @@
                         <form th:action="@{/admin/san-pham/update/{id}(id=${sanPhamRequest.id})}"
                               method="post"
                               th:object="${sanPhamRequest}">
+                            <input type="hidden" name="backUrl" th:value="${backUrl}">
 
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -119,7 +120,9 @@
                                 <textarea class="form-control" th:field="*{moTa}" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
                             </div>
                             <div class="text-end">
-                                <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Quay lại</a>
+                                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                                    ← Quay lại
+                                </a>
                                 <button type="submit" class="btn btn-primary">Cập nhật dòng sản phẩm</button>
                             </div>
 

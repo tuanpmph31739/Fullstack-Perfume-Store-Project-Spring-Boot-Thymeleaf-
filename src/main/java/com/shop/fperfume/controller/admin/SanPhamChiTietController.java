@@ -7,7 +7,8 @@ import com.shop.fperfume.service.admin.DungTichService;
 import com.shop.fperfume.service.admin.NongDoService;
 import com.shop.fperfume.service.admin.SanPhamChiTietService;
 import com.shop.fperfume.service.admin.SanPhamService;
-import com.shop.fperfume.util.MapperUtils; // <-- Đảm bảo bạn đã import MapperUtils
+import com.shop.fperfume.util.MapperUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/admin/san-pham-chi-tiet")
@@ -31,79 +34,101 @@ public class SanPhamChiTietController {
 
     private final int PAGE_SIZE = 10;
 
-    // (Hàm index, viewAdd, add/save giữ nguyên như trước)
     @GetMapping
     public String index(Model model,
-                        @RequestParam(name = "page", defaultValue = "1") Integer pageNo) {
-        if (pageNo < 1) pageNo = 1;
+                        @RequestParam(value = "page", defaultValue = "1") Integer pageNo,
+                        @RequestParam(value = "keyword", required = false) String keyword,
+                        @RequestParam(value = "sku", required = false) String sku,
+                        @RequestParam(value = "giaMin", required = false) BigDecimal giaMin,
+                        @RequestParam(value = "giaMax", required = false) BigDecimal giaMax,
+                        @RequestParam(value = "dungTichId", required = false) Integer dungTichId,
+                        @RequestParam(value = "nongDoId", required = false) Integer nongDoId
+    ) {
 
-        PageableObject<SanPhamChiTietResponse> page = sanPhamChiTietService.paging(pageNo, PAGE_SIZE);
-        model.addAttribute("page", page);
-        model.addAttribute("pageMetaDataAvailable", page != null);
-        model.addAttribute("pageSize", PAGE_SIZE);
+        if (pageNo == null || pageNo < 1) {
+            pageNo = 1;
+        }
+
+        PageableObject<SanPhamChiTietResponse> pageData =
+                sanPhamChiTietService.getPage(pageNo, PAGE_SIZE, keyword, sku, giaMin, giaMax, dungTichId, nongDoId);
+
+        model.addAttribute("page", pageData);
+        model.addAttribute("page.metaDataAvailable", true);
+        model.addAttribute("page.size", PAGE_SIZE);
+
+        // Giữ lại filter
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sku", sku);
+        model.addAttribute("giaMin", giaMin);
+        model.addAttribute("giaMax", giaMax);
+        model.addAttribute("dungTichId", dungTichId);
+        model.addAttribute("nongDoId", nongDoId);
+
+        loadDropdownData(model);
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
         return "admin/san_pham_chi_tiet/index";
     }
 
     @GetMapping("/add")
-    public String viewAdd(Model model) {
+    public String viewAdd(Model model,
+                          HttpServletRequest request) {
         model.addAttribute("sanPhamChiTietRequest", new SanPhamChiTietRequest());
         loadDropdownData(model);
+
+        String referer = request.getHeader("Referer");
+        model.addAttribute("backUrl", referer);
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
         return "admin/san_pham_chi_tiet/add";
     }
 
     @PostMapping("/save")
     public String add(@Valid @ModelAttribute("sanPhamChiTietRequest") SanPhamChiTietRequest request,
-                      BindingResult bindingResult, // Phải có BindingResult
+                      BindingResult bindingResult,
+                      @RequestParam(value = "backUrl", required = false) String backUrl,
                       RedirectAttributes redirectAttributes,
                       Model model) {
 
-        // 1. Kiểm tra lỗi validation (ví dụ: để trống)
         if (bindingResult.hasErrors()) {
             loadDropdownData(model);
-            return "admin/san_pham_chi_tiet/add"; // Trả về form
+            return "admin/san_pham_chi_tiet/add";
         }
 
-        // 2. Bắt lỗi nghiệp vụ (ví dụ: trùng SKU)
         try {
             sanPhamChiTietService.addSanPhamChiTiet(request);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công!");
-
         } catch (RuntimeException e) {
-
-            // === SỬA Ở ĐÂY ===
-            // Gán lỗi Exception vào đúng trường "maSKU"
             bindingResult.rejectValue("maSKU", "error.maSKU", e.getMessage());
-            // =================
-
-            // Load lại dropdown và trả về form
             loadDropdownData(model);
+            model.addAttribute("currentPath", "/admin/san-pham");
+            model.addAttribute("backUrl", backUrl);
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/add";
+        }
+        if (backUrl != null && !backUrl.isBlank()) {
+            return "redirect:" + backUrl;
         }
 
         return "redirect:/admin/san-pham-chi-tiet";
     }
 
-
-
     @GetMapping("/edit/{id}")
-    public String viewEdit(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+    public String viewEdit(@PathVariable("id") Integer id,
+                           Model model,
+                           RedirectAttributes redirectAttributes,
+                           HttpServletRequest request) {
         try {
-            // 1. Lấy Response DTO
             SanPhamChiTietResponse responseDto = sanPhamChiTietService.getById(id);
 
-            // 2. Dùng MapperUtils để map từ Response sang Request DTO
             SanPhamChiTietRequest requestDto = MapperUtils.map(responseDto, SanPhamChiTietRequest.class);
 
-            // 3. Add Request DTO vào model
             model.addAttribute("sanPhamChiTietRequest", requestDto);
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
-
-            // 4. Gửi tên ảnh cũ sang view để hiển thị
             model.addAttribute("hinhAnhHienTai", responseDto.getHinhAnh());
+
+            // Lấy URL trước đó để sau khi update quay lại đúng trang + filter
+            String referer = request.getHeader("Referer");
+            model.addAttribute("backUrl", referer);
 
             loadDropdownData(model);
             return "admin/san_pham_chi_tiet/edit";
@@ -114,13 +139,11 @@ public class SanPhamChiTietController {
         }
     }
 
-    /**
-     * (Hàm update giữ nguyên như trước, đã bao gồm Validation)
-     */
     @PostMapping("/update/{id}")
     public String update(@PathVariable("id") Integer id,
                          @Valid @ModelAttribute("sanPhamChiTietRequest") SanPhamChiTietRequest request,
                          BindingResult bindingResult,
+                         @RequestParam(value = "backUrl", required = false) String backUrl,
                          RedirectAttributes redirectAttributes,
                          Model model) {
 
@@ -128,55 +151,66 @@ public class SanPhamChiTietController {
             loadDropdownData(model);
             try {
                 model.addAttribute("hinhAnhHienTai", sanPhamChiTietService.getById(id).getHinhAnh());
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
+            model.addAttribute("backUrl", backUrl); // để form vẫn giữ hidden backUrl
             return "admin/san_pham_chi_tiet/edit";
         }
 
-        // 2. Bắt lỗi nghiệp vụ (ví dụ: trùng SKU khi update)
         try {
             sanPhamChiTietService.updateSanPhamChiTiet(id, request);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật chi tiết sản phẩm thành công!");
-        } catch (RuntimeException e) { // Bắt lỗi từ Service
-
-            // Kiểm tra xem có phải lỗi trùng SKU không
+        } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().contains("Mã SKU")) {
-                // Gán lỗi này vào BindingResult, gắn nó vào trường "maSKU"
                 bindingResult.rejectValue("maSKU", "error.maSKU", e.getMessage());
             } else {
-                // Nếu là lỗi khác, hiển thị lỗi chung (cần div th:if="${errorMessage}" trong HTML)
                 model.addAttribute("errorMessage", "Lỗi khi cập nhật: " + e.getMessage());
             }
 
-            // Load lại dropdown và trả về form edit
             loadDropdownData(model);
-            // Gửi lại ảnh cũ khi có lỗi nghiệp vụ
             try {
                 model.addAttribute("hinhAnhHienTai", sanPhamChiTietService.getById(id).getHinhAnh());
-            } catch (Exception e2) { /* Bỏ qua */ }
+            } catch (Exception ignored) {}
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
+            model.addAttribute("backUrl", backUrl);
             return "admin/san_pham_chi_tiet/edit";
         }
 
+        // Nếu có backUrl thì quay về đúng trang + filter, không thì về list mặc định
+        if (backUrl != null && !backUrl.isBlank()) {
+            return "redirect:" + backUrl;
+        }
         return "redirect:/admin/san-pham-chi-tiet";
     }
 
     @GetMapping("/view/{id}")
-    public String view(@PathVariable Integer id, Model model) {
+    public String view(@PathVariable Integer id,
+                       Model model,
+                       HttpServletRequest request) {
         model.addAttribute("sanPhamChiTietResponse", sanPhamChiTietService.getById(id));
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
+
+        // Gửi backUrl sang view để nút "Quay lại" giữ trang + filter
+        String referer = request.getHeader("Referer");
+        model.addAttribute("backUrl", referer);
+
         return "admin/san_pham_chi_tiet/view";
     }
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Integer id,
+                         HttpServletRequest request,
+                         RedirectAttributes redirectAttributes) {
+
         try {
             sanPhamChiTietService.deleteSanPhamChiTiet(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Xóa chi tiết sản phẩm thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi xóa: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
-        return "redirect:/admin/san-pham-chi-tiet";
+
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/admin/san-pham-chi-tiet");
     }
 
     private void loadDropdownData(Model model) {

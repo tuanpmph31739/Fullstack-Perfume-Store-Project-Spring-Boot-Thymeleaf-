@@ -1,6 +1,8 @@
 package com.shop.fperfume.repository;
 
 import com.shop.fperfume.entity.SanPham;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,5 +25,25 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
    WHERE th.id = :thuongHieuId
 """)
     List<SanPham> findByThuongHieuIdFetchAll(@Param("thuongHieuId") Long thuongHieuId);
+
+    @Query("""
+    SELECT s FROM SanPham s
+    LEFT JOIN s.thuongHieu th
+    LEFT JOIN s.loaiNuocHoa lnh
+    LEFT JOIN s.nhomHuong nh
+    LEFT JOIN s.muaThichHop mth
+    WHERE (:keyword IS NULL OR :keyword = '' 
+           OR LOWER(s.tenNuocHoa) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND (:loaiId IS NULL OR lnh.id = :loaiId)
+      AND (:thuongHieuId IS NULL OR th.id = :thuongHieuId)
+      AND (:nhomHuongId IS NULL OR nh.id = :nhomHuongId)
+      AND (:muaId IS NULL OR mth.id = :muaId)
+""")
+    Page<SanPham> searchSanPham(@Param("keyword") String keyword,
+                                @Param("loaiId") Long loaiId,
+                                @Param("thuongHieuId") Long thuongHieuId,
+                                @Param("nhomHuongId") Long nhomHuongId,
+                                @Param("muaId") Long muaId,
+                                Pageable pageable);
 
 }
