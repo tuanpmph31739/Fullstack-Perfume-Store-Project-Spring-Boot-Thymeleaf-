@@ -42,6 +42,7 @@ public class OrderController {
                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         GioHang cart;
         CheckoutRequestDTO checkoutRequest = new CheckoutRequestDTO();
+        checkoutRequest.setIdThanhToan(1L);
 
         if (userDetails != null) {
             NguoiDung khachHang = userDetails.getUser();
@@ -50,6 +51,7 @@ public class OrderController {
             checkoutRequest.setSdt(khachHang.getSdt());
             checkoutRequest.setDiaChi(khachHang.getDiaChi());
             checkoutRequest.setEmail(khachHang.getEmail());
+
         } else {
             @SuppressWarnings("unchecked")
             Map<Integer, Integer> guestCartMap = (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);

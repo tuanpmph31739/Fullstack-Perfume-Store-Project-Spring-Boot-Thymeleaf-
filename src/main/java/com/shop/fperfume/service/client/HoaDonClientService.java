@@ -25,4 +25,6 @@ public interface HoaDonClientService {
     List<HoaDon> getOrdersByUser(NguoiDung khachHang);
 
     HoaDon getOrderDetailForUser(Integer hoaDonId, NguoiDung khachHang);
+
+    //  void cancelOrder(Integer hoaDonId, NguoiDung khachHang, String lyDoHuy);
 }

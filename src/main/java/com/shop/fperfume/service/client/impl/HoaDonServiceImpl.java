@@ -56,6 +56,7 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         hoaDon.setTenNguoiNhan(checkoutInfo.getTenNguoiNhan());
         hoaDon.setDiaChi(checkoutInfo.getDiaChi());
         hoaDon.setSdt(checkoutInfo.getSdt());
+        hoaDon.setGhiChu(checkoutInfo.getGhiChu());
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setThanhToan(phuongThucThanhToan);
         hoaDon.setPhiShip(new BigDecimal(30000));
