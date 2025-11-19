@@ -12,10 +12,16 @@
             <ul class="menu list-unstyled mb-0">
                 <li class="sidebar-title text-uppercase">Menu</li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin'} ? 'active'">
-                    <a th:href="@{/admin}" class="sidebar-link">
-                        <i class="bi bi-clipboard-data"></i>
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/thong-ke'} ? 'active'">
+                    <a class="sidebar-link" th:href="@{/admin/thong-ke}">
+                        <i class="bi bi-graph-up-arrow"></i>
                         <span>Thống kê</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/ban-hang-tai-quay'} ? 'active'">
+                    <a th:href="@{/admin/ban-hang-tai-quay}" class="sidebar-link">
+                        <i class="bi bi-pc-display-horizontal"></i>
+                        <span>Bán hàng tại quầy</span>
                     </a>
                 </li>
                 <li class="sidebar-item" th:classappend="${currentPath == '/admin/don-hang'} ? 'active'">
@@ -77,8 +83,8 @@
                     </ul>
                 </li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/nguoidung'} ? 'active'">
-                    <a th:href="@{/admin/nguoidung}" class="sidebar-link">
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/nguoi-dung'} ? 'active'">
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link">
                         <i class="bi bi-people"></i>
                         <span>Quản lý người dùng</span>
                     </a>

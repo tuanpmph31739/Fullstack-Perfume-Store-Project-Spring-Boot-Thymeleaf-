@@ -1,4 +1,4 @@
-package com.shop.fperfume.service.banHang;
+package com.shop.fperfume.service.pos;
 
 import com.shop.fperfume.entity.*;
 import com.shop.fperfume.repository.*;
@@ -136,7 +136,11 @@ public class BanHangTaiQuayService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }
-        return nguoiDungRepo.findBySdtContainingOrHoTenContaining(keyword, keyword);
+
+        // Nếu đã tạo searchKhachHangForPos trong repository thì dùng, không thì dùng method cũ
+        return nguoiDungRepo.searchKhachHangForPos(keyword.trim());
+        // Hoặc:
+        // return nguoiDungRepo.findBySdtContainingOrHoTenContaining(keyword.trim(), keyword.trim());
     }
 
     /**
@@ -160,6 +164,45 @@ public class BanHangTaiQuayService {
     }
 
     /**
+     * Cập nhật thông tin khách hàng từ form nhập tay ở màn POS.
+     * KHÔNG tạo NguoiDung mới để tránh lỗi MatKhau NOT NULL.
+     */
+    @Transactional
+    public void capNhatThongTinKhach(Integer idHoaDon,
+                                     String hoTen,
+                                     String sdt,
+                                     String email,
+                                     String diaChi) {
+
+        HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+
+        // Nếu user không nhập gì thì thôi khỏi làm gì
+        if ((hoTen == null || hoTen.isBlank())
+                && (sdt == null || sdt.isBlank())
+                && (email == null || email.isBlank())
+                && (diaChi == null || diaChi.isBlank())) {
+            return;
+        }
+
+        NguoiDung khachHang = hoaDon.getKhachHang();
+
+        // Chỉ UPDATE nếu là khách hàng (vai trò KHACHHANG) đã gán trước đó (qua modal)
+        if (khachHang != null && "KHACHHANG".equalsIgnoreCase(khachHang.getVaiTro())) {
+
+            if (hoTen != null && !hoTen.isBlank()) khachHang.setHoTen(hoTen);
+            if (sdt != null && !sdt.isBlank()) khachHang.setSdt(sdt);
+            if (email != null && !email.isBlank()) khachHang.setEmail(email);
+            if (diaChi != null && !diaChi.isBlank()) khachHang.setDiaChi(diaChi);
+
+            nguoiDungRepo.save(khachHang);
+        }
+
+        // Không tạo khách mới nữa -> tránh lỗi MatKhau NULL
+        // Thông tin nhập tay vẫn được dùng làm thông tin giao hàng trong thanhToanHoaDonTaiQuay(...)
+    }
+
+    /**
      * Áp dụng mã giảm giá.
      */
     @Transactional
@@ -169,11 +212,8 @@ public class BanHangTaiQuayService {
         GiamGia giamGia = giamGiaRepo.findByMa(maGiamGia)
                 .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ"));
 
-        // (Bạn có thể thêm logic kiểm tra mã ở đây)
-        // ...
-
         hoaDon.setGiamGia(giamGia);
-        hoaDon.setTienGiamGia(giamGia.getGiaTri()); // Giả sử GiamGia có getGiaTriGiam()
+        hoaDon.setTienGiamGia(giamGia.getGiaTri());
 
         updateTongTienHoaDon(hoaDon);
         return hoaDon;
@@ -195,12 +235,13 @@ public class BanHangTaiQuayService {
     }
 
     /**
-     * Logic thanh toán (fix cứng khách hàng/nhân viên).
+     * Logic thanh toán cho hóa đơn tại quầy.
      */
     @Transactional
     public HoaDon thanhToanHoaDonTaiQuay(Integer idHoaDon,
                                          String tenNguoiNhan, String sdtGiaoHang,
-                                         String diaChiGiaoHang, BigDecimal phiShip) {
+                                         String diaChiGiaoHang, BigDecimal phiShip,
+                                         BigDecimal soTienKhachDua) {
 
         HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
@@ -210,38 +251,56 @@ public class BanHangTaiQuayService {
             throw new RuntimeException("Hóa đơn không có sản phẩm nào");
         }
 
-        // --- XÓA BỎ FIX CỨNG - THAY BẰNG LOGIC MỚI ---
-
-        // 1. Gán nhân viên (Vẫn fix cứng ID 2 làm nhân viên chốt đơn)
-        NguoiDung nhanVien = nguoiDungRepo.findById(2L) // ID 2 = Nhân viên
+        // 1. Gán nhân viên (tạm fix cứng ID 2)
+        NguoiDung nhanVien = nguoiDungRepo.findById(2L)
                 .orElseThrow(() -> new RuntimeException("LỖI FIX CỨNG: Không tìm thấy Nhân Viên (ID 2)."));
         hoaDon.setNhanVien(nhanVien);
 
-        // 2. Gán Khách Lẻ (ID 1) NẾU chưa chọn khách hàng nào
-        if (hoaDon.getKhachHang() == null) {
-            NguoiDung khachLe = nguoiDungRepo.findById(1L) // ID 1 = Khách Lẻ
-                    .orElseThrow(() -> new RuntimeException("LỖI FIX CỨNG: Không tìm thấy Khách Lẻ (ID 1)."));
-            hoaDon.setKhachHang(khachLe);
-        }
+        // 2. KHÔNG tự gán "Khách lẻ" ID=1 nữa.
+        // Nếu cần gán khách thì đã gán trước đó (qua modal).
 
-        // 3. Gán Hình thức thanh toán (ID 1, ví dụ: Tiền mặt)
+        // 3. Gán Hình thức thanh toán
         ThanhToan ttMacDinh = thanhToanRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("LỖI CẤU HÌNH: Không tìm thấy 'Hình thức thanh toán' (ID 1)."));
         hoaDon.setThanhToan(ttMacDinh);
 
-        // 4. LƯU THÔNG TIN GIAO HÀNG (NẾU CÓ)
-        if (tenNguoiNhan != null && !tenNguoiNhan.isEmpty()) {
-            hoaDon.setTenNguoiNhan(tenNguoiNhan);
-            hoaDon.setSdt(sdtGiaoHang);
-            hoaDon.setDiaChi(diaChiGiaoHang);
-            hoaDon.setPhiShip(phiShip != null ? phiShip : BigDecimal.ZERO);
-            // Cập nhật lại tổng tiền lần cuối nếu có phí ship
-            updateTongTienHoaDon(hoaDon);
+        // 4. LƯU THÔNG TIN GIAO HÀNG / NGƯỜI NHẬN
+        NguoiDung kh = hoaDon.getKhachHang();
+
+        // Nếu form chưa có tên người nhận nhưng hóa đơn có khách -> lấy tên khách
+        if ((tenNguoiNhan == null || tenNguoiNhan.isBlank()) && kh != null) {
+            tenNguoiNhan = kh.getHoTen();
         }
 
-        // --- KẾT THÚC LOGIC MỚI ---
+        // Nếu form chưa có SĐT giao hàng nhưng hóa đơn có khách -> lấy SĐT khách
+        if ((sdtGiaoHang == null || sdtGiaoHang.isBlank()) && kh != null) {
+            sdtGiaoHang = kh.getSdt();
+        }
 
-        // 5. Trừ số lượng tồn kho
+        // Nếu form chưa có địa chỉ giao hàng nhưng hóa đơn có khách -> lấy địa chỉ khách
+        if ((diaChiGiaoHang == null || diaChiGiaoHang.isBlank()) && kh != null) {
+            diaChiGiaoHang = kh.getDiaChi();
+        }
+
+        // Không còn bịa "Khách lẻ" nếu vẫn null, cứ để null nếu không có gì
+        hoaDon.setTenNguoiNhan(tenNguoiNhan);
+        hoaDon.setSdt(sdtGiaoHang);
+        hoaDon.setDiaChi(diaChiGiaoHang);
+        hoaDon.setPhiShip(phiShip != null ? phiShip : BigDecimal.ZERO);
+
+        // cập nhật tổng tiền
+        updateTongTienHoaDon(hoaDon);
+
+        // Xử lý tiền khách đưa (có thể null)
+        if (soTienKhachDua != null) {
+            BigDecimal tong = hoaDon.getTongThanhToan();
+            hoaDon.setSoTienKhachDua(soTienKhachDua);
+            hoaDon.setSoTienTraLai(
+                    soTienKhachDua.subtract(tong).max(BigDecimal.ZERO)
+            );
+        }
+
+        // 5. Trừ tồn kho
         for (HoaDonChiTiet hdct : chiTiets) {
             SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
             int tonKhoMoi = spct.getSoLuongTon() - hdct.getSoLuong();
@@ -252,8 +311,8 @@ public class BanHangTaiQuayService {
             sanPhamChiTietRepo.save(spct);
         }
 
-        // 6. Cập nhật trạng thái hóa đơn
-        hoaDon.setTrangThai("Đã thanh toán"); // 1 = Đã thanh toán
+        // 6. Cập nhật trạng thái
+        hoaDon.setTrangThai("DA_THANH_TOAN");
         hoaDon.setNgayThanhToan(LocalDateTime.now());
 
         return hoaDonRepo.save(hoaDon);
@@ -282,17 +341,17 @@ public class BanHangTaiQuayService {
 
         hoaDonRepo.save(hoaDon);
     }
+
     public Map<SanPham, List<SanPhamChiTiet>> getGroupedSanPham() {
         // 1. Lấy tất cả chi tiết (đã có dung tích)
         List<SanPhamChiTiet> allSPCT = sanPhamChiTietRepo.findAllWithSanPham();
 
         // 2. Dùng Java Stream để gộp nhóm
-        // Gộp theo SanPham (sản phẩm chính)
         Map<SanPham, List<SanPhamChiTiet>> groupedProducts = allSPCT.stream()
                 .collect(Collectors.groupingBy(
                         SanPhamChiTiet::getSanPham,  // Key là SanPham
-                        LinkedHashMap::new,           // Giữ thứ tự
-                        Collectors.toList()           // Value là List<SanPhamChiTiet>
+                        LinkedHashMap::new,          // Giữ thứ tự
+                        Collectors.toList()          // Value là List<SanPhamChiTiet>
                 ));
 
         return groupedProducts;
