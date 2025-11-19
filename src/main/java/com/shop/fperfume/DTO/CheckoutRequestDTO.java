@@ -17,5 +17,7 @@ public class CheckoutRequestDTO {
     // ID của hình thức thanh toán (COD, VNPay...)
     private Long idThanhToan;
 
+    private String ghiChu;
+
     // (Chúng ta sẽ lấy IdGiamGia từ Giỏ hàng của user, không cần DTO)
 }

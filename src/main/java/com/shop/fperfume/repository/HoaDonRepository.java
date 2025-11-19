@@ -24,6 +24,23 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findHoaDonChoTaiQuay();
 
     List<HoaDon> findByKhachHangOrderByNgayTaoDesc(NguoiDung khachHang);
+    @Query("SELECT hd FROM HoaDon hd LEFT JOIN FETCH hd.khachHang WHERE hd.id = :idHD")
+    Optional<HoaDon> findByIdWithKhachHang(@Param("idHD") Integer idHD);
+
+    // Hàm tìm kiếm nâng cao
+    @Query("SELECT h FROM HoaDon h WHERE h.khachHang = :khachHang " +
+            "AND (:keyword IS NULL OR :keyword = '' OR h.ma LIKE %:keyword% OR h.tenNguoiNhan LIKE %:keyword%) " +
+            "AND (:fromDate IS NULL OR h.ngayTao >= :fromDate) " +
+            "AND (:toDate IS NULL OR h.ngayTao <= :toDate) " +
+            "ORDER BY h.ngayTao DESC")
+    List<HoaDon> findHistory(
+            @Param("khachHang") NguoiDung khachHang,
+            @Param("keyword") String keyword,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
+
+
     @Query("SELECT h FROM HoaDon h " +
             "LEFT JOIN FETCH h.khachHang " +
             "WHERE h.id = :id")
