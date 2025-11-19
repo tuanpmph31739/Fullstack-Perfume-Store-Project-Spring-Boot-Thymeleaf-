@@ -61,6 +61,15 @@ public class HoaDon {
     @Column(name = "KenhBan")
     private String kenhBan;
 
+    @Column(name = "SoTienKhachDua")
+    private BigDecimal soTienKhachDua;
+
+    @Column(name = "SoTienTraLai")
+    private BigDecimal soTienTraLai;
+
+    @Column(name = "MaGiaoDichThanhToan")
+    private String maGiaoDichThanhToan;
+
     // --- Mối quan hệ (Many-to-One) ---
 
     @ManyToOne(fetch = FetchType.LAZY)
