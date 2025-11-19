@@ -247,6 +247,10 @@ CREATE TABLE HoaDonChiTiet (
 							   NgayTao DATETIME2 DEFAULT GETDATE(), 
 							   NgaySua DATETIME2 DEFAULT GETDATE()
 );
+
+ALTER TABLE HoaDon
+ADD GhiChu NVARCHAR(MAX) NULL;
+GO
 PRINT N'Bảng HoaDonChiTiet đã được tạo.';
 GO
 
