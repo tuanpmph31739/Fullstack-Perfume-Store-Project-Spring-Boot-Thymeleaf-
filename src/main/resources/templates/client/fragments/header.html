@@ -1,16 +1,15 @@
-<div th:fragment="header">
-    <!-- nav bọc toàn bộ header -->
+<div th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <nav id="siteHeader" class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
         <div class="container-fluid d-flex flex-column">
 
-            <!-- PHẦN TRÊN: logo + search + account/cart + toggler -->
             <div class="navbar-top d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
-                <!-- Logo -->
                 <a class="navbar-brand mx-lg-auto" th:href="@{/}">
                     <img th:src="@{/images/logo-fperfume.png}" alt="F Perfume" style="height: 80px; width: auto;">
                 </a>
 
-                <!-- Search -->
                 <form class="search-form d-none d-lg-flex align-items-center position-relative mx-auto flex-grow-1 px-4"
                       th:action="@{/search}" method="get" style="max-width: 500px;">
                     <input type="text" name="keyword" class="form-control search-input rounded-pill ps-3"
@@ -20,15 +19,17 @@
                     </button>
                 </form>
 
-                <!-- Account + Cart -->
                 <div class="d-flex align-items-center gap-4 d-none d-lg-flex">
-                    <a th:href="@{/login}" class="text-dark">
+                    <a th:href="@{/account/orders}" sec:authorize="isAuthenticated()" class="text-dark" title="Tài khoản của tôi">
+                        <i class="bi bi-person-check-fill fs-5 text-primary"></i>
+                        <span class="small ms-1 fw-bold" sec:authentication="name">User</span>
+                    </a>
+                    <a th:href="@{/login}" sec:authorize="!isAuthenticated()" class="text-dark" title="Đăng nhập">
                         <i class="bi bi-person fs-5"></i>
                     </a>
 
                     <a th:href="@{/cart}" class="text-dark position-relative">
                         <i class="bi bi-bag fs-5"></i>
-
                         <span id="cart-item-count"
                               class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                               th:if="${session.cartSize != null && session.cartSize > 0}"
@@ -37,7 +38,6 @@
                     </a>
                 </div>
 
-                <!-- Nút toggler cho mobile -->
                 <button class="navbar-toggler ms-2 d-lg-none" type="button"
                         data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,7 +45,6 @@
                 </button>
             </div>
 
-            <!-- PHẦN DƯỚI: MENU CHÍNH (luôn hiển thị khi cuộn) -->
             <div class="collapse navbar-collapse w-100" id="mainNavbar">
                 <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
 
@@ -53,11 +52,21 @@
                         <a class="nav-link fw-medium" th:href="@{/}">Trang chủ</a>
                     </li>
 
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link fw-medium text-primary" th:href="@{/account/orders}">
+                            <i class="bi bi-clock-history me-1"></i>Lịch sử đơn hàng
+                        </a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link fw-medium" href="javascript:void(0);" onclick="checkLoginForHistory()">
+                            Lịch sử đơn hàng
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
                     </li>
 
-                    <!-- Dropdown sản phẩm -->
                     <li class="nav-item dropdown">
                         <a class="nav-link fw-medium dropdown-toggle"
                            th:href="@{/san-pham/all}" id="sanPhamDropdown" role="button"
@@ -71,7 +80,6 @@
                         </ul>
                     </li>
 
-                    <!-- Mega menu Thương hiệu -->
                     <li class="nav-item dropdown position-static hover-mega-dropdown">
                         <a class="nav-link fw-medium dropdown-toggle"
                            th:href="@{/thuong-hieu/all}" id="thuongHieuDropdown" role="button"
@@ -84,9 +92,7 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu bán chạy</h6>
-
-                                        <div class="p-3 rounded-3 text-white hot-brand-list"
-                                             th:if="${brandsHot != null}">
+                                        <div class="p-3 rounded-3 text-white hot-brand-list" th:if="${brandsHot != null}">
                                             <ul class="list-unstyled mb-0">
                                                 <li th:each="brand : ${brandsHot}">
                                                     <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
@@ -95,40 +101,26 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <p class="text-muted mb-0" th:if="${brandsHot == null}">
-                                            Đang cập nhật thương hiệu nổi bật...
-                                        </p>
                                     </div>
-
                                     <div class="col-md-9">
                                         <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu nước hoa</h6>
-
                                         <div class="mb-3">
                                             <div class="d-flex flex-wrap gap-2">
-                                                <!-- Nút ALL -->
                                                 <a href="#" class="az-btn active" data-letter="all">All</a>
-
-                                                <!-- Các nút A–Z -->
-                                                <a href="#"
-                                                   class="az-btn"
+                                                <a href="#" class="az-btn"
                                                    th:each="letter : ${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}"
-                                                   th:text="${letter}"
-                                                   th:attr="data-letter=${letter}"></a>
+                                                   th:text="${letter}" th:attr="data-letter=${letter}"></a>
                                             </div>
                                         </div>
-
                                         <div class="brand-list-scroll" th:if="${brands != null}">
-                                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-2">
-                                            <div class="col" th:each="brand : ${brands}">
-                                                <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
-                                                   th:text="${brand.tenThuongHieu}"
-                                                   class="d-block text-dark text-decoration-none brand-link"></a>
+                                            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-2">
+                                                <div class="col" th:each="brand : ${brands}">
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                       th:text="${brand.tenThuongHieu}"
+                                                       class="d-block text-dark text-decoration-none brand-link"></a>
+                                                </div>
                                             </div>
                                         </div>
-                                        </div>
-                                        <p class="text-muted mb-0" th:if="${brands == null}">
-                                            Đang cập nhật danh sách thương hiệu...
-                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -146,4 +138,29 @@
 
         </div>
     </nav>
+
+    <script>
+        function checkLoginForHistory() {
+            Swal.fire({
+                title: 'Yêu cầu thành viên',
+                text: "Chỉ khách hàng thành viên mới có thể xem lịch sử đơn hàng. Bạn có muốn đăng ký ngay không?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd', // Màu xanh primary
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đăng nhập ngay',
+                cancelButtonText: 'Để sau',
+                backdrop: `
+                    rgba(0,0,123,0.4)
+                    left top
+                    no-repeat
+                `
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Chuyển hướng đến trang đăng nhập
+                    window.location.href = '/login';
+                }
+            });
+        }
+    </script>
 </div>

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,71 +20,61 @@ import java.util.UUID;
 @Service
 public class HoaDonServiceImpl implements HoaDonClientService {
 
-    // === (Giữ nguyên tất cả @Autowired) ===
     @Autowired private HoaDonRepository hoaDonRepo;
-    @Autowired private HoaDonChiTietRepository hoaDonChiTietRepo;
     @Autowired private GioHangRepository gioHangRepo;
-    @Autowired private GioHangChiTietRepository gioHangChiTietRepo;
     @Autowired private SanPhamChiTietRepository sanPhamChiTietRepo;
     @Autowired private ThanhToanRepository thanhToanRepo;
-    @Autowired private GiamGiaRepository giamGiaRepo;
-    @Autowired
-    private GioHangClientService gioHangClientService;
+    @Autowired private GioHangClientService gioHangClientService;
 
-
-
-    /**
-     * HÀM MỚI: Xử lý cả Guest và User
-     */
+    // === 1. TẠO ĐƠN HÀNG ===
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HoaDon createOrder(GioHang gioHang, NguoiDung khachHang, CheckoutRequestDTO checkoutInfo) {
 
-        // === 2. Lấy chi tiết giỏ hàng ===
+        // 1. Kiểm tra giỏ hàng
         Collection<GioHangChiTiet> cartItems = gioHang.getGioHangChiTiets();
         if (cartItems == null || cartItems.isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống! Không thể đặt hàng.");
         }
 
-        // === 3. Lấy thông tin thanh toán và giảm giá ===
+        // 2. Lấy phương thức thanh toán
         ThanhToan phuongThucThanhToan = thanhToanRepo.findById(checkoutInfo.getIdThanhToan())
                 .orElseThrow(() -> new RuntimeException("Phương thức thanh toán không hợp lệ."));
         GiamGia giamGia = gioHang.getGiamGia();
 
-        // === 4. Tạo Hóa Đơn cha (HoaDon) ===
+        // 3. Khởi tạo Hóa Đơn
         HoaDon hoaDon = new HoaDon();
-        hoaDon.setKhachHang(khachHang); // Sẽ set NULL nếu là Guest
+        hoaDon.setKhachHang(khachHang);
         hoaDon.setTenNguoiNhan(checkoutInfo.getTenNguoiNhan());
         hoaDon.setDiaChi(checkoutInfo.getDiaChi());
         hoaDon.setSdt(checkoutInfo.getSdt());
-        hoaDon.setGhiChu(checkoutInfo.getGhiChu());
+        hoaDon.setGhiChu(checkoutInfo.getGhiChu()); // Lưu ghi chú
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setThanhToan(phuongThucThanhToan);
         hoaDon.setPhiShip(new BigDecimal(30000));
         hoaDon.setKenhBan("WEB");
         hoaDon.setMa("HD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
-        // === 5. Quyết định trạng thái ===
+        // 4. Set trạng thái ban đầu
         if (phuongThucThanhToan.getHinhThucThanhToan().toLowerCase().contains("vnpay")) {
             hoaDon.setTrangThai("DANG_CHO_THANH_TOAN");
         } else {
             hoaDon.setTrangThai("CHO_XAC_NHAN");
         }
 
-        // === 6. Tạo Hóa Đơn Chi Tiết và Tính Tiền Hàng ===
+        // 5. Duyệt sản phẩm & Trừ kho
         BigDecimal tongTienHang = BigDecimal.ZERO;
         List<HoaDonChiTiet> hoaDonChiTiets = new ArrayList<>();
 
         for (GioHangChiTiet item : cartItems) {
             SanPhamChiTiet spct = sanPhamChiTietRepo.findById(item.getSanPhamChiTiet().getId())
-                    .orElseThrow(() -> new RuntimeException("Sản phẩm trong giỏ hàng không còn tồn tại."));
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại ID: " + item.getSanPhamChiTiet().getId()));
 
-            // Kiểm tra tồn kho
             if (spct.getSoLuongTon() < item.getSoLuong()) {
                 throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenNuocHoa() + " không đủ hàng.");
             }
 
-            // TRỪ KHO
+            // Trừ kho
             spct.setSoLuongTon(spct.getSoLuongTon() - item.getSoLuong());
             sanPhamChiTietRepo.save(spct);
 
@@ -100,7 +91,7 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         }
         hoaDon.setTongTienHang(tongTienHang);
 
-        // === 7. Tính toán giảm giá ===
+        // 6. Tính giảm giá
         BigDecimal tienGiamGia = BigDecimal.ZERO;
         if (giamGia != null) {
             if ("PERCENT".equals(giamGia.getLoaiGiam())) {
@@ -112,59 +103,92 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         }
         hoaDon.setTienGiamGia(tienGiamGia);
 
-        // === 8. Tính tổng thanh toán cuối cùng ===
+        // 7. Tổng tiền cuối cùng
         BigDecimal tongThanhToan = tongTienHang.subtract(tienGiamGia).add(hoaDon.getPhiShip());
         hoaDon.setTongThanhToan(tongThanhToan.max(BigDecimal.ZERO));
 
-        // === 9. Lưu Hóa Đơn và Xóa Giỏ Hàng ===
+        // 8. Lưu DB
         hoaDon.setHoaDonChiTiets(hoaDonChiTiets);
         HoaDon savedHoaDon = hoaDonRepo.save(hoaDon);
 
+        // 9. Xóa giỏ hàng (Nếu là User đăng nhập)
         if (khachHang != null) {
-            gioHangClientService.clearCart(khachHang);  // tái dùng hàm đã viết đúng
+            gioHangClientService.clearCart(khachHang);
         }
-
 
         return savedHoaDon;
     }
 
-
-    /**
-     * HÀM CŨ: (Gọi hàm mới)
-     */
+    // Hàm tương thích cũ
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HoaDon createOrderFromCart(NguoiDung khachHang, CheckoutRequestDTO checkoutInfo) {
         GioHang gioHang = gioHangRepo.findByKhachHang(khachHang)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng của bạn."));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng."));
         return this.createOrder(gioHang, khachHang, checkoutInfo);
     }
 
-    /**
-     * THÊM LẠI: Lấy lịch sử đơn hàng
-     */
+    // === 2. LẤY DANH SÁCH ĐƠN HÀNG (TÌM KIẾM & LỌC) ===
     @Override
     @Transactional(readOnly = true)
-    public List<HoaDon> getOrdersByUser(NguoiDung khachHang) {
-        return hoaDonRepo.findByKhachHangOrderByNgayTaoDesc(khachHang);
+    public List<HoaDon> getOrdersByUser(NguoiDung khachHang, String keyword, String fromDateStr, String toDateStr) {
+        LocalDateTime fromDate = null;
+        LocalDateTime toDate = null;
+
+        try {
+            if (fromDateStr != null && !fromDateStr.isEmpty()) {
+                fromDate = LocalDate.parse(fromDateStr).atStartOfDay();
+            }
+            if (toDateStr != null && !toDateStr.isEmpty()) {
+                toDate = LocalDate.parse(toDateStr).atTime(23, 59, 59);
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi ngày tháng
+        }
+
+        return hoaDonRepo.findHistory(khachHang, keyword, fromDate, toDate);
     }
 
-    /**
-     * THÊM LẠI: Lấy chi tiết một đơn hàng
-     * (Đây là hàm bị thiếu gây ra lỗi)
-     */
+    // === 3. LẤY CHI TIẾT ĐƠN HÀNG ===
     @Override
     @Transactional(readOnly = true)
     public HoaDon getOrderDetailForUser(Integer hoaDonId, NguoiDung khachHang) {
         HoaDon hoaDon = hoaDonRepo.findById(hoaDonId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + hoaDonId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
-        // KIỂM TRA BẢO MẬT
-        if (!hoaDon.getKhachHang().getId().equals(khachHang.getId())) {
-            throw new RuntimeException("Bạn không có quyền xem đơn hàng này.");
+        if (hoaDon.getKhachHang() == null || !hoaDon.getKhachHang().getId().equals(khachHang.getId())) {
+            throw new RuntimeException("Bạn không có quyền truy cập đơn hàng này.");
         }
-
-
         return hoaDon;
+    }
+
+    // === 4. HỦY ĐƠN HÀNG ===
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelOrder(Integer hoaDonId, NguoiDung khachHang, String lyDoHuy) {
+        HoaDon hoaDon = getOrderDetailForUser(hoaDonId, khachHang); // Check quyền sở hữu
+
+        String trangThai = hoaDon.getTrangThai();
+        if ("CHO_XAC_NHAN".equals(trangThai) || "DANG_CHO_THANH_TOAN".equals(trangThai)) {
+
+            hoaDon.setTrangThai("DA_HUY");
+
+            // Nối lý do hủy vào Ghi chú
+            String ghiChuCu = hoaDon.getGhiChu() == null ? "" : hoaDon.getGhiChu();
+            String ghiChuMoi = ghiChuCu + " | [Khách hủy: " + lyDoHuy + "]";
+            if (ghiChuMoi.length() > 255) ghiChuMoi = ghiChuMoi.substring(0, 255); // Cắt nếu quá dài
+            hoaDon.setGhiChu(ghiChuMoi);
+
+            // Hoàn kho
+            for (HoaDonChiTiet item : hoaDon.getHoaDonChiTiets()) {
+                SanPhamChiTiet spct = item.getSanPhamChiTiet();
+                spct.setSoLuongTon(spct.getSoLuongTon() + item.getSoLuong());
+                sanPhamChiTietRepo.save(spct);
+            }
+
+            hoaDonRepo.save(hoaDon);
+        } else {
+            throw new RuntimeException("Đơn hàng đang được xử lý hoặc đã giao, không thể hủy.");
+        }
     }
 }

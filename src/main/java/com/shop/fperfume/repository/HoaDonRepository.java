@@ -22,9 +22,17 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("SELECT hd FROM HoaDon hd LEFT JOIN FETCH hd.khachHang WHERE hd.id = :idHD")
     Optional<HoaDon> findByIdWithKhachHang(@Param("idHD") Integer idHD);
 
-    // Hàm tìm kiếm nâng cao
-    @Query("SELECT h FROM HoaDon h WHERE h.khachHang = :khachHang " +
-            "AND (:keyword IS NULL OR :keyword = '' OR h.ma LIKE %:keyword% OR h.tenNguoiNhan LIKE %:keyword%) " +
+    // === QUERY TÌM KIẾM NÂNG CAO (ĐÃ SỬA) ===
+    // Thêm JOIN để tìm theo tên sản phẩm
+    @Query("SELECT DISTINCT h FROM HoaDon h " +
+            "LEFT JOIN h.hoaDonChiTiets hdct " +
+            "LEFT JOIN hdct.sanPhamChiTiet spct " +
+            "LEFT JOIN spct.sanPham sp " +
+            "WHERE h.khachHang = :khachHang " +
+            "AND (:keyword IS NULL OR :keyword = '' " +
+            "     OR h.ma LIKE %:keyword% " +
+            "     OR h.tenNguoiNhan LIKE %:keyword% " +
+            "     OR sp.tenNuocHoa LIKE %:keyword%) " + // <<< THÊM DÒNG NÀY
             "AND (:fromDate IS NULL OR h.ngayTao >= :fromDate) " +
             "AND (:toDate IS NULL OR h.ngayTao <= :toDate) " +
             "ORDER BY h.ngayTao DESC")
@@ -34,6 +42,5 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate
     );
-
 
 }

@@ -1,7 +1,7 @@
 package com.shop.fperfume.service.client;
 
 import com.shop.fperfume.DTO.CheckoutRequestDTO;
-import com.shop.fperfume.entity.GioHang; // <<< THÊM IMPORT NÀY
+import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.NguoiDung;
 
@@ -9,22 +9,18 @@ import java.util.List;
 
 public interface HoaDonClientService {
 
-    /**
-     * SỬA: Thêm phương thức mới, linh hoạt hơn
-     * @param gioHang Giỏ hàng (có thể là "ảo" từ session hoặc "thật" từ DB)
-     * @param khachHang Người dùng (CÓ THỂ LÀ NULL nếu là khách)
-     * @param checkoutInfo Thông tin từ form
-     */
+    // Tạo đơn hàng mới (Xử lý chính)
     HoaDon createOrder(GioHang gioHang, NguoiDung khachHang, CheckoutRequestDTO checkoutInfo);
 
-    /**
-     * Giữ lại hàm cũ (hoặc cập nhật nó)
-     */
+    // Tạo đơn từ giỏ hàng (Hàm cũ, giữ lại để tương thích)
     HoaDon createOrderFromCart(NguoiDung khachHang, CheckoutRequestDTO checkoutInfo);
 
-    List<HoaDon> getOrdersByUser(NguoiDung khachHang);
+    // Lấy danh sách đơn hàng (Có tìm kiếm & Lọc ngày)
+    List<HoaDon> getOrdersByUser(NguoiDung khachHang, String keyword, String fromDateStr, String toDateStr);
 
+    // Lấy chi tiết đơn hàng (Có kiểm tra quyền)
     HoaDon getOrderDetailForUser(Integer hoaDonId, NguoiDung khachHang);
 
-    //  void cancelOrder(Integer hoaDonId, NguoiDung khachHang, String lyDoHuy);
+    // Hủy đơn hàng
+    void cancelOrder(Integer hoaDonId, NguoiDung khachHang, String lyDoHuy);
 }
