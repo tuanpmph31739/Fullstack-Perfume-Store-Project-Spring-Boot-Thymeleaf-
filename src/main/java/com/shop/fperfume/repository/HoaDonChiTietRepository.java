@@ -31,19 +31,41 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
     BigDecimal tinhTongTienHang(@Param("idHoaDon") Integer idHoaDon);
 
     @Query("""
-        SELECT sp.tenNuocHoa AS tenSanPham,
-               SUM(hdct.soLuong) AS tongSoLuong
-        FROM HoaDonChiTiet hdct
-        JOIN hdct.hoaDon hd
-        JOIN hdct.sanPhamChiTiet spct
-        JOIN spct.sanPham sp
-        WHERE hd.trangThai = 'DA_THANH_TOAN'
-          AND hd.ngayThanhToan BETWEEN :start AND :end
-        GROUP BY sp.tenNuocHoa
-        ORDER BY SUM(hdct.soLuong) DESC
-        """)
+    SELECT sp.tenNuocHoa AS tenSanPham,
+           SUM(hdct.soLuong) AS tongSoLuong,
+           SUM(hdct.thanhTien) AS doanhThu
+    FROM HoaDonChiTiet hdct
+    JOIN hdct.hoaDon hd
+    JOIN hdct.sanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    WHERE hd.trangThai = 'HOAN_THANH'
+      AND hd.ngayThanhToan BETWEEN :start AND :end
+    GROUP BY sp.tenNuocHoa
+    ORDER BY SUM(hdct.soLuong) DESC
+    """)
     List<Object[]> topSanPhamBanChay(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("""
+    SELECT sp.tenNuocHoa AS tenSanPham,
+           SUM(hdct.soLuong) AS tongSoLuong,
+           SUM(hdct.thanhTien) AS doanhThu
+    FROM HoaDonChiTiet hdct
+    JOIN hdct.hoaDon hd
+    JOIN hdct.sanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    WHERE hd.trangThai = 'HOAN_THANH'
+      AND hd.kenhBan = :kenhBan
+      AND hd.ngayThanhToan BETWEEN :start AND :end
+    GROUP BY sp.tenNuocHoa
+    ORDER BY SUM(hdct.soLuong) DESC
+    """)
+    List<Object[]> topSanPhamBanChayTheoKenh(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("kenhBan") String kenhBan
+    );
+
 }

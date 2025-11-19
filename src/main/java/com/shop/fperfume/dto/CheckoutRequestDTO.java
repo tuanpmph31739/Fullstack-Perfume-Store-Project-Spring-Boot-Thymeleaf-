@@ -1,4 +1,4 @@
-package com.shop.fperfume.DTO;
+package com.shop.fperfume.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,5 +17,5 @@ public class CheckoutRequestDTO {
     // ID của hình thức thanh toán (COD, VNPay...)
     private Long idThanhToan;
 
-    // (Chúng ta sẽ lấy IdGiamGia từ Giỏ hàng của user, không cần DTO)
+    // (Chúng ta sẽ lấy IdGiamGia từ Giỏ hàng của user, không cần dto)
 }

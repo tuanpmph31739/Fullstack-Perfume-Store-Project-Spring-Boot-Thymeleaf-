@@ -312,7 +312,7 @@ public class BanHangTaiQuayService {
         }
 
         // 6. Cập nhật trạng thái
-        hoaDon.setTrangThai("DA_THANH_TOAN");
+        hoaDon.setTrangThai("HOAN_THANH");
         hoaDon.setNgayThanhToan(LocalDateTime.now());
 
         return hoaDonRepo.save(hoaDon);

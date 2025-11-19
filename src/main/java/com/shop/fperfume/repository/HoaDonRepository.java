@@ -49,7 +49,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     SELECT cast(hd.ngayThanhToan as date) AS ngay,
            SUM(hd.tongThanhToan) AS doanhThu
     FROM HoaDon hd
-    WHERE hd.trangThai = 'DA_THANH_TOAN'
+    WHERE hd.trangThai = 'HOAN_THANH'
       AND hd.ngayThanhToan BETWEEN :start AND :end
     GROUP BY cast(hd.ngayThanhToan as date)
     ORDER BY cast(hd.ngayThanhToan as date) ASC
@@ -63,7 +63,7 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("""
         SELECT COALESCE(SUM(hd.tongThanhToan), 0)
         FROM HoaDon hd
-        WHERE hd.trangThai = 'DA_THANH_TOAN'
+        WHERE hd.trangThai = 'HOAN_THANH'
           AND hd.ngayThanhToan BETWEEN :start AND :end
         """)
     java.math.BigDecimal tongDoanhThuTrongKhoang(
@@ -75,11 +75,84 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     @Query("""
         SELECT COUNT(hd)
         FROM HoaDon hd
-        WHERE hd.trangThai = 'DA_THANH_TOAN'
+        WHERE hd.trangThai = 'HOAN_THANH'
           AND hd.ngayThanhToan BETWEEN :start AND :end
         """)
     Long tongDonDaThanhToanTrongKhoang(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("""
+    SELECT cast(hd.ngayThanhToan as date) AS ngay,
+           SUM(hd.tongThanhToan) AS doanhThu
+    FROM HoaDon hd
+    WHERE hd.trangThai = 'HOAN_THANH'
+      AND hd.kenhBan = :kenhBan
+      AND hd.ngayThanhToan BETWEEN :start AND :end
+    GROUP BY cast(hd.ngayThanhToan as date)
+    ORDER BY cast(hd.ngayThanhToan as date) ASC
+    """)
+    List<Object[]> thongKeDoanhThuTheoNgayTheoKenh(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("kenhBan") String kenhBan
+    );
+
+    @Query("""
+    SELECT COALESCE(SUM(hd.tongThanhToan), 0)
+    FROM HoaDon hd
+    WHERE hd.trangThai = 'HOAN_THANH'
+      AND hd.kenhBan = :kenhBan
+      AND hd.ngayThanhToan BETWEEN :start AND :end
+    """)
+    java.math.BigDecimal tongDoanhThuTrongKhoangTheoKenh(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("kenhBan") String kenhBan
+    );
+
+    @Query("""
+    SELECT COUNT(hd)
+    FROM HoaDon hd
+    WHERE hd.trangThai = 'HOAN_THANH'
+      AND hd.kenhBan = :kenhBan
+      AND hd.ngayThanhToan BETWEEN :start AND :end
+    """)
+    Long tongDonDaThanhToanTrongKhoangTheoKenh(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("kenhBan") String kenhBan
+    );
+    // Tổng (không phân kênh)
+    long countByTrangThai(String trangThai);
+
+    // Theo kênh
+    long countByKenhBanAndTrangThai(String kenhBan, String trangThai);
+    // Đếm số đơn theo từng trạng thái trong khoảng thời gian (tất cả kênh)
+    @Query("""
+        SELECT hd.trangThai, COUNT(hd)
+        FROM HoaDon hd
+        WHERE hd.ngayThanhToan BETWEEN :start AND :end
+        GROUP BY hd.trangThai
+        """)
+    List<Object[]> demSoDonTheoTrangThaiTrongKhoang(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    // Đếm số đơn theo từng trạng thái trong khoảng thời gian + theo kênh (WEB / TAI_QUAY)
+    @Query("""
+        SELECT hd.trangThai, COUNT(hd)
+        FROM HoaDon hd
+        WHERE hd.kenhBan = :kenhBan
+          AND hd.ngayThanhToan BETWEEN :start AND :end
+        GROUP BY hd.trangThai
+        """)
+    List<Object[]> demSoDonTheoTrangThaiTheoKenh(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("kenhBan") String kenhBan
+    );
+
 }

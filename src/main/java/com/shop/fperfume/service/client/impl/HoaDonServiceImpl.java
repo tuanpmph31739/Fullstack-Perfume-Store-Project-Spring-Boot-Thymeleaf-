@@ -1,6 +1,6 @@
 package com.shop.fperfume.service.client.impl;
 
-import com.shop.fperfume.DTO.CheckoutRequestDTO;
+import com.shop.fperfume.dto.CheckoutRequestDTO;
 import com.shop.fperfume.entity.*;
 import com.shop.fperfume.repository.*;
 import com.shop.fperfume.service.client.GioHangClientService;
