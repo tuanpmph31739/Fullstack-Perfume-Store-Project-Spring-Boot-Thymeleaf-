@@ -14,7 +14,7 @@
                         <h3>Quản lý người dùng</h3>
                     </div>
                     <div class="col-12 col-md-6 order-md-2 order-first text-end">
-                        <a href="/admin/nguoidung/add" class="btn btn-primary">
+                        <a href="/admin/nguoi-dung/add" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> Thêm mới
                         </a>
                     </div>
@@ -25,7 +25,7 @@
         <div class="page-content">
             <section class="row">
                 <div class="card p-3">
-                    <form method="get" action="/admin/nguoidung" class="row g-3 align-items-end mb-3">
+                    <form method="get" action="/admin/nguoi-dung" class="row g-3 align-items-end mb-3">
                         <div class="col-md-3">
                             <label>Vai trò</label>
                             <select name="vaiTro" class="form-select">
@@ -72,10 +72,10 @@
                                       th:classappend="${n.trangThai} ? 'badge bg-success' : 'badge bg-danger'"></span>
                             </td>
                             <td>
-                                <a th:href="@{'/admin/nguoidung/edit/' + ${n.id}}" class="btn btn-warning btn-sm">
+                                <a th:href="@{'/admin/nguoi-dung/edit/' + ${n.id}}" class="btn btn-warning btn-sm">
                                     <i class="bi bi-pencil-square"></i> Sửa
                                 </a>
-                                <a th:href="@{'/admin/nguoidung/delete/' + ${n.id}}" class="btn btn-danger btn-sm"
+                                <a th:href="@{'/admin/nguoi-dung/delete/' + ${n.id}}" class="btn btn-danger btn-sm"
                                    onclick="return confirm('Bạn có chắc muốn xóa?')">
                                     <i class="bi bi-trash"></i> Xóa
                                 </a>
@@ -88,19 +88,19 @@
                     <nav th:if="${totalPages > 1}" class="mt-3">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${currentPage == 0}? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/nguoidung(page=${currentPage - 1})}">Trước</a>
+                                <a class="page-link" th:href="@{/admin/nguoi-dung(page=${currentPage - 1})}">Trước</a>
                             </li>
 
                             <li class="page-item"
                                 th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                 th:classappend="${i == currentPage}? 'active'">
                                 <a class="page-link"
-                                   th:href="@{/admin/nguoidung(page=${i})}"
+                                   th:href="@{/admin/nguoi-dung(page=${i})}"
                                    th:text="${i + 1}"></a>
                             </li>
 
                             <li class="page-item" th:classappend="${currentPage + 1 == totalPages}? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/nguoidung(page=${currentPage + 1})}">Tiếp</a>
+                                <a class="page-link" th:href="@{/admin/nguoi-dung(page=${currentPage + 1})}">Tiếp</a>
                             </li>
                         </ul>
                     </nav>

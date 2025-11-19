@@ -38,7 +38,9 @@ CREATE TABLE NguoiDung (
                            Sdt NVARCHAR(20) NULL,
                            VaiTro NVARCHAR(20) NOT NULL DEFAULT N'KHACHHANG',
                            TrangThai BIT NOT NULL DEFAULT 1,
-                           CONSTRAINT CHK_VaiTro CHECK (VaiTro IN (N'ADMIN', N'NHANVIEN', N'KHACHHANG'))
+                           CONSTRAINT CHK_VaiTro CHECK (VaiTro IN (N'ADMIN', N'NHANVIEN', N'KHACHHANG')),
+						   VerificationCode NVARCHAR(255) NULL,
+						   Enabled BIT DEFAULT 0
 );
 PRINT N'Bảng NguoiDung đã được tạo.';
 GO
@@ -118,7 +120,9 @@ CREATE TABLE SanPham (
                          IdLoai INT FOREIGN KEY REFERENCES LoaiNuocHoa(Id),
                          IdMuaThichHop BIGINT FOREIGN KEY REFERENCES MuaThichHop(Id),
                          IdNhomHuong BIGINT FOREIGN KEY REFERENCES NhomHuong(Id),
-                         MoTa NVARCHAR(MAX)
+                         MoTa NVARCHAR(MAX),
+						 NgayTao DATETIME2 DEFAULT GETDATE(), 
+						 NgaySua DATETIME2 DEFAULT GETDATE()
 );
 PRINT N'Bảng SanPham đã được tạo.';
 GO
@@ -133,7 +137,9 @@ CREATE TABLE SanPhamChiTiet (
                                 GiaNhap DECIMAL(20, 0),
                                 GiaBan DECIMAL(20, 0),
                                 HinhAnh NVARCHAR(255) NULL,
-                                TrangThai BIT DEFAULT 1
+                                TrangThai BIT DEFAULT 1,
+								NgayTao DATETIME2 DEFAULT GETDATE(), 
+								NgaySua DATETIME2 DEFAULT GETDATE()
 );
 PRINT N'Bảng SanPhamChiTiet đã được tạo.';
 GO
@@ -211,10 +217,19 @@ CREATE TABLE HoaDon (
 
     -- Khóa ngoại tham chiếu đến ThanhToan
                         IdThanhToan BIGINT NULL FOREIGN KEY REFERENCES ThanhToan(Id),
-                        NgayGiaoHang DATETIME2 NULL
+                        NgayGiaoHang DATETIME2 NULL,
+
+						KenhBan NVARCHAR(20) NOT NULL DEFAULT 'WEB',
+						CONSTRAINT CHK_HoaDon_KenhBan CHECK (KenhBan IN ('WEB', 'TAI_QUAY')),
+
+						SoTienKhachDua DECIMAL(20,0) NULL,
+						SoTienTraLai DECIMAL(20,0) NULL,
+
+						MaGiaoDichThanhToan NVARCHAR(100) NULL,
+
+						NgaySua DATETIME2 DEFAULT GETDATE()
 );
-ALTER TABLE HoaDon
-ADD KenhBan NVARCHAR(20) NOT NULL DEFAULT 'WEB';
+
 PRINT N'Bảng HoaDon đã được tạo (sau ThanhToan).';
 GO
 -- ======================================================
@@ -228,7 +243,9 @@ CREATE TABLE HoaDonChiTiet (
                                DonGia DECIMAL(20, 0) NOT NULL CHECK (DonGia >= 0),
                                ThanhTien AS (SoLuong * DonGia) PERSISTED,
                                GhiChu NVARCHAR(255) NULL,
-                               TrangThai INT DEFAULT 1
+                               TrangThai INT DEFAULT 1,
+							   NgayTao DATETIME2 DEFAULT GETDATE(), 
+							   NgaySua DATETIME2 DEFAULT GETDATE()
 );
 PRINT N'Bảng HoaDonChiTiet đã được tạo.';
 GO
@@ -269,16 +286,6 @@ CREATE TABLE GioHangChiTiet (
 PRINT N'Bảng GioHangChiTiet đã được tạo (chuẩn Hibernate, hỗ trợ khóa tổng hợp).';
 GO
 
-
--- Thêm các cột Ngày tạo/sửa
-ALTER TABLE SanPham ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATETIME2 DEFAULT GETDATE();
-ALTER TABLE SanPhamChiTiet ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATETIME2 DEFAULT GETDATE();
-ALTER TABLE HoaDon ADD NgaySua DATETIME2 DEFAULT GETDATE();
-ALTER TABLE HoaDonChiTiet ADD NgayTao DATETIME2 DEFAULT GETDATE(), NgaySua DATETIME2 DEFAULT GETDATE();
-ALTER TABLE NguoiDung ADD VerificationCode NVARCHAR(255) NULL;
-ALTER TABLE NguoiDung ADD Enabled BIT DEFAULT 0;
-PRINT 'Da tao xong tat ca cac bang.';
-GO
 
 -- =================================================================================
 -- PHẦN 2: CHÈN DỮ LIỆU MẪU (Đã thêm HoaDon, ThanhToan)
@@ -875,7 +882,7 @@ VALUES
     N'Lê Thị Mai', -- TenNguoiNhan
     N'10 Lý Thường Kiệt, Hoàn Kiếm', -- DiaChi
     '0369852147', -- Sdt
-    3, -- TinhTrang (Đã hoàn thành)
+    N'CHO_XAC_NHAN', -- TinhTrang (Đã hoàn thành)
     (SELECT Id FROM GiamGia WHERE Ma = 'GG100K'), -- IdGiamGia
     3500000, -- TongTienHang
     100000, -- TienGiamGia

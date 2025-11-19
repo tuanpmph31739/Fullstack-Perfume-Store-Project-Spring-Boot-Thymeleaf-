@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +24,26 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             "JOIN FETCH spct.sanPham sp " +
             "WHERE hdct.hoaDon.id = :idHoaDon")
     List<HoaDonChiTiet> findByHoaDon_Id_WithSanPham(@Param("idHoaDon") Integer idHoaDon);
+
+    @Query("SELECT COALESCE(SUM(hdct.thanhTien), 0) " +
+            "FROM HoaDonChiTiet hdct " +
+            "WHERE hdct.hoaDon.id = :idHoaDon")
+    BigDecimal tinhTongTienHang(@Param("idHoaDon") Integer idHoaDon);
+
+    @Query("""
+        SELECT sp.tenNuocHoa AS tenSanPham,
+               SUM(hdct.soLuong) AS tongSoLuong
+        FROM HoaDonChiTiet hdct
+        JOIN hdct.hoaDon hd
+        JOIN hdct.sanPhamChiTiet spct
+        JOIN spct.sanPham sp
+        WHERE hd.trangThai = 'DA_THANH_TOAN'
+          AND hd.ngayThanhToan BETWEEN :start AND :end
+        GROUP BY sp.tenNuocHoa
+        ORDER BY SUM(hdct.soLuong) DESC
+        """)
+    List<Object[]> topSanPhamBanChay(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }
