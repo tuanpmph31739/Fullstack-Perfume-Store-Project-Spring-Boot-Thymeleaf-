@@ -110,7 +110,7 @@ public class OrderController {
             String trangThai = hoaDon.getTrangThai();
 
             // 2. XỬ LÝ THEO LOẠI THANH TOÁN
-            if (trangThai.equals("CHỜ XÁC NHẬN")) {
+            if (trangThai.equals("CHO_XAC_NHAN")) {
                 // === COD (TIỀN MẶT) ===
                 // Đặt xong là coi như thành công -> Xóa giỏ hàng NGAY
                 if (khachHang != null) {
@@ -122,7 +122,7 @@ public class OrderController {
                 redirectAttributes.addFlashAttribute("successMessage", "Đặt hàng thành công! Mã đơn: " + hoaDon.getMa());
                 return "redirect:/order/success/" + hoaDon.getId();
 
-            } else if (trangThai.equals("ĐANG CHỜ THANH TOÁN")) {
+            } else if (trangThai.equals("DANG_CHO_THANH_TOAN")) {
                 // === VNPAY ===
                 // GIỮ NGUYÊN GIỎ HÀNG (Để phòng trường hợp thất bại/hủy)
                 // Việc xóa giỏ sẽ thực hiện ở PaymentController khi Success

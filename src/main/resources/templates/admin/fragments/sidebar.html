@@ -14,8 +14,14 @@
 
                 <li class="sidebar-item" th:classappend="${currentPath == '/admin'} ? 'active'">
                     <a th:href="@{/admin}" class="sidebar-link">
-                        <i class="bi bi-grid-fill"></i>
+                        <i class="bi bi-clipboard-data"></i>
                         <span>Thống kê</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/don-hang'} ? 'active'">
+                    <a th:href="@{/admin/don-hang}" class="sidebar-link">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <span>Đơn hàng</span>
                     </a>
                 </li>
 

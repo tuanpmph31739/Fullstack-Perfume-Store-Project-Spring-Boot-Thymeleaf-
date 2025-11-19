@@ -21,7 +21,8 @@
                     <div class="card-body">
                         <form th:action="@{/admin/san-pham/save}" method="post"
                               th:object="${sanPhamRequest}" enctype="multipart/form-data">
-
+                            <input type="hidden" name="backUrl"
+                                   th:value="${backUrl != null} ? ${backUrl} : ${param.backUrl}" />
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <span th:text="${errorMessage}"></span>
@@ -112,7 +113,9 @@
                             </div>
 
                             <div class="text-end">
-                                <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Quay lại</a>
+                                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham}" class="btn btn-secondary">
+                                    ← Quay lại
+                                </a>
                                 <button type="submit" class="btn btn-primary">Lưu dòng sản phẩm</button>
                             </div>
 

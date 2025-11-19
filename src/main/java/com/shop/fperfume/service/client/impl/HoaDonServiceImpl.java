@@ -3,6 +3,7 @@ package com.shop.fperfume.service.client.impl;
 import com.shop.fperfume.DTO.CheckoutRequestDTO;
 import com.shop.fperfume.entity.*;
 import com.shop.fperfume.repository.*;
+import com.shop.fperfume.service.client.GioHangClientService;
 import com.shop.fperfume.service.client.HoaDonClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ public class HoaDonServiceImpl implements HoaDonClientService {
     @Autowired private SanPhamChiTietRepository sanPhamChiTietRepo;
     @Autowired private ThanhToanRepository thanhToanRepo;
     @Autowired private GiamGiaRepository giamGiaRepo;
+    @Autowired
+    private GioHangClientService gioHangClientService;
+
 
 
     /**
@@ -55,13 +59,14 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         hoaDon.setNgayTao(LocalDateTime.now());
         hoaDon.setThanhToan(phuongThucThanhToan);
         hoaDon.setPhiShip(new BigDecimal(30000));
+        hoaDon.setKenhBan("WEB");
         hoaDon.setMa("HD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
         // === 5. Quyết định trạng thái ===
         if (phuongThucThanhToan.getHinhThucThanhToan().toLowerCase().contains("vnpay")) {
-            hoaDon.setTrangThai("ĐANG CHỜ THANH TOÁN");
+            hoaDon.setTrangThai("DANG_CHO_THANH_TOAN");
         } else {
-            hoaDon.setTrangThai("CHỜ XÁC NHẬN");
+            hoaDon.setTrangThai("CHO_XAC_NHAN");
         }
 
         // === 6. Tạo Hóa Đơn Chi Tiết và Tính Tiền Hàng ===
@@ -115,10 +120,9 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         HoaDon savedHoaDon = hoaDonRepo.save(hoaDon);
 
         if (khachHang != null) {
-            gioHangChiTietRepo.deleteAllInBatch(cartItems);
-            gioHang.setGiamGia(null);
-            gioHangRepo.save(gioHang);
+            gioHangClientService.clearCart(khachHang);  // tái dùng hàm đã viết đúng
         }
+
 
         return savedHoaDon;
     }
@@ -158,6 +162,7 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         if (!hoaDon.getKhachHang().getId().equals(khachHang.getId())) {
             throw new RuntimeException("Bạn không có quyền xem đơn hàng này.");
         }
+
 
         return hoaDon;
     }

@@ -184,7 +184,7 @@ GO
 
 CREATE TABLE HoaDon (
                         Id INT PRIMARY KEY IDENTITY(1,1),
-                        IdKH INT NOT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
+                        IdKH INT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
                         IdNV INT NULL FOREIGN KEY REFERENCES NguoiDung(Id),
                         Ma NVARCHAR(20) UNIQUE,
                         NgayTao DATETIME2 DEFAULT GETDATE(),
@@ -213,6 +213,8 @@ CREATE TABLE HoaDon (
                         IdThanhToan BIGINT NULL FOREIGN KEY REFERENCES ThanhToan(Id),
                         NgayGiaoHang DATETIME2 NULL
 );
+ALTER TABLE HoaDon
+ADD KenhBan NVARCHAR(20) NOT NULL DEFAULT 'WEB';
 PRINT N'Bảng HoaDon đã được tạo (sau ThanhToan).';
 GO
 -- ======================================================

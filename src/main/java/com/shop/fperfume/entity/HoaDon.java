@@ -58,10 +58,13 @@ public class HoaDon {
     @Column(name = "NgaySua")
     private LocalDateTime ngaySua;
 
+    @Column(name = "KenhBan")
+    private String kenhBan;
+
     // --- Mối quan hệ (Many-to-One) ---
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IdKH", nullable = false)
+    @JoinColumn(name = "IdKH", nullable = true)
     private NguoiDung khachHang; // Liên kết BẮT BUỘC
 
     @ManyToOne(fetch = FetchType.LAZY)
