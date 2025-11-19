@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/admin/nguoidung")
+@RequestMapping("/admin/nguoi-dung")
 public class NguoiDungController {
 
     private final NguoiDungService service;
@@ -46,7 +46,7 @@ public class NguoiDungController {
         model.addAttribute("totalPages", pageData.getTotalPages());
         model.addAttribute("selectedVaiTro", vaiTro);
         model.addAttribute("selectedTrangThai", trangThai);
-
+        model.addAttribute("currentPath", "/admin/nguoi-dung");
         return "admin/nguoi_dung/index";
     }
 

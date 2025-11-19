@@ -31,6 +31,7 @@ public class GiamGiaController {
 
         PageableObject<GiamGiaResponse> pageableObject = giamGiaService.paging(page, size);
         model.addAttribute("page", pageableObject);
+        model.addAttribute("currentPath", "/admin/giam-gia");
         return "admin/giam_gia/index";
     }
 

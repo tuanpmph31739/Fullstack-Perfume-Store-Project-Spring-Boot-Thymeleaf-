@@ -1,71 +1,261 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head th:replace="~{/admin/fragments/head :: head}"></head>
+
 <body>
-<!-- Site wrapper -->
 <div class="wrapper">
-    <!-- Sidebar -->
-    <div>
-        <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
-    </div>
 
-    <!-- Main-->
+    <!-- SIDEBAR -->
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
     <div id="main">
-        <header th:replace="/admin/fragments/header :: header"></header>
+        <!-- HEADER -->
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
 
+        <!-- TIÊU ĐỀ TRANG -->
         <div class="page-heading">
             <div class="page-title">
                 <div class="row">
                     <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Thông Tin Tài Khoản</h3>
-                    </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first">
-                        <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
-                            <div class="card-footer">
-                                <form th:action="@{/logout}" method="post">
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="bi bi-box-arrow-right"></i> Đăng Xuất
-                                    </button>
-                                </form>
-                            </div>
-                        </nav>
+                        <h3>Thống kê</h3>
+                        <p class="text-subtitle text-muted">
+                            Tổng quan doanh thu & đơn hàng
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- NỘI DUNG CHÍNH -->
         <div class="page-content">
-            <!--        dữ liệu thực hiện trong secsion-->
+
+            <!-- CSS nhỏ -->
+            <style>
+                .stat-card {
+                    border-radius: 14px;
+                    border: none;
+                    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+                }
+                .stat-value {
+                    font-size: 20px;
+                    font-weight: 700;
+                }
+                .chart-card {
+                    border-radius: 14px;
+                    border: none;
+                    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+                }
+            </style>
+
             <section class="row">
-                <div class="card">
-                    <div class="card-header">
+                <div class="col-12">
 
+                    <!-- Bộ lọc ngày -->
+                    <div class="card stat-card mb-3">
+                        <div class="card-body">
+                            <form class="row g-2 align-items-end" method="get">
+                                <div class="col-md-3">
+                                    <label class="form-label">Từ ngày</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           name="from"
+                                           th:value="${fromDate}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Đến ngày</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           name="to"
+                                           th:value="${toDate}">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary mt-3" type="submit">
+                                        <i class="bi bi-funnel"></i> Lọc
+                                    </button>
+                                </div>
+                                <div class="col-md-3 text-end d-none d-md-block">
+                                    <span class="text-muted small">
+                                        Khoảng thời gian:
+                                        <strong th:text="${fromDate}"></strong>
+                                        -
+                                        <strong th:text="${toDate}"></strong>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="card">
-                            <div>
-                               <h1>iiiiiiiiiiiiiiiiiii</h1>
-                                <h1>ttttttttttttttjuu</h1>
-                            </div>
 
+                    <!-- Thẻ tổng quan -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-muted small">Tổng doanh thu</div>
+                                            <div class="stat-value text-primary"
+                                                 th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
+                                                0 đ
+                                            </div>
+                                        </div>
+                                        <div class="text-primary fs-2">
+                                            <i class="bi bi-cash-stack"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-muted small">Số đơn đã thanh toán</div>
+                                            <div class="stat-value"
+                                                 th:text="${tongQuan.tongDonThanhToan}">
+                                                0
+                                            </div>
+                                        </div>
+                                        <div class="text-success fs-2">
+                                            <i class="bi bi-bag-check"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bạn có thể thêm 1 thẻ nữa: đơn trung bình / ngày, v.v -->
+                    </div>
+
+                    <!-- Biểu đồ & Top sản phẩm -->
+                    <div class="row">
+                        <!-- Chart doanh thu -->
+                        <div class="col-lg-8 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    Doanh thu theo ngày
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartDoanhThuNgay" style="max-height: 340px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top sản phẩm -->
+                        <div class="col-lg-4 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    Top sản phẩm bán chạy
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartTopSP" style="max-height: 260px;"></canvas>
+
+                                    <hr>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th>Sản phẩm</th>
+                                                <th class="text-end">SL bán</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="sp : ${listTopSP}">
+                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                                <td class="text-end"
+                                                    th:text="${sp.tongSoLuong}">0</td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(listTopSP)}">
+                                                <td colspan="2" class="text-center text-muted">
+                                                    Chưa có dữ liệu trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                 </div>
             </section>
+
         </div>
-        <!-- Footer-->
-        <div>
-            <footer th:replace="/admin/fragments/footer :: footer"></footer>
-        </div>
+
+        <!-- FOOTER -->
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
     </div>
 </div>
-<div>
-    <script th:replace="/admin/fragments/script :: script"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-    <script th:inline="javascript">
-    </script>
-</div>
+
+<!-- SCRIPT CHUNG ADMIN -->
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Script dựng biểu đồ từ model -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const labelsNgay = [[${labelsNgay}]];
+    const dataDoanhThu = [[${dataDoanhThu}]];
+    const labelsTopSP = [[${labelsTopSP}]];
+    const dataTopSP = [[${dataTopSP}]];
+
+    // LINE CHART - DOANH THU NGÀY
+    const ctx1 = document.getElementById('chartDoanhThuNgay');
+    if (ctx1 && labelsNgay && labelsNgay.length > 0) {
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labelsNgay,
+                datasets: [{
+                    label: 'Doanh thu (đ)',
+                    data: dataDoanhThu,
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // BAR CHART - TOP SẢN PHẨM
+    const ctx2 = document.getElementById('chartTopSP');
+    if (ctx2 && labelsTopSP && labelsTopSP.length > 0) {
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: labelsTopSP,
+                datasets: [{
+                    label: 'Số lượng bán',
+                    data: dataTopSP,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    /*]]>*/
+</script>
+
 </body>
 </html>
