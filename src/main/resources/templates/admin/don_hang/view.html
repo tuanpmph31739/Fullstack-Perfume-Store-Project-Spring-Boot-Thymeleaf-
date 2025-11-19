@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>
+                            Chi tiết đơn hàng
+                            <span class="text-muted" th:text="${donHang.ma}">HD-XXXX</span>
+                        </h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first text-md-end mt-2 mt-md-0">
+                        <a th:href="${backUrl}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-12">
+
+                    <!-- THÔNG TIN CHUNG CỦA ĐƠN -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin đơn hàng</h5>
+                        </div>
+                        <div class="card-body row g-3">
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Mã đơn hàng</label>
+                                <div th:text="${donHang.ma}">HD-XXXX</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Trạng thái</label>
+                                <div>
+                                    <span class="badge bg-success" th:if="${donHang.trangThai == 'HOAN_THANH'}">Hoàn thành</span>
+                                    <span class="badge bg-warning text-dark" th:if="${donHang.trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</span>
+                                    <span class="badge bg-info text-dark" th:if="${donHang.trangThai == 'DANG_GIAO'}">Đang giao</span>
+                                    <span class="badge bg-secondary" th:if="${donHang.trangThai == 'DA_HUY'}">Đã hủy</span>
+                                    <span th:if="${donHang.trangThai != 'HOAN_THANH'
+                                                 and donHang.trangThai != 'CHO_XAC_NHAN'
+                                                 and donHang.trangThai != 'DANG_GIAO'
+                                                 and donHang.trangThai != 'DA_HUY'}"
+                                          th:text="${donHang.trangThai}">---</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Kênh bán</label>
+                                <div th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng trên Website'}">
+                                    Đơn hàng trên Website
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Phương thức thanh toán</label>
+                                <div th:text="${donHang.phuongThucThanhToan ?: '---'}">COD</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Ngày tạo</label>
+                                <div th:text="${#temporals.format(donHang.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2025 10:00
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Khách hàng (tài khoản)</label>
+                                <div th:text="${donHang.tenKhachHang != null ? donHang.tenKhachHang : 'Khách hàng không đăng nhập'}">
+                                    Khách hàng không đăng nhập
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN NGƯỜI NHẬN & ĐỊA CHỈ -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin người nhận</h5>
+                        </div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Tên người nhận</label>
+                                <div th:text="${donHang.tenNguoiNhan}">Nguyễn Văn A</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Số điện thoại</label>
+                                <div th:text="${donHang.sdt}">0123456789</div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Địa chỉ giao hàng</label>
+                                <div th:text="${donHang.diaChi}">Địa chỉ giao hàng...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BẢNG CHI TIẾT SẢN PHẨM -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Sản phẩm trong đơn</h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="ct, iter : ${chiTietList}">
+                                    <td th:text="${iter.index + 1}">1</td>
+                                    <td>
+                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên nước hoa</span>
+                                    </td>
+                                    <td th:text="${ct.soLuong}">1</td>
+                                    <td th:text="${#numbers.formatDecimal(ct.donGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                        1.000.000 ₫
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${chiTietList == null or #lists.isEmpty(chiTietList)}">
+                                    <td colspan="4" class="text-center">Không có dữ liệu chi tiết đơn hàng.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TỔNG TIỀN -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Tổng tiền</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tiền hàng:</span>
+                                        <strong th:text="${#numbers.formatDecimal(donHang.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            0 ₫
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Giảm giá:</span>
+                                        <strong th:text="${#numbers.formatDecimal(donHang.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            0 ₫
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Phí ship:</span>
+                                        <strong th:text="${#numbers.formatDecimal(donHang.phiShip, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            0 ₫
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <hr/>
+                                    <div class="d-flex justify-content-between fs-5">
+                                        <span>TỔNG THANH TOÁN:</span>
+                                        <span class="fw-bold text-danger"
+                                              th:text="${#numbers.formatDecimal(donHang.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            0 ₫
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

@@ -100,6 +100,7 @@ public class SanPhamController {
     @PostMapping("/save")
     public String add(@Valid @ModelAttribute("sanPhamRequest") SanPhamRequest request,
                       BindingResult bindingResult, // <-- Thêm BindingResult
+                      @RequestParam(value = "backUrl", required = false) String backUrl,
                       RedirectAttributes redirectAttributes,
                       Model model) {
 
@@ -120,6 +121,7 @@ public class SanPhamController {
                 model.addAttribute("errorMessage", "Lỗi khi thêm sản phẩm: " + e.getMessage());
             }
             loadBaseProductDropdownData(model);
+            model.addAttribute("backUrl", backUrl);
             model.addAttribute("currentPath", "/admin/san-pham");
             return "admin/san_pham/add";
         }
