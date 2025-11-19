@@ -232,7 +232,7 @@ public class GioHangController {
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         // (Giữ nguyên logic)
         if (userDetails == null) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng đăng nhập"));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Chỉ khách hàng thành viên có thể sử dụng mã giảm giá!"));
         }
         NguoiDung khachHang = userDetails.getUser();
         try {

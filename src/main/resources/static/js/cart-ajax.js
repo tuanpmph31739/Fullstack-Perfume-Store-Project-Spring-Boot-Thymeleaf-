@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
                          location.reload();
                     } else {
                         res.json().then(data => {
-                            showNotification("Lỗi", data.message || "Không thể áp dụng mã", "error");
+                            showNotification("Vui lòng đăng nhập", data.message || "Không thể áp dụng mã", "alert");
                             if (button) button.disabled = false;
                         });
                     }
