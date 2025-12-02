@@ -12,11 +12,11 @@
             <div class="page-title">
                 <div class="row">
                     <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Quản lý Loại nước hoa</h3>
+                        <h3>Quản lý Giới tính</h3>
                     </div>
                     <div class="col-12 col-md-6 order-md-2 order-first text-end">
                         <a th:href="@{/admin/loai-nuoc-hoa/add}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Thêm loại nước hoa
+                            <i class="bi bi-plus-circle"></i> Thêm giới tính
                         </a>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
                             <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Tên loại nước hoa</th>
+                                <th>Giới tính</th>
                                 <th>Mô tả</th> <th>Ngày tạo</th> <th>Ngày Sửa</th> <th>Hành động</th>
                             </tr>
                             </thead>
@@ -52,17 +52,17 @@
                                 <td th:text="${lnh.ngaySua != null ? #temporals.format(lnh.ngaySua, 'dd-MM-yyyy HH:mm') : '---'}"></td>
 
                                 <td>
-                                    <a th:href="@{/admin/loai-nuoc-hoa/edit/{id}(id=${lnh.id})}" class="btn btn-warning btn-sm" title="Sửa loại nước hoa">
+                                    <a th:href="@{/admin/loai-nuoc-hoa/edit/{id}(id=${lnh.id})}" class="btn btn-warning btn-sm" title="Sửa giới tính">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a th:href="@{/admin/loai-nuoc-hoa/delete/{id}(id=${lnh.id})}" class="btn btn-danger btn-sm" title="Xóa loại nước hoa"
-                                       onclick="return confirm('Bạn có chắc muốn xóa loại nước hoa này?')">
+                                    <a th:href="@{/admin/loai-nuoc-hoa/delete/{id}(id=${lnh.id})}" class="btn btn-danger btn-sm" title="Xóa giới tính"
+                                       onclick="return confirm('Bạn có chắc muốn xóa giới tính này?')">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>
                             </tr>
                             <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
-                                <td colspan="6" class="text-center">Không có loại nước hoa nào.</td> </tr>
+                                <td colspan="6" class="text-center">Không có giới tính nào.</td> </tr>
                             </tbody>
                         </table>
                     </div>

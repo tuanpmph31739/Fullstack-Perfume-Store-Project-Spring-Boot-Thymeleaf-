@@ -23,7 +23,7 @@ public class SanPhamChiTietResponse {
 
     private Integer idSanPham;
     private String tenSanPham;
-    private String moTa;  // Thêm MoTa vào DTO
+    private String moTa;  // Thêm MoTa vào dto
 
     private Long idDungTich;
     private Integer soMl;

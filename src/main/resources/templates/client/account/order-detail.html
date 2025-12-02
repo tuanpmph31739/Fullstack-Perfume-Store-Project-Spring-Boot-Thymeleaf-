@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<div class="container my-5">
+<div class="container pd-wrap my-5">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{/account/orders}" class="text-decoration-none text-muted hover-link"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a></li>
@@ -95,7 +95,7 @@
                     <div class="text-center mb-4">
                         <span th:if="${order.trangThai == 'CHO_XAC_NHAN'}" class="badge bg-warning text-dark w-100 py-3 rounded-pill fs-6"><i class="bi bi-hourglass-split me-2"></i>Chờ xác nhận</span>
                         <span th:if="${order.trangThai == 'DANG_CHO_THANH_TOAN'}" class="badge bg-info text-white w-100 py-3 rounded-pill fs-6"><i class="bi bi-credit-card me-2"></i>Chờ thanh toán</span>
-                        <span th:if="${order.trangThai == 'DA_THANH_TOAN' or order.trangThai == 'ĐÃ THANH TOÁN'}" class="badge bg-success w-100 py-3 rounded-pill fs-6"><i class="bi bi-check-circle-fill me-2"></i>Đã thanh toán</span>
+                        <span th:if="${order.trangThai == 'HOAN_THANH' or order.trangThai == 'HOÀN THÀNH'}" class="badge bg-success w-100 py-3 rounded-pill fs-6"><i class="bi bi-check-circle-fill me-2"></i>Hoàn thành</span>
                         <span th:if="${order.trangThai == 'DA_HUY'}" class="badge bg-danger w-100 py-3 rounded-pill fs-6"><i class="bi bi-x-circle-fill me-2"></i>Đã hủy</span>
                     </div>
 

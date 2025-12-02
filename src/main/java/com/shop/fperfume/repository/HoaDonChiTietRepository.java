@@ -47,7 +47,7 @@ public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, In
             JOIN hdct.hoaDon hd
             JOIN hdct.sanPhamChiTiet spct
             JOIN spct.sanPham sp
-            WHERE hd.trangThai = 'DA_THANH_TOAN'
+            WHERE hd.trangThai = 'HOAN_THANH'
               AND hd.ngayThanhToan BETWEEN :start AND :end
             GROUP BY sp.tenNuocHoa
             ORDER BY SUM(hdct.soLuong) DESC

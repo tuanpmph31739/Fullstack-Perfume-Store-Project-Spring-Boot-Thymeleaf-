@@ -45,7 +45,7 @@
                                 <a th:href="@{/admin/don-hang(kenhBan='WEB')}"
                                    class="btn"
                                    th:classappend="${kenhBan == 'WEB'} ? 'btn-success' : 'btn-outline-success'">
-                                    Đơn hàng Website
+                                    Đơn hàng online
                                 </a>
                                 <a th:href="@{/admin/don-hang(kenhBan='TAI_QUAY')}"
                                    class="btn"
@@ -92,7 +92,7 @@
                                                      and dh.trangThai != 'DA_HUY'}"
                                               th:text="${dh.trangThai}">---</span>
                                     </td>
-                                    <td th:text="${dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng trên Website'}"></td>
+                                    <td th:text="${dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}"></td>
                                     <td>
                                         <a th:href="@{/admin/don-hang/view/{id}(id=${dh.id})}"
                                            class="btn btn-outline-secondary btn-sm" title="Xem chi tiết">
