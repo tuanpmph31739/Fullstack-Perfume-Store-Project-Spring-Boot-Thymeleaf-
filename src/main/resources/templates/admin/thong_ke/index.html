@@ -9,6 +9,7 @@
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
+
         <!-- HEADER -->
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
@@ -17,9 +18,9 @@
             <div class="page-title">
                 <div class="row">
                     <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Thống kê</h3>
+                        <h3>Thống kê & Báo cáo</h3>
                         <p class="text-subtitle text-muted">
-                            Tổng quan doanh thu & đơn hàng
+                            Tổng quan doanh thu và đơn hàng theo kênh bán.
                         </p>
                     </div>
                 </div>
@@ -29,146 +30,287 @@
         <!-- NỘI DUNG CHÍNH -->
         <div class="page-content">
 
-            <!-- CSS nhỏ -->
+            <!-- CSS RIÊNG CHO THỐNG KÊ -->
             <style>
                 .stat-card {
                     border-radius: 14px;
                     border: none;
-                    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+                    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
                 }
+
+                .stat-card .card-body {
+                    padding: 1rem 1.25rem;
+                }
+
+                .stat-label {
+                    font-size: 13px;
+                    color: #6b7280;
+                    margin-bottom: 0.15rem;
+                }
+
                 .stat-value {
                     font-size: 20px;
-                    font-weight: 700;
+                    font-weight: 600;
                 }
-                .chart-card {
-                    border-radius: 14px;
-                    border: none;
-                    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+
+                .stat-subtext {
+                    font-size: 12px;
+                    color: #9ca3af;
+                }
+
+                .nav-stats .nav-link {
+                    border-radius: 999px !important;
+                    font-weight: 500;
+                    font-size: 14px;
+                    padding: 0.45rem 1rem;
+                }
+
+                .nav-stats .nav-link.active {
+                    background-color: #2563eb !important;
+                    color: #fff !important;
+                }
+
+                .status-badge {
+                    font-size: 11px;
+                    font-weight: 500;
+                    border-radius: 999px;
+                    padding: 0.25rem 0.6rem;
+                }
+
+                .table-sm th, .table-sm td {
+                    padding-top: 0.4rem;
+                    padding-bottom: 0.4rem;
+                }
+
+                .section-title-sm {
+                    font-size: 15px;
+                    font-weight: 600;
+                    margin-top: 1rem;
+                    margin-bottom: 0.5rem;
                 }
             </style>
 
             <section class="row">
                 <div class="col-12">
 
-                    <!-- Bộ lọc ngày -->
-                    <div class="card stat-card mb-3">
+                    <div class="card stat-card">
                         <div class="card-body">
-                            <form class="row g-2 align-items-end" method="get">
-                                <div class="col-md-3">
-                                    <label class="form-label">Từ ngày</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           name="from"
-                                           th:value="${fromDate}">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Đến ngày</label>
-                                    <input type="date"
-                                           class="form-control"
-                                           name="to"
-                                           th:value="${toDate}">
-                                </div>
-                                <div class="col-md-3">
-                                    <button class="btn btn-primary mt-3" type="submit">
-                                        <i class="bi bi-funnel"></i> Lọc
+
+                            <!-- NAV TABS -->
+                            <ul class="nav nav-pills nav-stats mb-3" id="thongKeTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active"
+                                            id="tab-tong-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#tab-tong"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="tab-tong"
+                                            aria-selected="true">
+                                        Tổng quan
                                     </button>
-                                </div>
-                                <div class="col-md-3 text-end d-none d-md-block">
-                                    <span class="text-muted small">
-                                        Khoảng thời gian:
-                                        <strong th:text="${fromDate}"></strong>
-                                        -
-                                        <strong th:text="${toDate}"></strong>
-                                    </span>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="tab-web-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#tab-web"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="tab-web"
+                                            aria-selected="false">
+                                        Theo kênh Web
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link"
+                                            id="tab-pos-tab"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#tab-pos"
+                                            type="button"
+                                            role="tab"
+                                            aria-controls="tab-pos"
+                                            aria-selected="false">
+                                        Theo kênh POS (tại quầy)
+                                    </button>
+                                </li>
+                            </ul>
 
-                    <!-- Thẻ tổng quan -->
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <div class="card stat-card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="text-muted small">Tổng doanh thu</div>
-                                            <div class="stat-value text-primary"
-                                                 th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
-                                                0 đ
+                            <hr class="mt-0">
+
+                            <!-- TAB CONTENT -->
+                            <div class="tab-content" id="thongKeTabsContent">
+
+                                <!-- ================= TAB TỔNG ================= -->
+                                <div class="tab-pane fade show active" id="tab-tong" role="tabpanel"
+                                     aria-labelledby="tab-tong-tab">
+
+                                    <!-- HÀNG 1: KPI -->
+                                    <div class="row g-3 mb-2">
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-primary-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Tổng số đơn (tất cả kênh)</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkTong != null ? tkTong.tongSoDon : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Bao gồm tất cả trạng thái đơn hàng.
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="text-primary fs-2">
-                                            <i class="bi bi-cash-stack"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="col-md-4">
-                            <div class="card stat-card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="text-muted small">Số đơn đã thanh toán</div>
-                                            <div class="stat-value"
-                                                 th:text="${tongQuan.tongDonThanhToan}">
-                                                0
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-success-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Số đơn đã hoàn thành</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkTong != null ? tkTong.soDonHoanThanh : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Đơn ở trạng thái <strong>HOÀN THÀNH</strong>.
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="text-success fs-2">
-                                            <i class="bi bi-bag-check"></i>
+
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-warning-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Tổng doanh thu (đã hoàn thành)</div>
+                                                    <div class="stat-value text-primary"
+                                                         th:text="${tkTong != null ? #numbers.formatDecimal(tkTong.tongDoanhThu, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">
+                                                        0 đ
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Chỉ tính những đơn đã hoàn thành.
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Bạn có thể thêm 1 thẻ nữa: đơn trung bình / ngày, v.v -->
-                    </div>
+                                    <!-- HÀNG 2: ĐƠN THEO TRẠNG THÁI -->
+                                    <h6 class="section-title-sm mt-3">Đơn hàng theo trạng thái</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="status-badge bg-secondary-subtle text-secondary">
+                                                        Chờ xác nhận
+                                                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkTong != null ? tkTong.soDonChoXacNhan : 0}">
+                                                        0
+                                                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn mới tạo, chưa duyệt.</div>
+                                            </div>
+                                        </div>
 
-                    <!-- Biểu đồ & Top sản phẩm -->
-                    <div class="row">
-                        <!-- Chart doanh thu -->
-                        <div class="col-lg-8 mb-3">
-                            <div class="card chart-card">
-                                <div class="card-header">
-                                    Doanh thu theo ngày
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="chartDoanhThuNgay" style="max-height: 340px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="status-badge bg-info-subtle text-info">
+                                                        Đang chờ thanh toán
+                                                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkTong != null ? tkTong.soDonDangThanhToan : 0}">
+                                                        0
+                                                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đã duyệt, chờ thanh toán.</div>
+                                            </div>
+                                        </div>
 
-                        <!-- Top sản phẩm -->
-                        <div class="col-lg-4 mb-3">
-                            <div class="card chart-card">
-                                <div class="card-header">
-                                    Top sản phẩm bán chạy
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="chartTopSP" style="max-height: 260px;"></canvas>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="status-badge bg-warning-subtle text-warning">
+                                                        Đang giao
+                                                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkTong != null ? tkTong.soDonDangGiao : 0}">
+                                                        0
+                                                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn đang vận chuyển đến khách.</div>
+                                            </div>
+                                        </div>
 
-                                    <hr>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="status-badge bg-danger-subtle text-danger">
+                                                        Đã hủy
+                                                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkTong != null ? tkTong.soDonDaHuy : 0}">
+                                                        0
+                                                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn bị hủy bởi khách hoặc hệ thống.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HÀNG 3: DOANH THU THEO NGÀY -->
+                                    <h6 class="section-title-sm">Doanh thu 7 ngày gần nhất (tất cả kênh)</h6>
                                     <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-0">
-                                            <thead>
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
                                             <tr>
-                                                <th>Sản phẩm</th>
-                                                <th class="text-end">SL bán</th>
+                                                <th>Ngày</th>
+                                                <th class="text-end">Doanh thu</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr th:each="sp : ${listTopSP}">
-                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                            <tr th:each="row : ${doanhThuNgayTong}">
+                                                <td th:text="${#temporals.format(row.ngay, 'dd/MM/yyyy')}">
+                                                    01/01/2025
+                                                </td>
                                                 <td class="text-end"
-                                                    th:text="${sp.tongSoLuong}">0</td>
+                                                    th:text="${#numbers.formatDecimal(row.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
                                             </tr>
-                                            <tr th:if="${#lists.isEmpty(listTopSP)}">
+                                            <tr th:if="${#lists.isEmpty(doanhThuNgayTong)}">
                                                 <td colspan="2" class="text-center text-muted">
-                                                    Chưa có dữ liệu trong khoảng thời gian này.
+                                                    Không có dữ liệu trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- HÀNG 4: TOP SẢN PHẨM -->
+                                    <h6 class="section-title-sm">Top 5 sản phẩm bán chạy (7 ngày gần nhất)</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Sản phẩm</th>
+                                                <th class="text-center">Số lượng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="sp, iterStat : ${topSpTong}">
+                                                <td th:text="${iterStat.index + 1}">1</td>
+                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                                <td class="text-center" th:text="${sp.tongSoLuong}">0</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(sp.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(topSpTong)}">
+                                                <td colspan="4" class="text-center text-muted">
+                                                    Chưa có sản phẩm nào được bán trong khoảng thời gian này.
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -176,85 +318,404 @@
                                     </div>
 
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+
+                                <!-- ================= TAB WEB ================= -->
+                                <div class="tab-pane fade" id="tab-web" role="tabpanel" aria-labelledby="tab-web-tab">
+
+                                    <!-- HÀNG 1: KPI -->
+                                    <div class="row g-3 mb-2">
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-primary-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Tổng số đơn (Web)</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkWeb != null ? tkWeb.tongSoDon : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Đơn đặt mua qua website.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-success-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Số đơn Web đã hoàn thành</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkWeb != null ? tkWeb.soDonHoanThanh : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Đơn Web ở trạng thái <strong>HOÀN THÀNH</strong>.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-warning-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Doanh thu Web (đã hoàn thành)</div>
+                                                    <div class="stat-value text-primary"
+                                                         th:text="${tkWeb != null ? #numbers.formatDecimal(tkWeb.tongDoanhThu, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">
+                                                        0 đ
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Chỉ tính đơn Web đã hoàn thành.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HÀNG 2: ĐƠN THEO TRẠNG THÁI -->
+                                    <h6 class="section-title-sm mt-3">Đơn Web theo trạng thái</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-secondary-subtle text-secondary">
+                        Chờ xác nhận
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkWeb != null ? tkWeb.soDonChoXacNhan : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn mới tạo, chưa duyệt.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-info-subtle text-info">
+                        Đang chờ thanh toán
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkWeb != null ? tkWeb.soDonDangThanhToan : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đã duyệt, chờ thanh toán.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-warning-subtle text-warning">
+                        Đang giao
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkWeb != null ? tkWeb.soDonDangGiao : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn đang vận chuyển đến khách.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-danger-subtle text-danger">
+                        Đã hủy
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkWeb != null ? tkWeb.soDonDaHuy : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn Web đã bị hủy.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HÀNG 3: DOANH THU THEO NGÀY -->
+                                    <h6 class="section-title-sm">Doanh thu Web 7 ngày gần nhất</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>Ngày</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="row : ${doanhThuNgayWeb}">
+                                                <td th:text="${#temporals.format(row.ngay, 'dd/MM/yyyy')}">
+                                                    01/01/2025
+                                                </td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(row.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(doanhThuNgayWeb)}">
+                                                <td colspan="2" class="text-center text-muted">
+                                                    Không có dữ liệu trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- HÀNG 4: TOP SẢN PHẨM WEB -->
+                                    <h6 class="section-title-sm">Top 5 sản phẩm Web bán chạy (7 ngày gần nhất)</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Sản phẩm</th>
+                                                <th class="text-center">Số lượng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="sp, iterStat : ${topSpWeb}">
+                                                <td th:text="${iterStat.index + 1}">1</td>
+                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                                <td class="text-center" th:text="${sp.tongSoLuong}">0</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(sp.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(topSpWeb)}">
+                                                <td colspan="4" class="text-center text-muted">
+                                                    Chưa có sản phẩm nào được bán qua Web trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+
+                                <!-- ================= TAB POS ================= -->
+                                <div class="tab-pane fade" id="tab-pos" role="tabpanel" aria-labelledby="tab-pos-tab">
+
+                                    <!-- HÀNG 1: KPI -->
+                                    <div class="row g-3 mb-2">
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-primary-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Tổng số đơn (POS)</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkPos != null ? tkPos.tongSoDon : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Đơn bán trực tiếp tại quầy.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-success-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Số đơn POS đã hoàn thành</div>
+                                                    <div class="stat-value"
+                                                         th:text="${tkPos != null ? tkPos.soDonHoanThanh : 0}">
+                                                        0
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Đơn POS ở trạng thái <strong>HOÀN THÀNH</strong>.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="card border-0 bg-warning-subtle">
+                                                <div class="card-body">
+                                                    <div class="stat-label">Doanh thu POS (đã hoàn thành)</div>
+                                                    <div class="stat-value text-primary"
+                                                         th:text="${tkPos != null ? #numbers.formatDecimal(tkPos.tongDoanhThu, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}">
+                                                        0 đ
+                                                    </div>
+                                                    <div class="stat-subtext">
+                                                        Chỉ tính đơn POS đã hoàn thành.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HÀNG 2: ĐƠN THEO TRẠNG THÁI -->
+                                    <h6 class="section-title-sm mt-3">Đơn POS theo trạng thái</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-secondary-subtle text-secondary">
+                        Chờ xác nhận
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkPos != null ? tkPos.soDonChoXacNhan : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn mới tạo.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-info-subtle text-info">
+                        Đang chờ thanh toán
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkPos != null ? tkPos.soDonDangThanhToan : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Chờ khách thanh toán tại quầy.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-warning-subtle text-warning">
+                        Đang giao
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkPos != null ? tkPos.soDonDangGiao : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn POS có giao tận nơi.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="border rounded-3 px-3 py-2 h-100">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="status-badge bg-danger-subtle text-danger">
+                        Đã hủy
+                    </span>
+                                                    <span class="fw-semibold"
+                                                          th:text="${tkPos != null ? tkPos.soDonDaHuy : 0}">
+                        0
+                    </span>
+                                                </div>
+                                                <div class="stat-subtext">Đơn POS bị hủy.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HÀNG 3: DOANH THU THEO NGÀY -->
+                                    <h6 class="section-title-sm">Doanh thu POS 7 ngày gần nhất</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>Ngày</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="row : ${doanhThuNgayPos}">
+                                                <td th:text="${#temporals.format(row.ngay, 'dd/MM/yyyy')}">
+                                                    01/01/2025
+                                                </td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(row.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(doanhThuNgayPos)}">
+                                                <td colspan="2" class="text-center text-muted">
+                                                    Không có dữ liệu trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- HÀNG 4: TOP SẢN PHẨM POS -->
+                                    <h6 class="section-title-sm">Top 5 sản phẩm POS bán chạy (7 ngày gần nhất)</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Sản phẩm</th>
+                                                <th class="text-center">Số lượng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="sp, iterStat : ${topSpPos}">
+                                                <td th:text="${iterStat.index + 1}">1</td>
+                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                                <td class="text-center" th:text="${sp.tongSoLuong}">0</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(sp.doanhThu, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(topSpPos)}">
+                                                <td colspan="4" class="text-center text-muted">
+                                                    Chưa có sản phẩm nào được bán qua POS trong khoảng thời gian này.
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+
+                            </div> <!-- /tab-content -->
+
+                        </div> <!-- /card-body -->
+                    </div> <!-- /card -->
 
                 </div>
             </section>
 
-        </div>
+        </div> <!-- /page-content -->
 
         <!-- FOOTER -->
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
-    </div>
-</div>
+
+    </div> <!-- /#main -->
+</div> <!-- /.wrapper -->
 
 <!-- SCRIPT CHUNG ADMIN -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- (Optional) Giữ tab đang mở khi reload bằng hash URL -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var triggerTabList = [].slice.call(document.querySelectorAll('#thongKeTabs button[data-bs-toggle="tab"]'));
 
-<!-- Script dựng biểu đồ từ model -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    const labelsNgay = [[${labelsNgay}]];
-    const dataDoanhThu = [[${dataDoanhThu}]];
-    const labelsTopSP = [[${labelsTopSP}]];
-    const dataTopSP = [[${dataTopSP}]];
-
-    // LINE CHART - DOANH THU NGÀY
-    const ctx1 = document.getElementById('chartDoanhThuNgay');
-    if (ctx1 && labelsNgay && labelsNgay.length > 0) {
-        new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: labelsNgay,
-                datasets: [{
-                    label: 'Doanh thu (đ)',
-                    data: dataDoanhThu,
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+        // Nếu URL có hash (#tab-web / #tab-pos) thì mở theo
+        var hash = window.location.hash;
+        if (hash) {
+            var targetBtn = document.querySelector('[data-bs-target="' + hash + '"]');
+            if (targetBtn) {
+                new bootstrap.Tab(targetBtn).show();
             }
-        });
-    }
+        }
 
-    // BAR CHART - TOP SẢN PHẨM
-    const ctx2 = document.getElementById('chartTopSP');
-    if (ctx2 && labelsTopSP && labelsTopSP.length > 0) {
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: labelsTopSP,
-                datasets: [{
-                    label: 'Số lượng bán',
-                    data: dataTopSP,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    }
+        // Khi chuyển tab thì update hash
+        triggerTabList.forEach(function (triggerEl) {
+            triggerEl.addEventListener('shown.bs.tab', function (event) {
+                var target = event.target.getAttribute('data-bs-target');
+                if (target) {
+                    history.replaceState(null, '', target);
                 }
-            }
+            });
         });
-    }
-    /*]]>*/
+    });
 </script>
 
 </body>
