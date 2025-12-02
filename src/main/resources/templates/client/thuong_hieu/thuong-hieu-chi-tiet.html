@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{client/fragments/head :: head}"></head>
+<head th:replace="client/fragments/head :: head"></head>
 <body>
-<div th:replace="~{client/fragments/header :: header}"></div>
+<div th:replace="client/fragments/header :: header"></div>
 
 <section class="container-fluid my-5 product-list">
     <div class="row">
         <!-- Sidebar -->
-        <div th:replace="~{client/fragments/sidebar :: productFilters(
+        <div th:replace="client/fragments/sidebar :: productFilters(
             ${brands},
             ${selectedBrands},
             ${selectedGender},
             ${minPrice},
             ${maxPrice},
             ${selfPath}
-        )}"></div>
+        )"></div>
 
         <!-- Main -->
         <div class="col-md-9">
@@ -76,14 +76,13 @@
                 <!-- Giá -->
                 <span class="filter-chip"
                       th:if="${minPrice != null or maxPrice != null}"
-                      th:with="
-          minStr=${minPrice != null ? #numbers.formatDecimal(minPrice,0,'POINT',0,'NONE') : '0'},
-          maxStr=${maxPrice != null ? #numbers.formatDecimal(maxPrice,0,'POINT',0,'NONE') : '∞'}
-      "
-                      th:text="${'Giá: ' + minStr + ' - ' + maxStr + ' ₫'}">
-    Giá
-</span>
-
+                      th:text="'Giá: '
+                               + (minPrice != null ? #numbers.formatDecimal(minPrice,0,'POINT',0,'NONE') : '0')
+                               + ' - '
+                               + (maxPrice != null ? #numbers.formatDecimal(maxPrice,0,'POINT',0,'NONE') : '∞')
+                               + ' ₫'">
+                    Giá
+                </span>
 
                 <a class="clear-all small"
                    th:href="@{${selfPath}(page=1,size=${pageSize})}">

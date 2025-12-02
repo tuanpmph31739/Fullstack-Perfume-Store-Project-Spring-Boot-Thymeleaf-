@@ -6,7 +6,6 @@
 <body>
 <div th:replace="client/fragments/header :: header"></div>
 
-<main class="container pd-wrap my-4">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb small">
@@ -44,12 +43,10 @@
                              th:alt="${sp.tenSanPham}"
                              class="card-img-top object-fit-cover">
                     </div>
-                    <div class="card-body p-2" style="text-align: center">
                         <h6 class="mb-1 text-truncate"
                             th:text="${sp.tenSanPham}">Tên sản phẩm</h6>
                         <div class="small text-muted text-truncate"
                              th:text="${sp.tenThuongHieu}">Thương hiệu</div>
-                        <div class="fw-semibold mt-1" style="color: #A68A79FF"
                              th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'">
                             0 ₫
                         </div>
