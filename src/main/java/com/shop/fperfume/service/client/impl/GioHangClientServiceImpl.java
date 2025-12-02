@@ -101,12 +101,34 @@ public class GioHangClientServiceImpl implements GioHangClientService {
 
     @Override
     public GioHang applyVoucher(NguoiDung khachHang, String maGiamGia) {
+
         GioHang gioHang = getCartByUser(khachHang);
+
         GiamGia voucher = giamGiaRepository.findByMa(maGiamGia)
                 .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ"));
+
+        // ----------- KIỂM TRA SỐ LƯỢNG VOUCHER -----------
+        if (voucher.getSoLuong() != null && voucher.getSoLuong() <= 0) {
+            throw new RuntimeException("Voucher đã hết số lượt sử dụng!");
+        }
+
+        // ----------- KIỂM TRA SẢN PHẨM ÁP DỤNG ----------
+        if ("SANPHAM".equals(voucher.getPhamViApDung())) {
+
+            SanPhamChiTiet spctDuocGiam = voucher.getSanPhamChiTiet();
+            boolean khopSanPham = gioHang.getGioHangChiTiets().stream()
+                    .anyMatch(ct -> ct.getSanPhamChiTiet().getId().equals(spctDuocGiam.getId()));
+
+            if (!khopSanPham) {
+                throw new RuntimeException("Mã giảm giá không áp dụng cho sản phẩm này!");
+            }
+        }
+
+        // Nếu hợp lệ thì gắn mã vào giỏ
         gioHang.setGiamGia(voucher);
         return gioHangRepository.save(gioHang);
     }
+
 
     @Override
     public GioHang removeVoucher(NguoiDung khachHang) {
