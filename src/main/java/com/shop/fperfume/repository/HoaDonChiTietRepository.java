@@ -14,34 +14,44 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-// Kiểu khóa chính của HoaDonChiTiet là INT -> Integer
 public interface HoaDonChiTietRepository extends JpaRepository<HoaDonChiTiet, Integer> {
+
+    // Lấy toàn bộ chi tiết theo hóa đơn
     List<HoaDonChiTiet> findByHoaDon_Id(Integer idHoaDon);
 
-    Optional<Object> findByHoaDonAndSanPhamChiTiet(HoaDon hoaDon, SanPhamChiTiet sanPhamChiTiet);
-    @Query("SELECT hdct FROM HoaDonChiTiet hdct " +
-            "JOIN FETCH hdct.sanPhamChiTiet spct " +
-            "JOIN FETCH spct.sanPham sp " +
-            "WHERE hdct.hoaDon.id = :idHoaDon")
+    // ❗ FIX LỖI: Trả về đúng kiểu HoaDonChiTiet
+    Optional<HoaDonChiTiet> findByHoaDonAndSanPhamChiTiet(HoaDon hoaDon, SanPhamChiTiet sanPhamChiTiet);
+
+    // Lấy chi tiết kèm sản phẩm (JOIN FETCH tránh N+1)
+    @Query("""
+            SELECT hdct FROM HoaDonChiTiet hdct
+            JOIN FETCH hdct.sanPhamChiTiet spct
+            JOIN FETCH spct.sanPham sp
+            WHERE hdct.hoaDon.id = :idHoaDon
+            """)
     List<HoaDonChiTiet> findByHoaDon_Id_WithSanPham(@Param("idHoaDon") Integer idHoaDon);
 
-    @Query("SELECT COALESCE(SUM(hdct.thanhTien), 0) " +
-            "FROM HoaDonChiTiet hdct " +
-            "WHERE hdct.hoaDon.id = :idHoaDon")
+    // Tính tổng thành tiền toàn hóa đơn
+    @Query("""
+            SELECT COALESCE(SUM(hdct.thanhTien), 0)
+            FROM HoaDonChiTiet hdct
+            WHERE hdct.hoaDon.id = :idHoaDon
+            """)
     BigDecimal tinhTongTienHang(@Param("idHoaDon") Integer idHoaDon);
 
+    // Top sản phẩm bán chạy
     @Query("""
-        SELECT sp.tenNuocHoa AS tenSanPham,
-               SUM(hdct.soLuong) AS tongSoLuong
-        FROM HoaDonChiTiet hdct
-        JOIN hdct.hoaDon hd
-        JOIN hdct.sanPhamChiTiet spct
-        JOIN spct.sanPham sp
-        WHERE hd.trangThai = 'DA_THANH_TOAN'
-          AND hd.ngayThanhToan BETWEEN :start AND :end
-        GROUP BY sp.tenNuocHoa
-        ORDER BY SUM(hdct.soLuong) DESC
-        """)
+            SELECT sp.tenNuocHoa AS tenSanPham,
+                   SUM(hdct.soLuong) AS tongSoLuong
+            FROM HoaDonChiTiet hdct
+            JOIN hdct.hoaDon hd
+            JOIN hdct.sanPhamChiTiet spct
+            JOIN spct.sanPham sp
+            WHERE hd.trangThai = 'DA_THANH_TOAN'
+              AND hd.ngayThanhToan BETWEEN :start AND :end
+            GROUP BY sp.tenNuocHoa
+            ORDER BY SUM(hdct.soLuong) DESC
+            """)
     List<Object[]> topSanPhamBanChay(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
