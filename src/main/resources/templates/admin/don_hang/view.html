@@ -61,8 +61,8 @@
 
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Kênh bán</label>
-                                <div th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng trên Website'}">
-                                    Đơn hàng trên Website
+                                <div th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}">
+                                    Đơn hàng online
                                 </div>
                             </div>
 
@@ -118,8 +118,10 @@
                             <table class="table table-sm table-striped align-middle">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>STT</th>
+                                    <th>Ảnh</th>
                                     <th>Tên sản phẩm</th>
+                                    <th>SKU</th>
                                     <th>Số lượng</th>
                                     <th>Đơn giá</th>
                                 </tr>
@@ -128,7 +130,16 @@
                                 <tr th:each="ct, iter : ${chiTietList}">
                                     <td th:text="${iter.index + 1}">1</td>
                                     <td>
-                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên nước hoa</span>
+                                        <img th:if="${ct.getSanPhamChiTiet().getHinhAnh()}"
+                                             th:src="@{'/images/uploads/' + ${ct.getSanPhamChiTiet().getHinhAnh()}}"
+                                             style="max-width:50px">
+                                        <span th:unless="${ct.getSanPhamChiTiet().getHinhAnh()}">---</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa} + ' ' + ${ct.sanPhamChiTiet.getDungTich().soMl} +' ml'">Tên nước hoa</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${ct.sanPhamChiTiet.maSKU}">SKU</span>
                                     </td>
                                     <td th:text="${ct.soLuong}">1</td>
                                     <td th:text="${#numbers.formatDecimal(ct.donGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">

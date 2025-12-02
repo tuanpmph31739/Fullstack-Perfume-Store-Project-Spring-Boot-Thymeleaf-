@@ -144,6 +144,33 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("""
     SELECT spct
     FROM SanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    LEFT JOIN sp.thuongHieu th
+    LEFT JOIN sp.nhomHuong nh
+    LEFT JOIN sp.loaiNuocHoa ln
+    WHERE spct.id <> :idSpct
+      AND (
+            (nh.id = :idNhomHuong AND ln.id = :idLoaiNuocHoa)
+         OR (th.id = :idThuongHieu)
+      )
+      AND spct.giaBan = (
+            SELECT MIN(spct2.giaBan)
+            FROM SanPhamChiTiet spct2
+            WHERE spct2.sanPham = sp
+      )
+    ORDER BY spct.giaBan ASC
+    """)
+    List<SanPhamChiTiet> findRelatedProducts(@Param("idSpct") Integer idSpct,
+                                             @Param("idThuongHieu") Long idThuongHieu,
+                                             @Param("idNhomHuong") Long idNhomHuong,
+                                             @Param("idLoaiNuocHoa") Long idLoaiNuocHoa,
+                                             Pageable pageable);
+
+
+
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
         JOIN spct.sanPham sp
         LEFT JOIN spct.dungTich dt
         LEFT JOIN spct.nongDo nd
@@ -161,5 +188,43 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
                                               @Param("dungTichId") Integer dungTichId,
                                               @Param("nongDoId") Integer nongDoId,
                                               Pageable pageable);
+
+
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    LEFT JOIN sp.thuongHieu th
+    WHERE (
+            LOWER(sp.tenNuocHoa) LIKE LOWER(CONCAT('%', :kw, '%'))
+         OR LOWER(th.tenThuongHieu) LIKE LOWER(CONCAT('%', :kw, '%'))
+          )
+      AND spct.giaBan = (
+            SELECT MIN(spct2.giaBan)
+            FROM SanPhamChiTiet spct2
+            WHERE spct2.sanPham = sp
+      )
+    """)
+    List<SanPhamChiTiet> searchSuggest(@Param("kw") String keyword, Pageable pageable);
+
+
+    @Query("""
+    SELECT spct
+    FROM SanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    LEFT JOIN sp.thuongHieu th
+    WHERE (
+            LOWER(sp.tenNuocHoa) LIKE LOWER(CONCAT('%', :kw, '%'))
+         OR LOWER(th.tenThuongHieu) LIKE LOWER(CONCAT('%', :kw, '%'))
+          )
+      AND spct.giaBan = (
+            SELECT MIN(sp2.giaBan)
+            FROM SanPhamChiTiet sp2
+            WHERE sp2.sanPham = sp
+      )
+    """)
+    Page<SanPhamChiTiet> searchByKeyword(@Param("kw") String keyword, Pageable pageable);
+
+
 
 }

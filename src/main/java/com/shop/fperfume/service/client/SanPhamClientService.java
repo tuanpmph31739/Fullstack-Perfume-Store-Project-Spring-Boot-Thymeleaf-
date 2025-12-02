@@ -7,6 +7,7 @@ import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.repository.SanPhamChiTietRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -101,5 +102,62 @@ public class SanPhamClientService {
 
         return page.map(SanPhamChiTietResponse::new);
     }
+
+    public List<SanPhamChiTietResponse> getRelatedProducts(
+            Integer idSpct,
+            Long idThuongHieu,
+            Long idNhomHuong,
+            Long idLoaiNuocHoa
+    ) {
+        // Nếu thiếu nhóm hương hoặc loại nước hoa thì vẫn có thể lọc theo thương hiệu,
+        // nhưng nếu cả 3 cùng null thì thôi
+        if (idThuongHieu == null && (idNhomHuong == null || idLoaiNuocHoa == null)) {
+            return List.of();
+        }
+
+        Pageable pageable = PageRequest.of(0, 8);
+
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findRelatedProducts(
+                idSpct,
+                idThuongHieu,
+                idNhomHuong,
+                idLoaiNuocHoa,
+                pageable
+        );
+
+        return list.stream()
+                .map(SanPhamChiTietResponse::new)
+                .toList();
+    }
+
+    public List<SanPhamChiTietResponse> searchSuggest(String keyword, int limit) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return List.of();
+        }
+        Pageable pageable = PageRequest.of(0, limit);
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.searchSuggest(keyword.trim(), pageable);
+        return list.stream()
+                .map(SanPhamChiTietResponse::new) // bạn đang có constructor từ entity rồi
+                .toList();
+    }
+
+
+    public Page<SanPhamChiTietResponse> searchProducts(String keyword, int page, int size) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Page.empty();
+        }
+        String kw = keyword.trim();
+        Pageable pageable = PageRequest.of(Math.max(page, 0), size);
+
+        Page<SanPhamChiTiet> entityPage =
+                sanPhamChiTietRepository.searchByKeyword(kw, pageable);
+
+        List<SanPhamChiTietResponse> content = entityPage.getContent().stream()
+                .map(SanPhamChiTietResponse::new)
+                .toList();
+
+        return new PageImpl<>(content, pageable, entityPage.getTotalElements());
+    }
+
 
 }

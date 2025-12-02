@@ -1,10 +1,9 @@
 package com.shop.fperfume.controller.client;
 
-import com.shop.fperfume.DTO.CheckoutRequestDTO;
+import com.shop.fperfume.dto.CheckoutRequestDTO;
 import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.NguoiDung;
-import com.shop.fperfume.repository.GioHangRepository;
 import com.shop.fperfume.repository.HoaDonRepository;
 import com.shop.fperfume.security.CustomUserDetails;
 import com.shop.fperfume.service.client.CartHelperService;

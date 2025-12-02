@@ -35,14 +35,44 @@ public class SanPhamClientController {
         var options = sanPhamClientService.getDungTichOptions(spct.getIdSanPham());
         Integer selectedDungTich = spct.getSoMl();
 
+        // ✅ Lấy danh sách sản phẩm liên quan theo thương hiệu + nhóm hương
+        List<SanPhamChiTietResponse> relatedProducts =
+                sanPhamClientService.getRelatedProducts(
+                        spct.getId(),
+                        spct.getIdThuongHieu(),
+                        spct.getIdNhomHuong(),
+                        spct.getIdLoaiNuocHoa()
+                );
+
+
+        if (relatedProducts.size() > 8) {
+            relatedProducts = relatedProducts.subList(0, 8);
+        }
+
+        List<List<SanPhamChiTietResponse>> relatedChunks = new ArrayList<>();
+        int chunkSize = 4;
+        for (int i = 0; i < relatedProducts.size(); i += chunkSize) {
+            relatedChunks.add(
+                    relatedProducts.subList(i, Math.min(i + chunkSize, relatedProducts.size()))
+            );
+        }
+
+
+        model.addAttribute("relatedProducts", relatedProducts);
+        model.addAttribute("relatedChunks", relatedChunks);
+
+
         model.addAttribute("sanPhamChiTiet", spct);
         model.addAttribute("options", options);
         model.addAttribute("selectedSpctId", spct.getId());
         model.addAttribute("selectedDungTich", selectedDungTich);
         model.addAttribute("idSanPham", spct.getIdSanPham());
         model.addAttribute("soLuongTon", spct.getSoLuongTon());
+
+
         return "client/san_pham/product-detail";
     }
+
 
     @GetMapping("/{idSanPham}/gia")
     @ResponseBody

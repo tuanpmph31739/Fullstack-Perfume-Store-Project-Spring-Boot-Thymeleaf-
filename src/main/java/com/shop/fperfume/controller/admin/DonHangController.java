@@ -58,7 +58,7 @@ public class DonHangController {
                               HttpServletRequest request,
                               RedirectAttributes redirectAttributes) {
         try {
-            // Lấy thông tin đơn hàng (DTO)
+            // Lấy thông tin đơn hàng (dto)
             DonHangResponse donHang = donHangService.getById(id);
             model.addAttribute("donHang", donHang);
 
@@ -84,8 +84,8 @@ public class DonHangController {
                                HttpServletRequest request,
                                RedirectAttributes redirectAttributes) {
         try {
-            // Lấy thông tin đơn hàng (DTO hoặc entity)
-            DonHangResponse donHang = donHangService.getById(id);  // Đây là DTO chứa thông tin đơn hàng
+            // Lấy thông tin đơn hàng (dto hoặc entity)
+            DonHangResponse donHang = donHangService.getById(id);  // Đây là dto chứa thông tin đơn hàng
             model.addAttribute("donHang", donHang);  // Đảm bảo add vào model
 
             // Để bấm "Quay lại" vẫn về đúng trang trước
