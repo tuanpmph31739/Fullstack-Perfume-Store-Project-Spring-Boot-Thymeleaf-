@@ -97,7 +97,7 @@
                     <div class="text-center mb-4">
                         <span th:if="${order.trangThai == 'CHO_XAC_NHAN'}" class="badge bg-warning text-dark w-100 py-3 rounded-pill fs-6"><i class="bi bi-hourglass-split me-2"></i>Chờ xác nhận</span>
                         <span th:if="${order.trangThai == 'DANG_CHO_THANH_TOAN'}" class="badge bg-info text-white w-100 py-3 rounded-pill fs-6"><i class="bi bi-credit-card me-2"></i>Chờ thanh toán</span>
-                        <span th:if="${order.trangThai == 'DA_THANH_TOAN' or order.trangThai == 'ĐÃ THANH TOÁN'}" class="badge bg-success w-100 py-3 rounded-pill fs-6"><i class="bi bi-check-circle-fill me-2"></i>Đã thanh toán</span>
+                        <span th:if="${order.trangThai == 'HOAN_THANH' or order.trangThai == 'HOÀN THÀNH'}" class="badge bg-success w-100 py-3 rounded-pill fs-6"><i class="bi bi-check-circle-fill me-2"></i>Đã thanh toán</span>
                         <span th:if="${order.trangThai == 'DA_HUY'}" class="badge bg-danger w-100 py-3 rounded-pill fs-6"><i class="bi bi-x-circle-fill me-2"></i>Đã hủy</span>
                     </div>
 

@@ -58,9 +58,9 @@
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">Loại nước hoa</label>
+                                    <label class="form-label">Giới tính</label>
                                     <select class="form-select" th:field="*{idLoaiNuocHoa}" required>
-                                        <option value="">-- Chọn loại nước hoa --</option>
+                                        <option value="">-- Chọn giới tính --</option>
                                         <option th:each="loai : ${listLoaiNuocHoa}"
                                                 th:value="${loai.id}"
                                                 th:text="${loai.tenLoai}">

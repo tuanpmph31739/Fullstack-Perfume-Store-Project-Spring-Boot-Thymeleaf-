@@ -89,11 +89,11 @@ public class PaymentController {
                     if ("DANG_CHO_THANH_TOAN".equals(hoaDon.getTrangThai())) {
 
                         // --- QUAN TRỌNG: CẬP NHẬT DATABASE TẠI ĐÂY ---
-                        hoaDon.setTrangThai("DA_THANH_TOAN"); // Cập nhật trạng thái
+                        hoaDon.setTrangThai("HOAN_THANH"); // Cập nhật trạng thái
                         hoaDon.setNgayThanhToan(java.time.LocalDateTime.now()); // Cập nhật ngày giờ
 
                         hoaDonRepository.save(hoaDon); // <--- LỆNH LƯU QUAN TRỌNG NHẤT
-                        System.out.println("Đã cập nhật đơn hàng " + vnp_TxnRef + " thành ĐÃ THANH TOÁN");
+                        System.out.println("Đã cập nhật đơn hàng " + vnp_TxnRef + " thành HOÀN THÀNH");
 
                         // C. Xóa giỏ hàng (Code cũ của bạn)
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

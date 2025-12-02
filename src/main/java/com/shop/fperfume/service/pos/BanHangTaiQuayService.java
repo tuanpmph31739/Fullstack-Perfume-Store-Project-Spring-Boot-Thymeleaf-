@@ -256,7 +256,7 @@ public class BanHangTaiQuayService {
             sanPhamChiTietRepo.save(spct);
         }
 
-        hoaDon.setTrangThai("DA_THANH_TOAN");
+        hoaDon.setTrangThai("HOAN_THANH");
         hoaDon.setNgayThanhToan(LocalDateTime.now());
 
         return hoaDonRepo.save(hoaDon);

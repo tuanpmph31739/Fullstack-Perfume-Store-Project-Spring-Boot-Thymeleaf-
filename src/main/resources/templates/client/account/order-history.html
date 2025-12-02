@@ -139,7 +139,7 @@
                 <span th:if="${order.trangThai == 'DANG_CHO_THANH_TOAN'}" class="badge bg-info-subtle text-info-emphasis border border-info-subtle status-badge">
                     <i class="bi bi-credit-card me-1"></i> Chờ thanh toán
                 </span>
-                <span th:if="${order.trangThai == 'DA_THANH_TOAN' or order.trangThai == 'ĐÃ THANH TOÁN'}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle status-badge">
+                <span th:if="${order.trangThai == 'HOAN_THANH' or order.trangThai == 'HOÀN THÀNH'}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle status-badge">
                     <i class="bi bi-check-circle-fill me-1"></i> Đã thanh toán
                 </span>
                 <span th:if="${order.trangThai == 'DA_HUY'}" class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle status-badge">
