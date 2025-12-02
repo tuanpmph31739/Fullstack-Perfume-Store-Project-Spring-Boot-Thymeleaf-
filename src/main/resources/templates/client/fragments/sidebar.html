@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
+
 <!-- Tham số: brands, selectedBrands, selectedGender, minPrice, maxPrice, selfPath -->
 <div class="col-md-3"
      th:fragment="productFilters(brands, selectedBrands, selectedGender, minPrice, maxPrice, selfPath)">
@@ -49,26 +50,44 @@
                 </label>
             </div>
 
-            <!-- Price -->
-            <div class="filter-price mt-3" th:with="minVal=${minPrice}?:0">
+            <!-- Price: dual handle trên 1 thanh -->
+            <div class="filter-price mt-3"
+                 th:with="minVal=${minPrice}?:0,
+              maxVal=${maxPrice}?:50000000">
                 <h6>Khoảng giá</h6>
 
-                <input type="range"
-                       min="0" max="50000000" step="500000"
-                       th:value="${minVal}"
-                       id="priceRange"
-                       oninput="updatePriceRange()">
+                <div class="price-slider mb-1">
+                    <!-- thanh nền -->
+                    <div class="slider-track" id="priceSliderTrack"></div>
 
-                <div class="small mt-1">
-                    <span id="priceRangeValue"
-                          th:text="${#numbers.formatDecimal(minVal, 0, 'POINT', 0, 'NONE')}">0</span> ₫
+                    <!-- 2 handle (min / max) nhưng chồng lên cùng 1 thanh -->
+                    <input type="range"
+                           id="priceMinRange"
+                           class="range-min"
+                           min="0" max="50000000" step="500000"
+                           th:value="${minVal}"/>
+
+                    <input type="range"
+                           id="priceMaxRange"
+                           class="range-max"
+                           min="0" max="50000000" step="500000"
+                           th:value="${maxVal}"/>
                 </div>
 
-                <!-- Hidden thực tế gửi đi -->
-                <input type="hidden" name="min" th:value="${minVal}">
-                <input type="hidden" name="max" th:value="${maxPrice != null ? maxPrice : 0}">
-            </div>
+                <!-- Hiển thị số -->
+                <div class="small">
+                    Từ
+                    <strong id="priceMinText"
+                            th:text="${#numbers.formatDecimal(minVal, 0, 'POINT', 0, 'NONE')}">0</strong> ₫
+                    đến
+                    <strong id="priceMaxText"
+                            th:text="${#numbers.formatDecimal(maxVal, 0, 'POINT', 0, 'NONE')}">50.000.000</strong> ₫
+                </div>
 
+                <!-- Giá trị thực gửi lên server -->
+                <input type="hidden" name="min" id="priceMin" th:value="${minVal}">
+                <input type="hidden" name="max" id="priceMax" th:value="${maxVal}">
+            </div>
             <div class="mt-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm">Áp dụng</button>
                 <a class="btn btn-outline-secondary btn-sm" th:href="${selfPath}">Xóa lọc</a>
@@ -77,20 +96,76 @@
     </div>
 
     <script>
-        function updatePriceRange() {
-            const range = document.getElementById('priceRange');
-            const hiddenMin = document.querySelector('input[name="min"]');
-            const display = document.getElementById('priceRangeValue');
+        document.addEventListener('DOMContentLoaded', function () {
+            const minRange = document.getElementById('priceMinRange');
+            const maxRange = document.getElementById('priceMaxRange');
+            const minHidden = document.getElementById('priceMin');
+            const maxHidden = document.getElementById('priceMax');
+            const minText = document.getElementById('priceMinText');
+            const maxText = document.getElementById('priceMaxText');
+            const track = document.getElementById('priceSliderTrack');
 
-            if (!range || !display) return;
+            const STEP = 500000;
+            const MIN = 0;
+            const MAX = 50000000;
+            const MIN_GAP = STEP;
 
-            const value = parseInt(range.value, 10) || 0;
-            if (hiddenMin) hiddenMin.value = value;
-            // hiển thị có dấu . theo vi-VN
-            display.textContent = value.toLocaleString('vi-VN');
-        }
+            if (!minRange || !maxRange) return;
 
-        document.addEventListener('DOMContentLoaded', updatePriceRange);
+            function clamp(val, min, max) {
+                return Math.min(Math.max(val, min), max);
+            }
+
+            function updateTrack(minVal, maxVal) {
+                if (!track) return;
+                const minPercent = ((minVal - MIN) / (MAX - MIN)) * 100;
+                const maxPercent = ((maxVal - MIN) / (MAX - MIN)) * 100;
+
+                // nền xám, đoạn được chọn tô xanh
+                track.style.background = `linear-gradient(to right,
+                #e5e7eb 0%,
+                #e5e7eb ${minPercent}%,
+                #0d6efd ${minPercent}%,
+                #0d6efd ${maxPercent}%,
+                #e5e7eb ${maxPercent}%,
+                #e5e7eb 100%)`;
+            }
+
+            function syncFromRange(e) {
+                let minVal = parseInt(minRange.value || MIN, 10);
+                let maxVal = parseInt(maxRange.value || MAX, 10);
+
+                minVal = clamp(minVal, MIN, MAX);
+                maxVal = clamp(maxVal, MIN, MAX);
+
+                const isMin = e && e.target === minRange;
+
+                // không cho 2 đầu chồng nhau
+                if (minVal > maxVal - MIN_GAP) {
+                    if (isMin) {
+                        minVal = maxVal - MIN_GAP;
+                        minRange.value = minVal;
+                    } else {
+                        maxVal = minVal + MIN_GAP;
+                        maxRange.value = maxVal;
+                    }
+                }
+
+                if (minHidden) minHidden.value = minVal;
+                if (maxHidden) maxHidden.value = maxVal;
+
+                if (minText) minText.textContent = minVal.toLocaleString('vi-VN');
+                if (maxText) maxText.textContent = maxVal.toLocaleString('vi-VN');
+
+                updateTrack(minVal, maxVal);
+            }
+
+            minRange.addEventListener('input', syncFromRange);
+            maxRange.addEventListener('input', syncFromRange);
+
+            // sync lần đầu theo giá trị server trả về
+            syncFromRange();
+        });
     </script>
 </div>
 </body>

@@ -141,11 +141,24 @@
                                     </div>
 
                                     <!-- Nút thêm hóa đơn -->
-                                    <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}">
-                                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
-                                            <i class="bi bi-plus-circle"></i> Thêm đơn mới
+                                    <!-- Nút thêm hóa đơn -->
+                                    <div>
+                                        <!-- Khi CHƯA đạt 7 đơn -->
+                                        <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}"
+                                              th:if="${#lists.size(listHoaDon) < 7}">
+                                            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                                                <i class="bi bi-plus-circle"></i> Thêm đơn mới
+                                            </button>
+                                        </form>
+
+                                        <!-- Khi ĐÃ đạt 7 đơn -->
+                                        <button class="btn btn-secondary d-flex align-items-center gap-1" type="button"
+                                                th:if="${#lists.size(listHoaDon) >= 7}" disabled>
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            Đã đạt tối đa 7 đơn
                                         </button>
-                                    </form>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>

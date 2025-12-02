@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<div class="container my-5">
+<div class="container pd-wrap my-5">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a th:href="@{/account/orders}" class="text-decoration-none text-muted hover-link"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a></li>
@@ -33,6 +33,7 @@
                             <thead class="bg-light">
                             <tr>
                                 <th class="ps-4 py-3 text-secondary small text-uppercase" style="width: 50%">Sản phẩm</th>
+                                <th class="text-center text-secondary small text-uppercase">SKU</th>
                                 <th class="text-center text-secondary small text-uppercase">Đơn giá</th>
                                 <th class="text-center text-secondary small text-uppercase">SL</th>
                                 <th class="text-end pe-4 text-secondary small text-uppercase">Thành tiền</th>
@@ -53,6 +54,7 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td class="text-center fw-bold" th:text="${item.sanPhamChiTiet.maSKU}">SKU</td>
                                 <td class="text-center small text-muted" th:text="${#numbers.formatDecimal(item.donGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
                                 <td class="text-center fw-bold" th:text="${item.soLuong}">1</td>
                                 <td class="text-end pe-4 fw-bold text-primary" th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>

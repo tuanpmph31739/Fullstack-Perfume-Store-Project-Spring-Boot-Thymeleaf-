@@ -118,8 +118,9 @@
                             <table class="table table-sm table-striped align-middle">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>STT</th>
                                     <th>Tên sản phẩm</th>
+                                    <th>Mã SKU</th>
                                     <th>Số lượng</th>
                                     <th>Đơn giá</th>
                                 </tr>
@@ -128,7 +129,10 @@
                                 <tr th:each="ct, iter : ${chiTietList}">
                                     <td th:text="${iter.index + 1}">1</td>
                                     <td>
-                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên nước hoa</span>
+                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa} + ' ' +  ${ct.sanPhamChiTiet.dungTich.soMl} + ' ml'">Tên nước hoa</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${ct.sanPhamChiTiet.maSKU}">Mã SKU</span>
                                     </td>
                                     <td th:text="${ct.soLuong}">1</td>
                                     <td th:text="${#numbers.formatDecimal(ct.donGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">

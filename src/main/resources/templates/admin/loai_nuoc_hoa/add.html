@@ -10,14 +10,14 @@
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
         <div class="page-heading">
-            <h3>Thêm mới Loại nước hoa</h3>
+            <h3>Thêm mới giới tính</h3>
         </div>
 
         <div class="page-content">
             <section class="row">
                 <div class="col-md-8 offset-md-2"> <div class="card">
                     <div class="card-header">
-                        <h5>Thông tin Loại nước hoa</h5>
+                        <h5>Thông tin giới tính</h5>
                     </div>
                     <div class="card-body">
 
@@ -30,7 +30,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="tenLoai" class="form-label">Tên loại nước hoa</label>
+                                <label for="tenLoai" class="form-label">Giới tính</label>
                                 <input type="text" class="form-control" id="tenLoai"
                                        th:field="*{tenLoai}" placeholder="Ví dụ: Nam" required>
                                 <div class="invalid-feedback d-block"

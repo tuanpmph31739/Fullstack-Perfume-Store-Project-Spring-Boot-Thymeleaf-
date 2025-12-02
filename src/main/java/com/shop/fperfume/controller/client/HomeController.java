@@ -1,5 +1,6 @@
 package com.shop.fperfume.controller.client;
 
+import com.shop.fperfume.dto.SearchSuggestionDTO;
 import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.model.response.ThuongHieuResponse;
 import com.shop.fperfume.service.client.SanPhamClientService;
@@ -7,9 +8,7 @@ import com.shop.fperfume.service.client.ThuongHieuClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,5 +55,20 @@ public class HomeController {
         return "client/index";
     }
 
+    @GetMapping("/api/search-suggest")
+    @ResponseBody
+    public List<SearchSuggestionDTO> searchSuggest(@RequestParam("keyword") String keyword) {
+        List<SanPhamChiTietResponse> list = sanPhamClientService.searchSuggest(keyword, 6);
+
+        return list.stream()
+                .map(sp -> new SearchSuggestionDTO(
+                        sp.getId(),
+                        sp.getTenSanPham(),      // hoặc getTenNuocHoa tùy DTO của bạn
+                        sp.getTenThuongHieu(),
+                        sp.getHinhAnh(),
+                        sp.getGiaBan()
+                ))
+                .toList();
+    }
 
 }

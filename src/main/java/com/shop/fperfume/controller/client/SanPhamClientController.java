@@ -35,12 +35,36 @@ public class SanPhamClientController {
         var options = sanPhamClientService.getDungTichOptions(spct.getIdSanPham());
         Integer selectedDungTich = spct.getSoMl();
 
+        List<SanPhamChiTietResponse> relatedProducts =
+                sanPhamClientService.getRelatedProducts(
+                        spct.getId(),
+                        spct.getIdThuongHieu(),
+                        spct.getIdNhomHuong(),
+                        spct.getIdLoaiNuocHoa()
+                );
+
+        // Giới hạn tối đa 8 sản phẩm (cho chắc)
+        if (relatedProducts.size() > 8) {
+            relatedProducts = relatedProducts.subList(0, 8);
+        }
+
+        // Chia thành các nhóm, mỗi nhóm 4 sản phẩm
+        List<List<SanPhamChiTietResponse>> relatedChunks = new ArrayList<>();
+        int chunkSize = 4;
+        for (int i = 0; i < relatedProducts.size(); i += chunkSize) {
+            relatedChunks.add(
+                    relatedProducts.subList(i, Math.min(i + chunkSize, relatedProducts.size()))
+            );
+        }
+
         model.addAttribute("sanPhamChiTiet", spct);
         model.addAttribute("options", options);
         model.addAttribute("selectedSpctId", spct.getId());
         model.addAttribute("selectedDungTich", selectedDungTich);
         model.addAttribute("idSanPham", spct.getIdSanPham());
         model.addAttribute("soLuongTon", spct.getSoLuongTon());
+        model.addAttribute("relatedProducts", relatedProducts);
+        model.addAttribute("relatedChunks", relatedChunks);
         return "client/san_pham/product-detail";
     }
 
