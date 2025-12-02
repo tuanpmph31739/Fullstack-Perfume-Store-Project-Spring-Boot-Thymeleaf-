@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký thành công</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #55efc4, #00cec9);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .success-box {
+            background: white;
+            padding: 50px 60px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            width: 420px;
+        }
+        h2 {
+            color: #2d3436;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #636e72;
+            margin-bottom: 25px;
+        }
+        a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00b894;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        a:hover {
+            background: #55efc4;
+            color: #2d3436;
+        }
+    </style>
+</head>
+<body>
+<div class="success-box">
+    <h2>🎉 Đăng ký thành công!</h2>
+    <p>Chúng tôi đã gửi email xác nhận tới hộp thư của bạn.</p>
+    <a th:href="@{/login}">Đăng nhập ngay</a>
+</div>
+</body>
+</html>

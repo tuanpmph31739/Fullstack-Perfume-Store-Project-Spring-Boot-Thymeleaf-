@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chỉnh sửa dòng sản phẩm</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin dòng sản phẩm</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <form th:action="@{/admin/san-pham/update/{id}(id=${sanPhamRequest.id})}"
+                              method="post"
+                              th:object="${sanPhamRequest}">
+                            <input type="hidden" name="backUrl" th:value="${backUrl}">
+
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}"></span>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên nước hoa</label>
+                                    <input type="text" class="form-control" th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('tenNuocHoa')}"
+                                         th:errors="*{tenNuocHoa}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Thương hiệu</label>
+                                    <select class="form-select choices" th:field="*{idThuongHieu}" required>
+                                        <option value="">-- Chọn thương hiệu --</option>
+                                        <option th:each="th : ${listThuongHieu}"
+                                                th:value="${th.id}"
+                                                th:text="${th.tenThuongHieu}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idThuongHieu')}"
+                                         th:errors="*{idThuongHieu}"></div>
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Loại nước hoa</label>
+                                    <select class="form-select" th:field="*{idLoaiNuocHoa}" required>
+                                        <option value="">-- Chọn loại nước hoa --</option>
+                                        <option th:each="loai : ${listLoaiNuocHoa}"
+                                                th:value="${loai.id}"
+                                                th:text="${loai.tenLoai}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idLoaiNuocHoa')}"
+                                         th:errors="*{idLoaiNuocHoa}"></div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Xuất xứ</label>
+                                    <select class="form-select" th:field="*{idXuatXu}" required>
+                                        <option value="">-- Chọn quốc gia --</option>
+                                        <option th:each="xx : ${listXuatXu}"
+                                                th:value="${xx.id}"
+                                                th:text="${xx.tenXuatXu}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idXuatXu')}"
+                                         th:errors="*{idXuatXu}"></div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nhóm hương</label>
+                                    <select class="form-select" th:field="*{idNhomHuong}" required>
+                                        <option value="">-- Chọn nhóm hương --</option>
+                                        <option th:each="nh : ${listNhomHuong}"
+                                                th:value="${nh.id}"
+                                                th:text="${nh.tenNhomHuong}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idNhomHuong')}"
+                                         th:errors="*{idNhomHuong}"></div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Mùa thích hợp</label>
+                                    <select class="form-select" th:field="*{idMuaThichHop}" required>
+                                        <option value="">-- Chọn mùa thích hợp --</option>
+                                        <option th:each="m : ${listMuaThichHop}"
+                                                th:value="${m.id}"
+                                                th:text="${m.tenMua}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idMuaThichHop')}"
+                                         th:errors="*{idMuaThichHop}"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mô tả</label>
+                                <textarea class="form-control" th:field="*{moTa}" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+                            </div>
+                            <div class="text-end">
+                                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                                    ← Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary">Cập nhật dòng sản phẩm</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

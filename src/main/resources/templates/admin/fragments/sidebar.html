@@ -1,0 +1,109 @@
+<div id="sidebar" class="sidebar-desktop active" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org">
+    <div class="sidebar-wrapper ps ps--active-y">
+        <!-- Header -->
+        <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-2">
+            <a th:href="@{/admin}" class="d-flex align-items-center">
+                <img th:src="@{/admin/assets/compiled/jpg/logo3.png}" alt="Logo" class="logo">
+            </a>
+        </div>
+
+        <!-- Menu -->
+        <div class="sidebar-menu mt-3">
+            <ul class="menu list-unstyled mb-0">
+                <li class="sidebar-title text-uppercase">Menu</li>
+
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/thong-ke'} ? 'active'">
+                    <a class="sidebar-link" th:href="@{/admin/thong-ke}">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>Thống kê</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/ban-hang-tai-quay'} ? 'active'">
+                    <a th:href="@{/admin/ban-hang-tai-quay}" class="sidebar-link">
+                        <i class="bi bi-pc-display-horizontal"></i>
+                        <span>Bán hàng tại quầy</span>
+                    </a>
+                </li>
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/don-hang'} ? 'active'">
+                    <a th:href="@{/admin/don-hang}" class="sidebar-link">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <span>Đơn hàng</span>
+                    </a>
+                </li>
+
+                <hr class="menu-divider">
+
+                <!-- Quản lý sản phẩm -->
+                <li class="sidebar-item has-sub"
+                    th:classappend="${
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham-chi-tiet') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/thuong-hieu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/xuat-xu') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/dung-tich') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nong-do') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/loai-nuoc-hoa') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/mua-thich-hop') or
+#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhom-huong')
+
+                    } ? 'active'">
+                    <a href="#" class="sidebar-link">
+                        <i class="bi bi-basket"></i>
+                        <span>Quản lý sản phẩm</span>
+                    </a>
+
+                    <ul class="submenu">
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/san-pham'} ? 'active'">
+                            <a th:href="@{/admin/san-pham}">Dòng sản phẩm</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/san-pham-chi-tiet'} ? 'active'">
+                            <a th:href="@{/admin/san-pham-chi-tiet}">Sản phẩm chi tiết</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/thuong-hieu'} ? 'active'">
+                            <a th:href="@{/admin/thuong-hieu}">Thương hiệu</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/xuat-xu'} ? 'active'">
+                            <a th:href="@{/admin/xuat-xu}">Xuất xứ</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/dung-tich'} ? 'active'">
+                            <a th:href="@{/admin/dung-tich}">Dung tích</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/nong-do'} ? 'active'">
+                            <a th:href="@{/admin/nong-do}">Nồng độ</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/loai-nuoc-hoa'} ? 'active'">
+                            <a th:href="@{/admin/loai-nuoc-hoa}">Loại nước hoa</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/nhom-huong'} ? 'active'">
+                            <a th:href="@{/admin/nhom-huong}">Nhóm hương</a>
+                        </li>
+                        <li class="submenu-item" th:classappend="${currentPath == '/admin/mua-thich-hop'} ? 'active'">
+                            <a th:href="@{/admin/mua-thich-hop}">Mùa thích hợp</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/nguoi-dung'} ? 'active'">
+                    <a th:href="@{/admin/nguoi-dung}" class="sidebar-link">
+                        <i class="bi bi-people"></i>
+                        <span>Quản lý người dùng</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/hoa-don'} ? 'active'">
+                    <a th:href="@{/admin/hoa-don}" class="sidebar-link">
+                        <i class="bi bi-receipt"></i>
+                        <span>Quản lý hóa đơn</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item" th:classappend="${currentPath == '/admin/giam-gia'} ? 'active'">
+                    <a th:href="@{/admin/giam-gia}" class="sidebar-link">
+                        <i class="bi bi-tags"></i>
+                        <span>Chương trình giảm giá</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

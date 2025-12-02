@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="client/fragments/head :: head"></head>
+<body>
+
+<!-- Header -->
+<div th:replace="client/fragments/header :: header"></div>
+
+<!-- Carousel banner -->
+<div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="/images/diorbanner.jpg" class="d-block img-fluid" alt="Banner 1">
+        </div>
+        <div class="carousel-item">
+            <img src="/images/banner3.png" class="d-block img-fluid" alt="Banner 2">
+        </div>
+    </div>
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"></button>
+    </div>
+</div>
+
+<section class="container my-5 featured-brands">
+    <h2 class="text-center mb-5 fw-medium">THƯƠNG HIỆU NỔI TIẾNG</h2>
+
+    <div class="brand-grid">
+        <a href="/thuong-hieu/clive-christian" class="brand-item">
+            <img src="/images/Clive-Christian-logo.png" alt="Clive Christian">
+        </a>
+
+        <a href="/thuong-hieu/xerjoff" class="brand-item">
+            <img src="/images/Xerjoff-logo.png" alt="Xerjoff">
+        </a>
+
+        <a href="/thuong-hieu/penhaligons" class="brand-item">
+            <img src="/images/Penhaligons-logo.png" alt="Penhaligon's">
+        </a>
+
+        <a href="/thuong-hieu/nasomatto" class="brand-item">
+            <img src="/images/Nasomatto-logo.png" alt="Nasomatto">
+        </a>
+
+        <a href="/thuong-hieu/roja-parfums" class="brand-item">
+            <img src="/images/roja-logo.png" alt="Roja Parfums">
+        </a>
+
+        <a href="/thuong-hieu/ormonde" class="brand-item">
+            <img src="/images/Ormonde-Jayne-logo.png" alt="Ormonde Jayne">
+        </a>
+
+        <a href="/thuong-hieu/creed" class="brand-item">
+            <img src="/images/Creed-logo.png" alt="Creed">
+        </a>
+
+        <a href="/thuong-hieu/le-labo" class="brand-item">
+            <img src="/images/Le-labo-logo.png" alt="Le Labo">
+        </a>
+
+        <a href="/thuong-hieu/maison-francis-kurkdjian-mfk" class="brand-item">
+            <img src="/images/mfk-logo.png" alt="MFK">
+        </a>
+
+        <a href="/thuong-hieu/kilian" class="brand-item">
+            <img src="/images/Kilian.png" alt="By Kilian">
+        </a>
+
+    </div>
+</section>
+
+<section class="container-fluid my-5 featured-products px-5">
+    <h2 class="text-center mb-5 fw-medium">SẢN PHẨM NỔI BẬT</h2>
+
+    <!-- Tabs -->
+    <ul class="nav nav-pills justify-content-center mb-4" id="perfumeTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-nam" data-bs-toggle="tab" data-bs-target="#pane-nam"
+                    type="button" role="tab" aria-controls="pane-nam" aria-selected="true">
+                Nước hoa Nam
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-nu" data-bs-toggle="tab" data-bs-target="#pane-nu"
+                    type="button" role="tab" aria-controls="pane-nu" aria-selected="false">
+                Nước hoa Nữ
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-unisex" data-bs-toggle="tab" data-bs-target="#pane-unisex"
+                    type="button" role="tab" aria-controls="pane-unisex" aria-selected="false">
+                Nước hoa Unisex
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="perfumeTabContent">
+
+        <!-- =================== NAM =================== -->
+        <div class="tab-pane fade show active" id="pane-nam" role="tabpanel" aria-labelledby="tab-nam">
+            <div id="carouselNam" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+                <div class="carousel-inner">
+                    <div class="carousel-item" th:each="chunk, stat : ${sanPhamNamChunks}"
+                         th:classappend="${stat.index == 0} ? 'active'">
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-4">
+                            <div class="col" th:each="sp : ${chunk}">
+                                <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                                    <div class="card product-card text-center">
+                                        <div class="product-img-wrapper">
+                                            <img th:if="${sp.hinhAnh != null}"
+                                                 th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                                 alt="Ảnh sản phẩm">
+                                        </div>
+                                        <div class="product-info">
+                                            <p class="brand-name">
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
+                                                   th:text="${sp.tenThuongHieu ?: '---'}"></a>
+                                            </p>
+                                            <hr class="brand-divider">
+                                            <h6 class="product-name">
+                                                <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                                   th:text="${sp.tenSanPham ?: '---'}"></a>
+                                            </h6>
+                                            <p class="product-price"
+                                               th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dấu chấm phân trang -->
+                <div class="carousel-indicators mt-3">
+                    <button th:each="chunk, stat : ${sanPhamNamChunks}"
+                            type="button"
+                            th:attr="data-bs-target='#carouselNam', data-bs-slide-to=${stat.index}"
+                            th:classappend="${stat.index == 0} ? 'active'"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================== NỮ =================== -->
+        <div class="tab-pane fade" id="pane-nu" role="tabpanel" aria-labelledby="tab-nu">
+            <div id="carouselNu" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+                <div class="carousel-inner">
+                    <div class="carousel-item" th:each="chunk, stat : ${sanPhamNuChunks}"
+                         th:classappend="${stat.index == 0} ? 'active'">
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-4">
+                            <div class="col" th:each="sp : ${chunk}">
+                                <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                                    <div class="card product-card text-center">
+                                        <div class="product-img-wrapper">
+                                            <img th:if="${sp.hinhAnh != null}"
+                                                 th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                                 alt="Ảnh sản phẩm">
+                                        </div>
+                                        <div class="product-info">
+                                            <p class="brand-name">
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
+                                                   th:text="${sp.tenThuongHieu ?: '---'}"></a>
+                                            </p>
+                                            <hr class="brand-divider">
+                                            <h6 class="product-name">
+                                                <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                                   th:text="${sp.tenSanPham ?: '---'}"></a>
+                                            </h6>
+                                            <p class="product-price"
+                                               th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dấu chấm phân trang -->
+                <div class="carousel-indicators mt-3">
+                    <button th:each="chunk, stat : ${sanPhamNuChunks}"
+                            type="button"
+                            th:attr="data-bs-target='#carouselNu', data-bs-slide-to=${stat.index}"
+                            th:classappend="${stat.index == 0} ? 'active'"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================== UNISEX =================== -->
+        <div class="tab-pane fade" id="pane-unisex" role="tabpanel" aria-labelledby="tab-unisex">
+            <div id="carouselUnisex" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+                <div class="carousel-inner">
+                    <div class="carousel-item" th:each="chunk, stat : ${sanPhamUnisexChunks}"
+                         th:classappend="${stat.index == 0} ? 'active'">
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-4">
+                            <div class="col" th:each="sp : ${chunk}">
+                                <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                                    <div class="card product-card text-center">
+                                        <div class="product-img-wrapper">
+                                            <img th:if="${sp.hinhAnh != null}"
+                                                 th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                                 alt="Ảnh sản phẩm">
+                                        </div>
+                                        <div class="product-info">
+                                            <p class="brand-name">
+                                                <a th:href="@{'/thuong-hieu/' + ${sp.slugThuongHieu}}"
+                                                   th:text="${sp.tenThuongHieu ?: '---'}"></a>
+                                            </p>
+                                            <hr class="brand-divider">
+                                            <h6 class="product-name">
+                                                <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                                   th:text="${sp.tenSanPham ?: '---'}"></a>
+                                            </h6>
+                                            <p class="product-price"
+                                               th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dấu chấm phân trang -->
+                <div class="carousel-indicators mt-3">
+                    <button th:each="chunk, stat : ${sanPhamUnisexChunks}"
+                            type="button"
+                            th:attr="data-bs-target='#carouselUnisex', data-bs-slide-to=${stat.index}"
+                            th:classappend="${stat.index == 0} ? 'active'"></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+
+<!-- Footer -->
+<div th:replace="client/fragments/footer :: footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

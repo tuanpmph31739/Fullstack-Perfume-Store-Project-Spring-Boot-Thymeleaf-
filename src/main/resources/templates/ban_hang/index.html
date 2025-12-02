@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <!-- HEADER -->
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <!-- TIÊU ĐỀ TRANG -->
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>Bán hàng tại quầy</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NỘI DUNG CHÍNH -->
+        <div class="page-content">
+
+            <!-- CSS RIÊNG CHO POS -->
+            <style>
+                body {
+                    background-color: #f5f6fb;
+                    font-size: 14px;
+                }
+
+                .pos-wrapper {
+                    padding: 4px 0 16px;
+                }
+
+                .pos-title {
+                    font-weight: 600;
+                    font-size: 24px;
+                }
+
+                .card.pos-card {
+                    border-radius: 14px;
+                    border: none;
+                    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+                }
+
+                .pos-header-box {
+                    border-radius: 14px;
+                    background-color: #ffffff;
+                    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+                }
+
+                .card.pos-card .card-header {
+                    background-color: #ffffff;
+                    border-bottom: 1px solid #edf1f7;
+                    font-weight: 600;
+                }
+
+                .order-tab {
+                    border-radius: 999px;
+                    padding: 4px 16px;
+                    font-weight: 500;
+                    font-size: 14px;
+                }
+
+                .order-tab.active {
+                    background-color: #2563eb;
+                    color: #ffffff !important;
+                }
+
+                .order-tab.inactive {
+                    background-color: #e5e7eb;
+                    color: #111827 !important;
+                }
+
+                .order-tab .close-btn {
+                    margin-left: 6px;
+                    font-size: 16px;
+                    line-height: 1;
+                }
+
+                .badge-stock {
+                    font-size: 11px;
+                    font-weight: 500;
+                }
+
+                .product-item:hover {
+                    background-color: #f9fafb;
+                }
+
+                .product-list {
+                    max-height: 520px;
+                    overflow-y: auto;
+                }
+
+                .cart-list {
+                    max-height: 260px;
+                    overflow-y: auto;
+                }
+
+                .text-small {
+                    font-size: 12px;
+                }
+
+                .money {
+                    font-weight: 600;
+                }
+            </style>
+
+            <section class="row">
+                <div class="col-12">
+                    <div class="container-fluid pos-wrapper">
+
+                        <!-- HÀNG 1: TAB HÓA ĐƠN + TẠO ĐƠN -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="pos-header-box py-2 px-3 d-flex justify-content-between align-items-center">
+
+                                    <!-- Tabs danh sách hóa đơn -->
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <div th:each="hd, iterStat : ${listHoaDon}"
+                                             class="d-flex align-items-center">
+                                            <a th:href="@{/admin/ban-hang-tai-quay(idHD=${hd.id})}"
+                                               class="order-tab text-decoration-none"
+                                               th:classappend="${hd.id == idHD} ? ' active' : ' inactive'">
+                                                <span th:text="'Đơn ' + ${iterStat.index + 1}">Đơn 1</span>
+                                            </a>
+                                            <form th:action="@{'/admin/ban-hang-tai-quay/xoa-hoa-don/' + ${hd.id}}"
+                                                  method="post"
+                                                  onsubmit="return confirm('Bạn chắc chắn muốn hủy hóa đơn này?')">
+                                                <button type="submit"
+                                                        class="btn btn-link text-danger p-0 ms-1 close-btn">
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút thêm hóa đơn -->
+                                    <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}">
+                                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                                            <i class="bi bi-plus-circle"></i> Thêm đơn mới
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- THÔNG BÁO LỖI / THÀNH CÔNG -->
+                        <div class="row" th:if="${errorMessage} or ${successMessage}">
+                            <div class="col-12">
+                                <div th:if="${errorMessage}"
+                                     class="alert alert-danger py-2 mb-2"
+                                     th:text="${errorMessage}"></div>
+                                <div th:if="${successMessage}"
+                                     class="alert alert-success py-2 mb-2"
+                                     th:text="${successMessage}"></div>
+                            </div>
+                        </div>
+
+                        <!-- HÀNG 2: TRÁI = KHÁCH + SẢN PHẨM, PHẢI = GIỎ HÀNG + THANH TOÁN -->
+                        <div class="row mt-2">
+                            <!-- CỘT TRÁI -->
+                            <div class="col-lg-8 mb-3">
+
+                                <!-- THÔNG TIN KHÁCH HÀNG -->
+                                <div class="card pos-card mb-3">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <span>Thông tin khách hàng</span>
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                data-bs-toggle="modal" data-bs-target="#customerModal"
+                                                th:disabled="${idHD == null}">
+                                            <i class="bi bi-search"></i> Tìm khách hàng
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+
+                                        <div th:if="${idHD == null}" class="text-muted">
+                                            Chưa chọn hóa đơn. Vui lòng tạo hoặc chọn một đơn phía trên.
+                                        </div>
+
+                                        <div th:if="${idHD != null}">
+                                            <div class="row g-2 align-items-center mb-1">
+                                                <!-- TÊN KHÁCH -->
+                                                <div class="col-md-6">
+                                                    <label class="text-small text-muted mb-1">Tên khách hàng</label>
+                                                    <input type="text"
+                                                           id="posHoTen"
+                                                           name="hoTen"
+                                                           form="formThanhToan"
+                                                           class="form-control form-control-sm"
+                                                           placeholder="VD: Nguyễn Văn A hoặc Khách lẻ"
+                                                           th:value="${
+                                                               hoaDon != null && hoaDon.khachHang != null
+                                                                   ? hoaDon.khachHang.hoTen
+                                                                   : (hoTenTmp != null ? hoTenTmp : '')
+                                                           }"/>
+
+                                                </div>
+
+                                                <!-- SỐ ĐIỆN THOẠI -->
+                                                <div class="col-md-3">
+                                                    <label class="text-small text-muted mb-1">Số điện thoại</label>
+                                                    <input type="text"
+                                                           id="posSdt"
+                                                           name="sdt"
+                                                           form="formThanhToan"
+                                                           class="form-control form-control-sm"
+                                                           placeholder="VD: 0901234567"
+                                                           th:value="${
+                                                               hoaDon != null && hoaDon.khachHang != null
+                                                                   ? hoaDon.khachHang.sdt
+                                                                   : (sdtTmp != null ? sdtTmp : '')
+                                                           }"/>
+                                                </div>
+
+                                                <!-- EMAIL -->
+                                                <div class="col-md-3">
+                                                    <label class="text-small text-muted mb-1">Email</label>
+                                                    <input type="email"
+                                                           id="posEmail"
+                                                           name="email"
+                                                           form="formThanhToan"
+                                                           class="form-control form-control-sm"
+                                                           placeholder="Không bắt buộc"
+                                                           th:value="${
+                                                               hoaDon != null && hoaDon.khachHang != null
+                                                                   ? hoaDon.khachHang.email
+                                                                   : (emailTmp != null ? emailTmp : '')
+                                                           }"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mt-1">
+                                                <!-- ĐỊA CHỈ -->
+                                                <div class="col-12">
+                                                    <label class="text-small text-muted mb-1">Địa chỉ</label>
+                                                    <input type="text"
+                                                           id="posDiaChi"
+                                                           name="diaChi"
+                                                           form="formThanhToan"
+                                                           class="form-control form-control-sm"
+                                                           placeholder="Địa chỉ giao hàng (nếu có)"
+                                                           th:value="${
+                                                               hoaDon != null && hoaDon.khachHang != null
+                                                                   ? hoaDon.khachHang.diaChi
+                                                                   : (diaChiTmp != null ? diaChiTmp : '')
+                                                           }"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                                <span class="text-small text-muted">
+                                                    • Thông tin này sẽ được <strong>lưu & gắn vào hóa đơn</strong> khi bạn bấm
+                                                    <strong>Xác nhận đơn hàng</strong>.<br>
+                                                    • Hoặc dùng nút <strong>Tìm khách hàng</strong> bên phải để gán khách đã tồn tại.
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- TÌM KIẾM SẢN PHẨM -->
+                                <div class="card pos-card">
+                                    <div class="card-header">
+                                        Tìm kiếm sản phẩm
+                                    </div>
+                                    <div class="card-body">
+
+                                        <!-- Thanh tìm kiếm -->
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-12">
+                                                <div class="input-group">
+                                                    <span class="input-group-text">
+                                                        <i class="bi bi-search"></i>
+                                                    </span>
+                                                    <input type="text"
+                                                           id="productSearchInput"
+                                                           class="form-control"
+                                                           placeholder="Tìm kiếm sản phẩm theo tên, mã SKU..."
+                                                           oninput="filterProducts()">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- DANH SÁCH SẢN PHẨM -->
+                                        <div class="product-list">
+
+                                            <!-- Lặp theo từng sản phẩm cha -->
+                                            <div th:each="entry : ${groupedProducts}"
+                                                 class="mb-2 product-item border rounded-3 p-2"
+                                                 th:attr="data-keywords=${entry.key.tenNuocHoa != null ? entry.key.tenNuocHoa.toLowerCase() : ''}">
+
+                                                <!-- Tên + thương hiệu -->
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <div>
+                                                        <div class="fw-semibold"
+                                                             th:text="${entry.key.tenNuocHoa}">
+                                                            Tên nước hoa
+                                                        </div>
+                                                        <div class="text-small text-muted"
+                                                             th:if="${entry.key.thuongHieu != null}"
+                                                             th:text="${entry.key.thuongHieu.tenThuongHieu}">
+                                                            Thương hiệu
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Các dung tích / size bên trong -->
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm align-middle mb-0">
+                                                        <thead class="table-light">
+                                                        <tr class="text-small">
+                                                            <th style="width: 120px;">Ảnh</th>
+                                                            <th style="width: 120px;">Mã SKU</th>
+                                                            <th style="width: 120px;">Dung tích</th>
+                                                            <th style="width: 90px;">Nồng độ</th>
+                                                            <th style="width: 120px;">Giá bán</th>
+                                                            <th style="width: 70px;">Tồn</th>
+                                                            <th style="width: 130px;">Số lượng</th>
+                                                            <th style="width: 110px;"></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr th:each="spct : ${entry.value}">
+                                                            <td>
+                                                                <img th:if="${spct.hinhAnh}"
+                                                                     th:src="@{'/images/uploads/' + ${spct.hinhAnh}}"
+                                                                     style="max-width:50px">
+                                                                <span th:unless="${spct.hinhAnh}">---</span>
+                                                            </td>
+                                                            <td th:text="${spct.maSKU}">SKU-001</td>
+                                                            <td th:text="${spct.dungTich != null ? spct.dungTich.soMl + ' ml' : 'Chuẩn'}">
+                                                                50 ml
+                                                            </td>
+                                                            <td th:text="${spct.nongDo != null ? spct.nongDo.tenNongDo : 'N/A'}">EDP</td>
+                                                            <td th:text="${#numbers.formatDecimal(spct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                                1.000.000 đ
+                                                            </td>
+                                                            <td>
+                                                                <span th:if="${spct.soLuongTon > 0}"
+                                                                      class="badge bg-success-subtle text-success badge-stock"
+                                                                      th:text="${spct.soLuongTon} + ' sp'">
+                                                                </span>
+                                                                <span th:if="${spct.soLuongTon <= 0}"
+                                                                      class="badge bg-danger-subtle text-danger badge-stock">
+                                                                    Hết hàng
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <form th:id="'form-add-' + ${spct.id}"
+                                                                      th:action="@{/admin/ban-hang-tai-quay/add-san-pham}"
+                                                                      method="post"
+                                                                      class="m-0 sync-customer-form">
+                                                                    <input type="hidden" name="idHD" th:value="${idHD}"/>
+                                                                    <input type="hidden" name="idSanPhamChiTiet" th:value="${spct.id}"/>
+
+                                                                    <!-- Hidden để mang thông tin khách lên server -->
+                                                                    <input type="hidden" name="hoTen">
+                                                                    <input type="hidden" name="sdt">
+                                                                    <input type="hidden" name="email">
+                                                                    <input type="hidden" name="diaChi">
+
+                                                                    <input type="number" name="soLuong" value="1" min="1"
+                                                                           class="form-control form-control-sm"/>
+                                                                </form>
+
+                                                            </td>
+                                                            <td>
+                                                                <button type="submit"
+                                                                        th:form="'form-add-' + ${spct.id}"
+                                                                        class="btn btn-outline-primary btn-sm w-100"
+                                                                        th:disabled="${idHD == null or spct.soLuongTon <= 0}">
+                                                                    <i class="bi bi-cart-plus"></i> Thêm
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                            <!-- /product-item -->
+
+                                            <div th:if="${#lists.isEmpty(groupedProducts)}"
+                                                 class="text-center text-muted py-4">
+                                                Chưa có sản phẩm nào trong hệ thống.
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- CỘT PHẢI -->
+                            <div class="col-lg-4 mb-3">
+
+                                <!-- GIỎ HÀNG -->
+                                <div class="card pos-card mb-3">
+                                    <div class="card-header">
+                                        Giỏ hàng
+                                    </div>
+                                    <div class="card-body cart-list">
+
+                                        <div th:if="${idHD == null}" class="text-center text-muted py-3">
+                                            Chưa chọn hóa đơn.
+                                        </div>
+
+                                        <div th:if="${idHD != null}">
+                                            <div th:if="${gioHang == null or gioHang.isEmpty()}"
+                                                 class="text-center text-muted py-3">
+                                                Giỏ hàng trống.
+                                            </div>
+
+                                            <table th:if="${gioHang != null and !gioHang.isEmpty()}"
+                                                   class="table align-middle mb-0">
+                                                <tbody>
+                                                <tr th:each="item : ${gioHang}">
+                                                    <td>
+                                                        <div class="fw-semibold"
+                                                             th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}">
+                                                            Tên sản phẩm
+                                                        </div>
+                                                        <div class="text-small text-muted">
+                                                            <span th:text="${item.sanPhamChiTiet.dungTich != null ?
+                                                                            item.sanPhamChiTiet.dungTich.soMl + ' ml' : ''}">
+                                                            </span>
+                                                            &nbsp;|&nbsp;
+                                                            <span th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td style="width: 140px;">
+                                                        <div class="d-flex align-items-center border rounded-3 px-1">
+                                                            <form th:action="@{/admin/ban-hang-tai-quay/giam-so-luong}"
+                                                                  method="post" class="m-0 sync-customer-form">
+                                                                <input type="hidden" name="idHDCT" th:value="${item.id}"/>
+                                                                <input type="hidden" name="idHD" th:value="${idHD}"/>
+
+                                                                <!-- Hidden thông tin khách -->
+                                                                <input type="hidden" name="hoTen">
+                                                                <input type="hidden" name="sdt">
+                                                                <input type="hidden" name="email">
+                                                                <input type="hidden" name="diaChi">
+
+                                                                <button type="submit"
+                                                                        class="btn btn-link btn-sm text-dark px-1">
+                                                                    -
+                                                                </button>
+                                                            </form>
+
+                                                            <span class="mx-2" th:text="${item.soLuong}">1</span>
+                                                            <form th:action="@{/admin/ban-hang-tai-quay/tang-so-luong}"
+                                                                  method="post" class="m-0 sync-customer-form">
+                                                                <input type="hidden" name="idHDCT" th:value="${item.id}"/>
+                                                                <input type="hidden" name="idHD" th:value="${idHD}"/>
+
+                                                                <!-- Hidden thông tin khách -->
+                                                                <input type="hidden" name="hoTen">
+                                                                <input type="hidden" name="sdt">
+                                                                <input type="hidden" name="email">
+                                                                <input type="hidden" name="diaChi">
+
+                                                                <button type="submit"
+                                                                        class="btn btn-link btn-sm text-dark px-1">
+                                                                    +
+                                                                </button>
+                                                            </form>
+
+                                                        </div>
+                                                    </td>
+                                                    <td style="width: 32px;">
+                                                        <form th:action="@{/admin/ban-hang-tai-quay/remove-san-pham}"
+                                                              method="post" class="m-0 sync-customer-form">
+                                                            <input type="hidden" name="idHDCT" th:value="${item.id}"/>
+                                                            <input type="hidden" name="idHD" th:value="${idHD}"/>
+
+                                                            <!-- Hidden thông tin khách -->
+                                                            <input type="hidden" name="hoTen">
+                                                            <input type="hidden" name="sdt">
+                                                            <input type="hidden" name="email">
+                                                            <input type="hidden" name="diaChi">
+
+                                                            <button type="submit"
+                                                                    class="btn btn-link text-danger p-0">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- THANH TOÁN -->
+                                <div class="card pos-card">
+                                    <div class="card-header">
+                                        Thanh toán
+                                    </div>
+                                    <div class="card-body">
+
+                                        <div th:if="${hoaDon == null}" class="text-muted">
+                                            Vui lòng chọn hóa đơn để tiến hành thanh toán.
+                                        </div>
+
+                                        <div th:if="${hoaDon != null}">
+                                            <!-- Phương thức thanh toán (demo, hiện tại fix Tiền mặt) -->
+                                            <div class="mb-2">
+                                                <label class="text-small text-muted mb-1">Phương thức thanh toán</label>
+                                                <input type="text" class="form-control form-control-sm bg-light"
+                                                       value="Tiền mặt" readonly>
+                                            </div>
+
+                                            <!-- VOUCHER -->
+                                            <div class="mb-2">
+                                                <label class="text-small text-muted mb-1">Phiếu giảm giá</label>
+                                                <div class="d-flex gap-2">
+                                                    <form th:action="@{/admin/ban-hang-tai-quay/apply-voucher}"
+                                                          method="post"
+                                                          class="d-flex flex-grow-1 gap-2">
+                                                        <input type="hidden" name="idHD" th:value="${idHD}"/>
+                                                        <input type="text" name="maGiamGia"
+                                                               class="form-control form-control-sm"
+                                                               placeholder="Nhập mã giảm giá..."
+                                                               th:value="${hoaDon.giamGia?.ma}"/>
+                                                        <button type="submit" class="btn btn-primary btn-sm">
+                                                            Áp dụng
+                                                        </button>
+                                                    </form>
+
+                                                    <form th:if="${hoaDon.giamGia != null}"
+                                                          th:action="@{/admin/ban-hang-tai-quay/remove-voucher}"
+                                                          method="post">
+                                                        <input type="hidden" name="idHD" th:value="${idHD}"/>
+                                                        <button type="submit"
+                                                                class="btn btn-outline-secondary btn-sm">
+                                                            Hủy
+                                                        </button>
+                                                    </form>
+                                                </div>
+
+                                                <div th:if="${hoaDon.giamGia != null}"
+                                                     class="text-small text-success mt-1">
+                                                    Đã áp dụng mã:
+                                                    <strong th:text="${hoaDon.giamGia.ma}">SALE10</strong>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            <!-- TỔNG TIỀN -->
+                                            <div class="d-flex justify-content-between text-small mb-1">
+                                                <span>Tổng tiền hàng</span>
+                                                <span class="money"
+                                                      th:text="${#numbers.formatDecimal(hoaDon.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </span>
+                                            </div>
+                                            <div class="d-flex justify-content-between text-small mb-1">
+                                                <span>Giảm giá</span>
+                                                <span class="money text-danger"
+                                                      th:text="'- ' + ${#numbers.formatDecimal(hoaDon.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    - 0 đ
+                                                </span>
+                                            </div>
+                                            <div class="d-flex justify-content-between text-small mb-2">
+                                                <span>Phí ship</span>
+                                                <span class="money"
+                                                      th:text="${#numbers.formatDecimal(hoaDon.phiShip != null ? hoaDon.phiShip : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </span>
+                                            </div>
+                                            <hr class="mt-1 mb-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <span class="fw-semibold">Tổng thanh toán</span>
+                                                <span class="fs-5 text-primary fw-bold"
+                                                      th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                                    0 đ
+                                                </span>
+                                            </div>
+
+                                            <!-- FORM THANH TOÁN -->
+                                            <form th:action="@{/admin/ban-hang-tai-quay/thanh-toan}"
+                                                  method="post"
+                                                  id="formThanhToan"
+                                                  onsubmit="return confirm('Xác nhận thanh toán hóa đơn này?')">
+                                                <input type="hidden" name="idHD" th:value="${idHD}"/>
+
+                                                <!-- Nếu muốn thêm Tiền khách đưa / phí ship, thêm input ở đây -->
+
+                                                <button type="submit"
+                                                        class="btn btn-success w-100 py-2 fw-semibold"
+                                                        th:disabled="${gioHang == null or gioHang.isEmpty()}">
+                                                    Xác nhận đơn hàng
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- FOOTER -->
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<!-- SCRIPT CHUNG ADMIN -->
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<!-- MODAL TÌM KIẾM & CHỌN KHÁCH HÀNG -->
+<div class="modal fade" id="customerModal" tabindex="-1"
+     aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">
+                    Tìm kiếm & chọn khách hàng
+                </h5>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Form tìm kiếm khách hàng -->
+                <form th:action="@{/admin/ban-hang-tai-quay}" method="get"
+                      class="d-flex gap-2 mb-3">
+                    <input type="hidden" name="idHD" th:value="${idHD}"/>
+                    <input type="search" name="keyword" class="form-control"
+                           placeholder="Tìm theo SĐT hoặc tên..."
+                           th:value="${searchKeyword}"/>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Tìm
+                    </button>
+                </form>
+
+                <!-- Danh sách khách hàng -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${customerResults == null or customerResults.isEmpty()}">
+                            <td colspan="5" class="text-center text-muted">
+                                <span th:if="${searchKeyword != null}">
+                                    Không tìm thấy khách hàng nào.
+                                </span>
+                                <span th:if="${searchKeyword == null}">
+                                    Chưa có khách hàng nào trong hệ thống.
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr th:each="kh : ${customerResults}">
+                            <td th:text="${kh.id}">1</td>
+                            <td th:text="${kh.hoTen}">Nguyễn Văn A</td>
+                            <td th:text="${kh.sdt}">0123456789</td>
+                            <td th:text="${kh.email}">email@example.com</td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/ban-hang-tai-quay/gan-khach-hang}"
+                                      method="post" class="m-0">
+                                    <input type="hidden" name="idHD" th:value="${idHD}"/>
+                                    <input type="hidden" name="idKH" th:value="${kh.id}"/>
+                                    <button type="submit"
+                                            class="btn btn-outline-success btn-sm">
+                                        Chọn
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Script: mở lại modal khách hàng nếu vừa tìm kiếm -->
+<script th:if="${customerSearchTriggered == true}">
+    document.addEventListener("DOMContentLoaded", function () {
+        var modal = new bootstrap.Modal(document.getElementById('customerModal'));
+        modal.show();
+    });
+</script>
+
+<!-- Script: lọc sản phẩm theo text -->
+<script>
+    function filterProducts() {
+        var keyword = document.getElementById('productSearchInput').value.toLowerCase();
+        var items = document.querySelectorAll('.product-item');
+
+        items.forEach(function (item) {
+            var text = item.getAttribute('data-keywords') || '';
+            if (!keyword || text.indexOf(keyword) !== -1) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Tất cả form có class này sẽ mang thêm info khách
+        var forms = document.querySelectorAll("form.sync-customer-form");
+
+        forms.forEach(function (form) {
+            form.addEventListener("submit", function () {
+                var hoTenInput  = document.getElementById("posHoTen");
+                var sdtInput    = document.getElementById("posSdt");
+                var emailInput  = document.getElementById("posEmail");
+                var diaChiInput = document.getElementById("posDiaChi");
+
+                var hoTen  = hoTenInput  ? hoTenInput.value  : "";
+                var sdt    = sdtInput    ? sdtInput.value    : "";
+                var email  = emailInput  ? emailInput.value  : "";
+                var diaChi = diaChiInput ? diaChiInput.value : "";
+
+                var hHoTen  = form.querySelector("input[name='hoTen']");
+                var hSdt    = form.querySelector("input[name='sdt']");
+                var hEmail  = form.querySelector("input[name='email']");
+                var hDiaChi = form.querySelector("input[name='diaChi']");
+
+                if (hHoTen)  hHoTen.value  = hoTen;
+                if (hSdt)    hSdt.value    = sdt;
+                if (hEmail)  hEmail.value  = email;
+                if (hDiaChi) hDiaChi.value = diaChi;
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

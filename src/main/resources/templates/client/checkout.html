@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{client/fragments/head :: head}"></head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<body>
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<style>
+    /* --- GIAO DIỆN CHUNG --- */
+    .checkout-section {
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        padding: 30px;
+        transition: transform 0.3s ease;
+    }
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #555;
+    }
+    .form-control, .form-select {
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
+    }
+
+    /* --- TRẠNG THÁI VALIDATION --- */
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: #dc3545;
+        background-image: none; /* Bỏ icon mặc định của bootstrap */
+    }
+    .form-control.is-valid, .form-select.is-valid {
+        border-color: #198754;
+    }
+    .invalid-feedback-custom {
+        color: #dc3545;
+        font-size: 0.85em;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+    }
+    .invalid-feedback-custom i { margin-right: 4px; }
+
+    /* --- PAYMENT OPTION --- */
+    .payment-option {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .payment-option:hover {
+        border-color: #bbb;
+        background-color: #fcfcfc;
+    }
+    .payment-option.selected {
+        border-color: var(--color-primary);
+        background-color: rgba(var(--color-primary-rgb), 0.04);
+        box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.15);
+    }
+    .payment-option.selected::after {
+        content: "\F26B"; /* Bootstrap check icon */
+        font-family: "bootstrap-icons";
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: var(--color-primary);
+        font-size: 1.2rem;
+    }
+
+    /* --- SUMMARY CARD --- */
+    .summary-card {
+        background-color: #f8f9fa;
+        border: 1px solid #eee;
+        border-radius: 16px;
+    }
+    .flag-select {
+        background-color: #f8f9fa;
+        border-right: none;
+        width: 110px;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">Thanh Toán Đơn Hàng</h2>
+        <p class="text-muted">Vui lòng kiểm tra kỹ thông tin trước khi đặt hàng</p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger border-0 shadow-sm rounded-3 d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-octagon-fill fs-4 me-3 text-danger"></i>
+        <div>
+            <strong class="d-block">Đã có lỗi xảy ra!</strong>
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
+
+    <form th:action="@{/order/submit}" method="POST" th:object="${checkoutForm}" id="checkoutForm" novalidate>
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+                <div class="checkout-section h-100">
+                    <h5 class="mb-4 fw-bold text-uppercase ls-1"><i class="bi bi-person-vcard me-2 text-primary"></i>Thông tin nhận hàng</h5>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{tenNguoiNhan}" id="tenNguoiNhan" placeholder="Ví dụ: Nguyễn Văn A">
+                            <div class="invalid-feedback-custom d-none" id="error-tenNguoiNhan"><i class="bi bi-info-circle"></i> Vui lòng nhập họ tên.</div>
+                            <div th:if="${#fields.hasErrors('tenNguoiNhan')}" th:errors="*{tenNguoiNhan}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select class="form-select flex-grow-0 flag-select" id="countryCode">
+                                    <option value="+84" selected>🇻🇳 +84</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+81">🇯🇵 +81</option>
+                                    <option value="+82">🇰🇷 +82</option>
+                                </select>
+                                <input type="tel" class="form-control" id="phoneInput" placeholder="0901234567">
+                                <input type="hidden" id="fullPhone" th:field="*{sdt}">
+                            </div>
+                            <div class="invalid-feedback-custom d-none" id="error-phone"><i class="bi bi-info-circle"></i> Số điện thoại không hợp lệ.</div>
+                            <div th:if="${#fields.hasErrors('sdt')}" th:errors="*{sdt}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email (Nhận hóa đơn)</label>
+                            <input type="email" class="form-control" th:field="*{email}" id="email" placeholder="email@example.com">
+                            <div class="invalid-feedback-custom d-none" id="error-email"><i class="bi bi-info-circle"></i> Email không đúng định dạng.</div>
+                            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold mb-3 text-muted small text-uppercase border-bottom pb-2">Địa chỉ giao hàng</h6>
+                            <input type="hidden" id="fullAddress" th:field="*{diaChi}">
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="province"><option value="">Chọn Tỉnh/TP</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small">Quận / Huyện <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="district" disabled><option value="">Chọn Quận/Huyện</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small">Phường / Xã <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="ward" disabled><option value="">Chọn Phường/Xã</option></select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small">Số nhà, Tên đường <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="street" placeholder="Ví dụ: Số 10, Ngõ 5...">
+                                    <div class="invalid-feedback-custom d-none" id="error-address"><i class="bi bi-info-circle"></i> Vui lòng chọn đầy đủ địa chỉ.</div>
+                                </div>
+                            </div>
+                            <div th:if="${#fields.hasErrors('diaChi')}" th:errors="*{diaChi}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label class="form-label"><i class="bi bi-chat-square-text me-1"></i>Ghi chú (Tùy chọn)</label>
+                            <textarea class="form-control" name="ghiChu" rows="2" placeholder="Lời nhắn cho shop hoặc shipper..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <h5 class="mb-4 fw-bold text-uppercase ls-1"><i class="bi bi-wallet2 me-2 text-primary"></i>Phương thức thanh toán</h5>
+
+                        <label class="payment-option" for="thanhToan1">
+                            <div class="form-check w-100 m-0">
+                                <input class="form-check-input" type="radio"  th:field="*{idThanhToan}" value="1" id="thanhToan1" checked>
+                                <label class="form-check-label w-100 ps-2 fw-semibold" for="thanhToan1">
+                                    <i class="bi bi-cash-stack me-2 text-success fs-5"></i> Thanh toán khi nhận hàng (COD)
+                                    <div class="small text-muted fw-normal mt-1">Thanh toán tiền mặt cho shipper khi nhận hàng.</div>
+                                </label>
+                            </div>
+                        </label>
+
+                        <label class="payment-option" for="thanhToan3">
+                            <div class="form-check w-100 m-0">
+                                <input class="form-check-input" type="radio" th:field="*{idThanhToan}" value="3" id="thanhToan3">
+                                <label class="form-check-label w-100 ps-2 fw-semibold" for="thanhToan3">
+                                    <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png" alt="VNPay" style="height: 24px; margin-right: 8px;">
+                                    Thanh toán qua VNPay
+                                    <div class="small text-muted fw-normal mt-1">Quét mã QR hoặc thẻ ATM nội địa/Quốc tế.</div>
+                                </label>
+                            </div>
+                        </label>
+                        <div th:if="${#fields.hasErrors('idThanhToan')}" th:errors="*{idThanhToan}" class="text-danger small mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card summary-card shadow-sm sticky-top" style="top: 20px; z-index: 1;">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                        <h5 class="fw-bold">Đơn hàng của bạn</h5>
+                    </div>
+                    <div class="card-body p-4 pt-2">
+                        <div class="overflow-auto mb-3 custom-scrollbar" style="max-height: 300px;">
+                            <ul class="list-group list-group-flush">
+                                <li th:each="item : ${gioHang.gioHangChiTiets}" class="list-group-item bg-transparent d-flex justify-content-between px-0 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 position-relative">
+                                            <img th:src="@{'/images/logo-fperfume.png'}"
+                                                 class="rounded border shadow-sm" style="width: 60px; height: 60px; object-fit: contain; background: #fff;">
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark"
+                                                  th:text="${item.soLuong}" style="font-size: 0.7rem;">1</span>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 small fw-bold text-dark" th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên SP</h6>
+                                            <small class="text-muted d-block" th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml'}">50ml</small>
+                                        </div>
+                                    </div>
+                                    <span class="small fw-bold text-dark" th:text="${#numbers.formatDecimal(item.sanPhamChiTiet.giaBan.multiply(item.soLuong), 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tạm tính:</span>
+                                <span class="fw-semibold" th:text="${#numbers.formatDecimal(tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </div>
+                            <div th:if="${tienGiamGia > 0}" class="d-flex justify-content-between mb-2 text-success">
+                                <span><i class="bi bi-ticket-perforated-fill me-1"></i>Giảm giá:</span>
+                                <span th:text="'- ' + ${#numbers.formatDecimal(tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Phí vận chuyển:</span>
+                                <span class="fw-semibold">30.000 ₫</span>
+                            </div>
+                            <hr class="text-muted">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fs-5 fw-bold text-dark">Tổng cộng:</span>
+                                <span class="fs-3 fw-bold text-primary"
+                                      th:text="${#numbers.formatDecimal(tongThanhToan + 30000, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold text-uppercase shadow-sm hover-effect"
+                                style="background-color: var(--color-primary); border: none; letter-spacing: 0.5px;">
+                            Đặt hàng ngay
+                        </button>
+
+                        <div class="text-center mt-3">
+                            <a th:href="@{/cart}" class="text-decoration-none small text-muted hover-link">
+                                <i class="bi bi-arrow-left me-1"></i> Quay lại giỏ hàng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. UI Thanh toán
+        const radioInputs = document.querySelectorAll('.payment-option input[type="radio"]');
+        function updatePaymentUI() {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+            const checked = document.querySelector('.payment-option input[type="radio"]:checked');
+            if(checked) checked.closest('.payment-option').classList.add('selected');
+        }
+        radioInputs.forEach(input => input.addEventListener('change', updatePaymentUI));
+        updatePaymentUI();
+
+        // 2. API Địa chỉ
+        const provinceSelect = document.getElementById("province");
+        const districtSelect = document.getElementById("district");
+        const wardSelect = document.getElementById("ward");
+        const streetInput = document.getElementById("street");
+        const fullAddressInput = document.getElementById("fullAddress");
+
+        fetch('https://esgoo.net/api-tinhthanh/1/0.htm').then(r => r.json()).then(data => {
+            if(data.error === 0) {
+                data.data.forEach(item => {
+                    let opt = new Option(item.full_name, item.id);
+                    opt.setAttribute("data-name", item.full_name);
+                    provinceSelect.add(opt);
+                });
+            }
+        });
+
+        provinceSelect.addEventListener("change", function() {
+            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            wardSelect.disabled = true;
+            if(this.value) {
+                districtSelect.disabled = false;
+                fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`).then(r=>r.json()).then(data=>{
+                    data.data.forEach(item => {
+                        let opt = new Option(item.full_name, item.id);
+                        opt.setAttribute("data-name", item.full_name);
+                        districtSelect.add(opt);
+                    });
+                });
+            }
+            updateFullAddress();
+        });
+
+        districtSelect.addEventListener("change", function() {
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            if(this.value) {
+                wardSelect.disabled = false;
+                fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`).then(r=>r.json()).then(data=>{
+                    data.data.forEach(item => {
+                        let opt = new Option(item.full_name, item.id);
+                        opt.setAttribute("data-name", item.full_name);
+                        wardSelect.add(opt);
+                    });
+                });
+            }
+            updateFullAddress();
+        });
+
+        wardSelect.addEventListener("change", updateFullAddress);
+        streetInput.addEventListener("input", updateFullAddress);
+
+        function updateFullAddress() {
+            const p = provinceSelect.options[provinceSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const d = districtSelect.options[districtSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const w = wardSelect.options[wardSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const s = streetInput.value.trim();
+            let arr = [];
+            if(s) arr.push(s);
+            if(w) arr.push(w);
+            if(d) arr.push(d);
+            if(p) arr.push(p);
+            fullAddressInput.value = arr.join(", ");
+            validateField(streetInput, 'error-address', () => (provinceSelect.value && districtSelect.value && wardSelect.value && s !== ""));
+        }
+
+        // 3. VALIDATION CHUYÊN NGHIỆP
+        const form = document.getElementById("checkoutForm");
+        const nameInput = document.getElementById("tenNguoiNhan");
+        const emailInput = document.getElementById("email");
+        const phoneInput = document.getElementById("phoneInput");
+        const countryCode = document.getElementById("countryCode");
+        const fullPhone = document.getElementById("fullPhone");
+
+        // Hàm hiển thị lỗi tại chỗ (Inline)
+        function setInvalid(input, errorId, isInvalid) {
+            const errorEl = document.getElementById(errorId);
+            if (isInvalid) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                if(errorEl) errorEl.classList.remove('d-none');
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+                if(errorEl) errorEl.classList.add('d-none');
+            }
+        }
+
+        // Hàm validate chung
+        function validateField(input, errorId, checkFn) {
+            const isValid = checkFn();
+            setInvalid(input, errorId, !isValid);
+            return isValid;
+        }
+
+        // Real-time validation events
+        nameInput.addEventListener('input', () => validateField(nameInput, 'error-tenNguoiNhan', () => nameInput.value.trim() !== ""));
+
+        emailInput.addEventListener('input', () => {
+            if(emailInput.value.trim() === "") {
+                emailInput.classList.remove('is-invalid');
+                emailInput.classList.remove('is-valid');
+                document.getElementById('error-email').classList.add('d-none');
+            } else {
+                validateField(emailInput, 'error-email', () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value));
+            }
+        });
+
+        function checkPhone() {
+            fullPhone.value = countryCode.value + phoneInput.value.trim();
+            const code = countryCode.value;
+            const num = phoneInput.value.trim();
+            let regex = (code === "+84") ? /^(0|84|)(3|5|7|8|9)([0-9]{8})$/ : /^[0-9]{7,15}$/;
+            return validateField(phoneInput, 'error-phone', () => regex.test(num));
+        }
+        phoneInput.addEventListener('input', checkPhone);
+        countryCode.addEventListener('change', checkPhone);
+
+
+        // SUBMIT FORM
+        form.addEventListener("submit", function(e) {
+            e.preventDefault(); // Chặn submit để check kỹ
+
+            let isNameValid = validateField(nameInput, 'error-tenNguoiNhan', () => nameInput.value.trim() !== "");
+            let isPhoneValid = checkPhone();
+            let isAddressValid = (provinceSelect.value && districtSelect.value && wardSelect.value && streetInput.value.trim() !== "");
+
+            if (!isAddressValid) {
+                streetInput.classList.add('is-invalid');
+                document.getElementById('error-address').classList.remove('d-none');
+            }
+
+            if (isNameValid && isPhoneValid && isAddressValid) {
+                // Hiển thị Loading đẹp mắt trước khi submit thật
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    text: 'Vui lòng chờ trong giây lát',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Submit thật sau 500ms (để tạo cảm giác mượt)
+                setTimeout(() => {
+                    form.submit();
+                }, 500);
+
+            } else {
+                // Alert lỗi đẹp mắt
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thông tin chưa đủ!',
+                    text: 'Vui lòng kiểm tra lại thông tin đặt hàng!.',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Đã hiểu'
+                });
+
+                // Scroll đến lỗi đầu tiên
+                const firstError = document.querySelector('.is-invalid');
+                if(firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

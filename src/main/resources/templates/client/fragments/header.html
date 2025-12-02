@@ -1,0 +1,166 @@
+<div th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <nav id="siteHeader" class="navbar navbar-expand-lg navbar-light bg-white shadow-sm p-0">
+        <div class="container-fluid d-flex flex-column">
+
+            <div class="navbar-top d-flex justify-content-between align-items-center w-100 py-3 px-4 border-bottom">
+                <a class="navbar-brand mx-lg-auto" th:href="@{/}">
+                    <img th:src="@{/images/logo-fperfume.png}" alt="F Perfume" style="height: 80px; width: auto;">
+                </a>
+
+                <form class="search-form d-none d-lg-flex align-items-center position-relative mx-auto flex-grow-1 px-4"
+                      th:action="@{/search}" method="get" style="max-width: 500px;">
+                    <input type="text" name="keyword" class="form-control search-input rounded-pill ps-3"
+                           placeholder="Tìm kiếm sản phẩm, thương hiệu..." />
+                    <button type="submit" class="btn position-absolute end-0 me-2 text-secondary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+
+                <div class="d-flex align-items-center gap-4 d-none d-lg-flex">
+                    <a th:href="@{/account/orders}" sec:authorize="isAuthenticated()" class="text-dark" title="Tài khoản của tôi">
+                        <i class="bi bi-person-check-fill fs-5 text-primary"></i>
+                        <span class="small ms-1 fw-bold" sec:authentication="name">User</span>
+                    </a>
+                    <a th:href="@{/login}" sec:authorize="!isAuthenticated()" class="text-dark" title="Đăng nhập">
+                        <i class="bi bi-person fs-5"></i>
+                    </a>
+
+                    <a th:href="@{/cart}" class="text-dark position-relative">
+                        <i class="bi bi-bag fs-5"></i>
+                        <span id="cart-item-count"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              th:if="${session.cartSize != null && session.cartSize > 0}"
+                              th:text="${session.cartSize}">
+                        </span>
+                    </a>
+                </div>
+
+                <button class="navbar-toggler ms-2 d-lg-none" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse w-100" id="mainNavbar">
+                <ul class="navbar-nav d-flex justify-content-center align-items-center gap-4 py-3 w-100">
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/}">Trang chủ</a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link fw-medium text-primary" th:href="@{/account/orders}">
+                            <i class="bi bi-clock-history me-1"></i>Lịch sử đơn hàng
+                        </a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link fw-medium" href="javascript:void(0);" onclick="checkLoginForHistory()">
+                            Lịch sử đơn hàng
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/gioi-thieu}">Giới thiệu</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle"
+                           th:href="@{/san-pham/all}" id="sanPhamDropdown" role="button"
+                           aria-expanded="false">
+                            Sản phẩm
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="sanPhamDropdown">
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-nam}">Nước hoa nam</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-nu}">Nước hoa nữ</a></li>
+                            <li><a class="dropdown-item" th:href="@{/san-pham/nuoc-hoa-unisex}">Nước hoa unisex</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown position-static hover-mega-dropdown">
+                        <a class="nav-link fw-medium dropdown-toggle"
+                           th:href="@{/thuong-hieu/all}" id="thuongHieuDropdown" role="button"
+                           aria-expanded="false">
+                            Thương hiệu
+                        </a>
+                        <div class="dropdown-menu mega-menu shadow-lg border-0 mt-0 py-4"
+                             aria-labelledby="thuongHieuDropdown">
+                            <div class="container-fluid px-4">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu bán chạy</h6>
+                                        <div class="p-3 rounded-3 text-white hot-brand-list" th:if="${brandsHot != null}">
+                                            <ul class="list-unstyled mb-0">
+                                                <li th:each="brand : ${brandsHot}">
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                       th:text="${brand.tenThuongHieu}"
+                                                       class="text-white text-decoration-none d-block py-1"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <h6 class="fw-bold mb-3 text-uppercase">Thương hiệu nước hoa</h6>
+                                        <div class="mb-3">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <a href="#" class="az-btn active" data-letter="all">All</a>
+                                                <a href="#" class="az-btn"
+                                                   th:each="letter : ${#strings.arraySplit('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z', ',')}"
+                                                   th:text="${letter}" th:attr="data-letter=${letter}"></a>
+                                            </div>
+                                        </div>
+                                        <div class="brand-list-scroll" th:if="${brands != null}">
+                                            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-3 g-2">
+                                                <div class="col" th:each="brand : ${brands}">
+                                                    <a th:href="@{'/thuong-hieu/' + ${brand.slug}}"
+                                                       th:text="${brand.tenThuongHieu}"
+                                                       class="d-block text-dark text-decoration-none brand-link"></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/giam-gia}">Giảm giá</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" th:href="@{/lien-he}">Liên hệ</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <script>
+        function checkLoginForHistory() {
+            Swal.fire({
+                title: 'Yêu cầu thành viên',
+                text: "Chỉ khách hàng thành viên mới có thể xem lịch sử đơn hàng. Bạn có muốn đăng ký ngay không?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd', // Màu xanh primary
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đăng nhập ngay',
+                cancelButtonText: 'Để sau',
+                backdrop: `
+                    rgba(0,0,123,0.4)
+                    left top
+                    no-repeat
+                `
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Chuyển hướng đến trang đăng nhập
+                    window.location.href = '/login';
+                }
+            });
+        }
+    </script>
+</div>

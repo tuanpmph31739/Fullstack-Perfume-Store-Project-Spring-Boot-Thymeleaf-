@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="client/fragments/head :: head"></head>
+<body>
+<div th:replace="client/fragments/header :: header"></div>
+
+<section class="container-fluid my-5 product-list">
+    <div class="row">
+        <!-- Sidebar -->
+        <div th:replace="client/fragments/sidebar :: productFilters(
+            ${brands},
+            ${selectedBrands},
+            ${selectedGender},
+            ${minPrice},
+            ${maxPrice},
+            ${selfPath}
+        )"></div>
+
+        <!-- Main -->
+        <div class="col-md-9">
+            <div class="product-toolbar d-flex flex-wrap align-items-center justify-content-between mb-4">
+                <div class="toolbar-left d-flex align-items-center gap-3">
+                    <h1 class="h5 m-0 fw-semibold" th:text="${title}">Danh mục</h1>
+                    <span class="muted small" th:text="${totalElements} + ' sản phẩm'">0 sản phẩm</span>
+                </div>
+                <form class="toolbar-right d-flex align-items-center gap-2" method="get" th:action="${selfPath}">
+                    <input type="hidden" name="page" th:value="${currentPage}">
+                    <input type="hidden" name="size" th:value="${pageSize}">
+                    <!-- vì là trang theo giới, giữ nguyên radio đã chọn -->
+                    <input type="hidden" name="gender" th:value="${selectedGender}">
+                    <input type="hidden" name="min" th:value="${minPrice}">
+                    <input type="hidden" name="max" th:value="${maxPrice}">
+                    <input type="hidden" name="brand"
+                           th:each="b : ${selectedBrands}" th:value="${b}"/>
+
+                    <select class="form-select form-select-sm sort-select" name="sort"
+                            th:value="${sort}" onchange="this.form.submit()">
+                        <option value=""                th:selected="${sort == null}">Mặc định</option>
+                        <option value="price_asc"       th:selected="${sort == 'price_asc'}">Giá tăng dần</option>
+                        <option value="price_desc"      th:selected="${sort == 'price_desc'}">Giá giảm dần</option>
+                        <option value="newest"          th:selected="${sort == 'newest'}">Mới nhất</option>
+                        <option value="bestseller"      th:selected="${sort == 'bestseller'}">Bán chạy</option>
+                    </select>
+                </form>
+            </div>
+
+            <!-- Grid -->
+            <div class="product-grid">
+                <div class="product-item" th:each="sp : ${sanPhams}">
+                    <a th:href="@{'/san-pham/' + ${sp.id}}" class="text-decoration-none text-dark">
+                        <div class="card product-card text-center">
+                            <div class="product-media">
+                                <div class="product-img-wrapper">
+                                    <img loading="lazy"
+                                         th:if="${sp.hinhAnh != null}"
+                                         th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                         alt="Ảnh sản phẩm">
+                                </div>
+                            </div>
+                            <div class="product-info">
+                                <h6 class="product-name">
+                                    <a th:href="@{'/san-pham/' + ${sp.id}}"
+                                       th:text="${sp.tenSanPham ?: '---'}"></a>
+                                </h6>
+                                <p class="product-price"
+                                   th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" th:if="${totalPages > 1}">
+                <ul class="pagination justify-content-center classy-pagination">
+                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{${selfPath}(page=${currentPage - 1}, size=${pageSize}, sort=${sort},
+                                   gender=${selectedGender}, min=${minPrice}, max=${maxPrice}, brand=${selectedBrands})}">‹</a>
+                    </li>
+
+                    <li class="page-item" th:each="p : ${pageNumbers}" th:classappend="${p == currentPage} ? ' active'">
+                        <a class="page-link"
+                           th:text="${p}"
+                           th:href="@{${selfPath}(page=${p}, size=${pageSize}, sort=${sort},
+                                   gender=${selectedGender}, min=${minPrice}, max=${maxPrice}, brand=${selectedBrands})}"></a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{${selfPath}(page=${currentPage + 1}, size=${pageSize}, sort=${sort},
+                                   gender=${selectedGender}, min=${minPrice}, max=${maxPrice}, brand=${selectedBrands})}">›</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<div th:replace="client/fragments/footer :: footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

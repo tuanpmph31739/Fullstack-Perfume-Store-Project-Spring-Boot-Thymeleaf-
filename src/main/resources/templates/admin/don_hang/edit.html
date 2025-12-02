@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <div class="page-title">
+                <div class="row">
+                    <div class="col-12 col-md-6 order-md-1 order-last">
+                        <h3>
+                            Sửa đơn hàng
+                            <span class="text-muted" th:text="${donHang.ma}">HD-XXXX</span>
+                        </h3>
+                    </div>
+                    <div class="col-12 col-md-6 order-md-2 order-first text-md-end mt-2 mt-md-0">
+                        <a th:href="${backUrl}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="col-12">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin đơn hàng</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <form th:action="@{'/admin/don-hang/edit/' + ${donHang.id}}"
+                                  method="post" class="row g-3">
+
+                                <!-- Nếu dùng Spring Security CSRF thì mở comment dòng dưới -->
+                                <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Mã đơn hàng</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           th:value="${donHang.ma}" readonly>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Kênh bán</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           th:value="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn tại quầy' : 'Đơn Website'}"
+                                           readonly>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Phương thức thanh toán</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           th:value="${donHang.phuongThucThanhToan ?: '---'}"
+                                           readonly>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Tên người nhận</label>
+                                    <input type="text" name="tenNguoiNhan"
+                                           class="form-control form-control-sm"
+                                           th:value="${donHang.tenNguoiNhan}">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Số điện thoại</label>
+                                    <input type="text" name="sdt"
+                                           class="form-control form-control-sm"
+                                           th:value="${donHang.sdt}">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">Địa chỉ giao hàng</label>
+                                    <textarea name="diaChi" rows="2"
+                                              class="form-control form-control-sm"
+                                              th:text="${donHang.diaChi}"></textarea>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Trạng thái</label>
+                                    <select name="trangThai" class="form-select form-select-sm">
+                                        <option value="CHO_XAC_NHAN"
+                                                th:selected="${donHang.trangThai == 'CHO_XAC_NHAN'}">
+                                            CHỜ XÁC NHẬN
+                                        </option>
+                                        <option value="DANG_CHO_THANH_TOAN"
+                                                th:selected="${donHang.trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                            ĐANG CHỜ THANH TOÁN
+                                        </option>
+                                        <option value="DANG_GIAO"
+                                                th:selected="${donHang.trangThai == 'DANG_GIAO'}">
+                                            ĐANG GIAO
+                                        </option>
+                                        <option value="HOAN_THANH"
+                                                th:selected="${donHang.trangThai == 'HOAN_THANH'}">
+                                            HOÀN THÀNH
+                                        </option>
+                                        <option value="DA_HUY"
+                                                th:selected="${donHang.trangThai == 'DA_HUY'}">
+                                            ĐÃ HỦY
+                                        </option>
+                                    </select>
+                                </div>
+
+
+                                <div class="col-12 mt-3 d-flex justify-content-end gap-2">
+                                    <a th:href="${backUrl}" class="btn btn-outline-secondary btn-sm">
+                                        Hủy
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        Lưu thay đổi
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
+    <div id="main">
+        <header th:replace="/admin/fragments/header :: header"></header>
+        <div class="page-heading">
+            <h3 th:text="${nguoiDung.id == null ? 'Thêm người dùng' : 'Chỉnh sửa người dùng'}"></h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card p-4">
+                    <form th:action="@{/admin/nguoi-dung/save}" th:object="${nguoiDung}" method="post">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Mã người dùng</label>
+                                <input type="text" class="form-control" th:field="*{ma}" placeholder="VD: ND01">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Họ tên</label>
+                                <input type="text" class="form-control" th:field="*{hoTen}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Mật khẩu</label>
+                                <input type="password" class="form-control" th:field="*{matKhau}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label>Giới tính</label>
+                                <select class="form-select" th:field="*{gioiTinh}">
+                                    <option value="1">Nam</option>
+                                    <option value="0">Nữ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Ngày sinh</label>
+                                <input type="date" class="form-control" th:field="*{ngaySinh}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Số điện thoại</label>
+                                <input type="text" class="form-control" th:field="*{sdt}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Địa chỉ</label>
+                                <input type="text" class="form-control" th:field="*{diaChi}">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vai trò</label>
+                                <select class="form-select" th:field="*{vaiTro}">
+                                    <option value="ADMIN">ADMIN</option>
+                                    <option value="NHANVIEN">NHÂN VIÊN</option>
+                                    <option value="KHACHHANG">KHÁCH HÀNG</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Trạng thái</label>
+                                <select class="form-select" th:field="*{trangThai}">
+                                    <option value="true">Hoạt động</option>
+                                    <option value="false">Khóa</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="/admin/nguoi-dung" class="btn btn-secondary">Quay lại</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Lưu lại
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="/admin/fragments/footer :: footer"></footer>
+    </div>
+</div>
+
+<script th:replace="/admin/fragments/script :: script"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("form");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const hoTen = form.querySelector("[name='hoTen']").value.trim();
+            const email = form.querySelector("[name='email']").value.trim();
+            const matKhau = form.querySelector("[name='matKhau']").value.trim();
+            const sdt = form.querySelector("[name='sdt']").value.trim();
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phoneRegex = /^(0|\+84)\d{9,10}$/;
+
+            if (!hoTen) return Swal.fire("Lỗi", "Vui lòng nhập họ tên!", "error");
+            if (!email) return Swal.fire("Lỗi", "Vui lòng nhập email!", "error");
+            if (!emailRegex.test(email)) return Swal.fire("Lỗi", "Email không hợp lệ!", "error");
+            if (!matKhau) return Swal.fire("Lỗi", "Vui lòng nhập mật khẩu!", "error");
+            if (matKhau.length < 6) return Swal.fire("Lỗi", "Mật khẩu phải có ít nhất 6 ký tự!", "error");
+            if (sdt && !phoneRegex.test(sdt)) return Swal.fire("Lỗi", "Số điện thoại không hợp lệ!", "error");
+
+            // ✅ Kiểm tra email trùng
+            const res = await fetch(`/admin/nguoidung/check-email?email=${encodeURIComponent(email)}`);
+
+            const exists = await res.json();
+
+            if (exists) {
+                Swal.fire("Trùng email", "Email này đã tồn tại trong hệ thống!", "error");
+                return;
+            }
+
+            // ✅ Xác nhận
+            Swal.fire({
+                title: "Xác nhận lưu?",
+                text: "Bạn có chắc muốn lưu người dùng này không?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Lưu",
+                cancelButtonText: "Hủy"
+            }).then(result => {
+                if (result.isConfirmed) form.submit();
+            });
+        });
+
+
+        const success = [[${success}]];
+        const error = [[${error}]];
+
+        if (success) Swal.fire("Thành công", success, "success");
+        else if (error) Swal.fire("Lỗi", error, "error");
+    });
+</script>
+
+</body>
+</html>

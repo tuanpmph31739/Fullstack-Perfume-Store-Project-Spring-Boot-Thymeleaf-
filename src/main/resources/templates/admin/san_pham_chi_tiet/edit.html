@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header}"></header>
+
+        <div class="page-heading">
+            <h3>Chỉnh sửa sản phẩm chi tiết</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin chi tiết sản phẩm</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <form th:action="@{/admin/san-pham-chi-tiet/update/{id}(id=${sanPhamChiTietRequest.id})}"
+                              method="post"
+                              th:object="${sanPhamChiTietRequest}"
+                              enctype="multipart/form-data">
+                            <input type="hidden" name="backUrl" th:value="${backUrl}">
+                            <!-- Mã SKU -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Mã SKU</label>
+                                    <input type="text" class="form-control" th:field="*{maSKU}" placeholder="Nhập mã SKU" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('maSKU')}"
+                                         th:errors="*{maSKU}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Sản phẩm</label>
+                                    <select class="form-select choices" th:field="*{idSanPham}" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        <option th:each="sp : ${listSanPham}"
+                                                th:value="${sp.id}"
+                                                th:text="${sp.tenNuocHoa}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('idSanPham')}"
+                                         th:errors="*{idSanPham}"></div>
+                                </div>
+
+                            </div>
+
+                            <!-- Chọn Sản phẩm - Dung tích - Nồng độ -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Dung tích</label>
+                                    <select class="form-select" th:field="*{idDungTich}" required>
+                                        <option value="">-- Chọn dung tích --</option>
+                                        <option th:each="dt : ${listDungTich}"
+                                                th:value="${dt.id}"
+                                                th:text="${dt.soMl}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nồng độ</label>
+                                    <select class="form-select" th:field="*{idNongDo}" required>
+                                        <option value="">-- Chọn nồng độ --</option>
+                                        <option th:each="nd : ${listNongDo}"
+                                                th:value="${nd.id}"
+                                                th:text="${nd.tenNongDo}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Số lượng tồn - Giá nhập - Giá bán -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Giá nhập</label>
+                                    <input type="number" class="form-control" th:field="*{giaNhap}" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('giaNhap')}"
+                                         th:errors="*{giaNhap}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Giá bán</label>
+                                    <input type="number" class="form-control" th:field="*{giaBan}" required>
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('giaBan')}"
+                                         th:errors="*{giaBan}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Số lượng tồn</label>
+                                    <input type="number" class="form-control" th:field="*{soLuongTon}" min="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái -->
+                            <div class="mb-3">
+                                <label class="form-label d-block">Trạng thái</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="trangThaiSwitch"
+                                           th:field="*{trangThai}" />
+                                    <label class="form-check-label" for="trangThaiSwitch"
+                                           th:text="*{trangThai} ? 'Đang bán' : 'Ngừng kinh doanh'"></label>
+                                </div>
+                            </div>
+
+                            <!-- Ảnh -->
+                            <div class="mb-3">
+                                <label class="form-label">Ảnh sản phẩm</label>
+                                <input type="file" class="form-control" th:field="*{hinhAnh}">
+                                <div class="mt-2" th:if="${sanPhamChiTietRequest.hinhAnh != null}">
+                                    <img th:src="@{/uploads/{file}(file=${sanPhamChiTietRequest.hinhAnh})}"
+                                         alt="Ảnh sản phẩm" style="height: 120px; border-radius: 6px;">
+                                </div>
+                            </div>
+
+                            <!-- Nút -->
+                            <div class="text-end">
+                                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                                    ← Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+</body>
+</html>
