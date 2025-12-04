@@ -141,11 +141,24 @@
                                     </div>
 
 
-                                    <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}">
-                                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
-                                            <i class="bi bi-plus-circle"></i> Thêm đơn mới
+                                    <!-- Nút thêm hóa đơn -->
+                                    <div>
+                                        <!-- Khi CHƯA đạt 7 đơn -->
+                                        <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}"
+                                              th:if="${#lists.size(listHoaDon) < 7}">
+                                            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                                                <i class="bi bi-plus-circle"></i> Thêm đơn mới
+                                            </button>
+                                        </form>
+
+                                        <!-- Khi ĐÃ đạt 7 đơn -->
+                                        <button class="btn btn-secondary d-flex align-items-center gap-1" type="button"
+                                                th:if="${#lists.size(listHoaDon) >= 7}" disabled>
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            Đã đạt tối đa 7 đơn
                                         </button>
-                                    </form>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -343,15 +356,23 @@
                                                                 1.000.000 đ
                                                             </td>
                                                             <td>
-                                                                <span th:if="${spct.soLuongTon > 0}"
+                                                                <!-- Ưu tiên hiển thị Ngừng KD nếu trạng thái false/null -->
+                                                                <span th:if="${spct.trangThai == null or !spct.trangThai}"
+                                                                      class="badge bg-secondary-subtle text-secondary badge-stock">
+                                                                    Ngừng KD
+                                                                </span>
+
+                                                                <span th:if="${spct.trangThai != null and spct.trangThai and spct.soLuongTon > 0}"
                                                                       class="badge bg-success-subtle text-success badge-stock"
                                                                       th:text="${spct.soLuongTon} + ' sp'">
                                                                 </span>
-                                                                <span th:if="${spct.soLuongTon <= 0}"
+
+                                                                <span th:if="${spct.trangThai != null and spct.trangThai and spct.soLuongTon <= 0}"
                                                                       class="badge bg-danger-subtle text-danger badge-stock">
                                                                     Hết hàng
                                                                 </span>
                                                             </td>
+
                                                             <td>
                                                                 <form th:id="'form-add-' + ${spct.id}"
                                                                       th:action="@{/admin/ban-hang-tai-quay/add-san-pham}"
@@ -367,18 +388,29 @@
                                                                     <input type="hidden" name="diaChi">
 
                                                                     <input type="number" name="soLuong" value="1" min="1"
-                                                                           class="form-control form-control-sm"/>
+                                                                           class="form-control form-control-sm"
+                                                                           th:disabled="${spct.trangThai == null or !spct.trangThai or spct.soLuongTon <= 0}"/>
                                                                 </form>
-
                                                             </td>
                                                             <td>
                                                                 <button type="submit"
                                                                         th:form="'form-add-' + ${spct.id}"
-                                                                        class="btn btn-outline-primary btn-sm w-100"
-                                                                        th:disabled="${idHD == null or spct.soLuongTon <= 0}">
+                                                                        class="btn btn-sm w-100"
+                                                                        th:disabled="${idHD == null
+                                                                             or spct.soLuongTon <= 0
+                                                                             or spct.trangThai == null
+                                                                             or !spct.trangThai}"
+                                                                        th:classappend="${idHD == null
+                                                                            or spct.soLuongTon <= 0
+                                                                            or spct.trangThai == null
+                                                                            or !spct.trangThai}
+                                                                            ? ' btn-secondary disabled'
+                                                                            : ' btn-outline-primary'">
                                                                     <i class="bi bi-cart-plus"></i> Thêm
                                                                 </button>
+
                                                             </td>
+
                                                         </tr>
                                                         </tbody>
                                                     </table>
@@ -450,7 +482,7 @@
                                                                 <input type="hidden" name="diaChi">
 
                                                                 <button type="submit"
-                                                                        class="btn btn-link btn-sm text-dark px-1">
+                                                                        class="btn btn-link btn-sm text-dark px-1" style="text-decoration: none">
                                                                     -
                                                                 </button>
                                                             </form>
@@ -468,7 +500,7 @@
                                                                 <input type="hidden" name="diaChi">
 
                                                                 <button type="submit"
-                                                                        class="btn btn-link btn-sm text-dark px-1">
+                                                                        class="btn btn-link btn-sm text-dark px-1" style="text-decoration: none">
                                                                     +
                                                                 </button>
                                                             </form>
@@ -599,10 +631,17 @@
                                                 <!-- Nếu muốn thêm Tiền khách đưa / phí ship, thêm input ở đây -->
 
                                                 <button type="submit"
-                                                        class="btn btn-success w-100 py-2 fw-semibold"
+                                                        class="btn btn-success w-100 py-2 fw-semibold" style="margin-bottom: 3px"
                                                         th:disabled="${gioHang == null or gioHang.isEmpty()}">
                                                     Xác nhận đơn hàng
                                                 </button>
+                                                <!-- Nút in tạm tính: in được kể cả khi hóa đơn chưa HOÀN THÀNH -->
+                                                <a th:if="${hoaDon != null}"
+                                                   th:href="@{/admin/hoa-don/print/{id}(id=${hoaDon.id})}"
+                                                   target="_blank"
+                                                   class="btn btn-outline-secondary w-100 mb-2">
+                                                    <i class="bi bi-printer"></i> In tạm tính
+                                                </a>
                                             </form>
                                         </div>
 
@@ -757,6 +796,14 @@
         });
     });
 </script>
+<!-- Script: tự mở tab in hóa đơn sau khi thanh toán -->
+<script th:inline="javascript" th:if="${printId != null}">
+    document.addEventListener("DOMContentLoaded", function () {
+        var url = /*[[@{/admin/hoa-don/print/{id}(id=${printId})}]]*/ '' + '?autoPrint=true';
+        window.open(url, '_blank');   // mở tab mới, tab POS vẫn giữ nguyên
+    });
+</script>
+
 
 </body>
 </html>

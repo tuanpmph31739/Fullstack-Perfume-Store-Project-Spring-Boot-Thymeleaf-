@@ -62,7 +62,7 @@
                             <table class="table table-striped align-middle">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>STT</th>
                                     <th>Mã đơn</th>
                                     <th>Người nhận</th>
                                     <th>SĐT</th>
@@ -70,7 +70,7 @@
                                     <th>Ngày tạo</th>
                                     <th>Trạng thái</th>
                                     <th>Kênh bán</th>
-                                    <th>Xem</th>
+                                    <th>Hành động</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -84,10 +84,12 @@
                                     <td>
                                         <span class="badge bg-success" th:if="${dh.trangThai == 'HOAN_THANH'}">Hoàn thành</span>
                                         <span class="badge bg-warning text-dark" th:if="${dh.trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</span>
+                                        <span class="badge bg-primary text-white" th:if="${dh.trangThai == 'DANG_CHO_THANH_TOAN'}">Đang chờ thanh toán</span>
                                         <span class="badge bg-info text-dark" th:if="${dh.trangThai == 'DANG_GIAO'}">Đang giao</span>
                                         <span class="badge bg-secondary" th:if="${dh.trangThai == 'DA_HUY'}">Đã hủy</span>
                                         <span th:if="${dh.trangThai != 'HOAN_THANH'
                                                      and dh.trangThai != 'CHO_XAC_NHAN'
+                                                     and dh.trangThai != 'DANG_CHO_THANH_TOAN'
                                                      and dh.trangThai != 'DANG_GIAO'
                                                      and dh.trangThai != 'DA_HUY'}"
                                               th:text="${dh.trangThai}">---</span>
@@ -101,6 +103,12 @@
                                         <a th:href="@{/admin/don-hang/edit/{id}(id=${dh.id})}"
                                            class="btn btn-outline-primary btn-sm" title="Sửa đơn hàng">
                                             <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a th:href="@{/admin/hoa-don/print/{id}(id=${dh.id})}"
+                                           class="btn btn-outline-success"
+                                           target="_blank"
+                                           title="In hóa đơn">
+                                            <i class="bi bi-printer"></i>
                                         </a>
                                     </td>
 

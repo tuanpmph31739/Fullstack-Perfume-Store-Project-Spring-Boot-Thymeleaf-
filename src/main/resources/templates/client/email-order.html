@@ -6,86 +6,413 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        /* Copy nguyên phần CSS của bạn vào đây */
-        .success-icon-box { width: 80px; height: 80px; background-color: #d1e7dd; color: #198754; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-        .card-success { border: none; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); overflow: hidden; max-width: 600px; margin: auto; }
-        .receipt-header { background-color: #fff; padding-bottom: 20px; }
-        .receipt-body { background-color: #f8f9fa; border-top: 2px dashed #e0e0e0; padding: 20px; }
-        .receipt-table th { font-size: 0.85rem; text-transform: uppercase; color: #888; border-bottom: 1px solid #dee2e6; }
-        .receipt-table td { padding: 12px 0; border-bottom: 1px solid #f1f1f1; }
-        body { background-color: #f2f2f2; padding: 20px; font-family: Arial, sans-serif; }
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .invoice-wrapper {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .card-invoice {
+            border-radius: 18px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+            background-color: #ffffff;
+        }
+
+        .invoice-header {
+            background: linear-gradient(135deg, #198754, #0d6efd);
+            color: #ffffff;
+            padding: 24px 28px 18px;
+        }
+
+        .brand-title {
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .success-icon-box {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .success-icon-box i {
+            font-size: 32px;
+        }
+
+        .invoice-subtitle {
+            margin-bottom: 4px;
+        }
+
+        .order-meta {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .order-code-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .order-code-pill span {
+            font-weight: 600;
+        }
+
+        .invoice-body {
+            padding: 20px 24px 24px;
+            background-color: #f9fafb;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .summary-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 18px;
+        }
+
+        .summary-box div span:first-child {
+            color: #6b7280;
+        }
+
+        .summary-box div span:last-child {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .receipt-table {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .receipt-table thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #9ca3af;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 6px;
+        }
+
+        .receipt-table tbody td {
+            padding: 10px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .product-variant {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .totals-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 16px 16px 4px;
+            border: 1px solid #e5e7eb;
+            margin-top: 18px;
+        }
+
+        .totals-row {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .totals-row span:first-child {
+            color: #6b7280;
+        }
+
+        .totals-row span:last-child {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .totals-grand {
+            border-top: 1px dashed #e5e7eb;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-size: 16px;
+        }
+
+        .totals-grand span:first-child {
+            font-weight: 600;
+        }
+
+        .totals-grand span:last-child {
+            font-weight: 700;
+            color: #0d6efd;
+        }
+
+        .shipping-info-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 14px 16px;
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .shipping-info-box p {
+            margin-bottom: 4px;
+        }
+
+        .footer-note {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .btn-primary-link {
+            display: inline-block;
+            margin-top: 18px;
+            background: linear-gradient(135deg, #0d6efd, #2563eb);
+            color: #ffffff !important;
+            padding: 10px 22px;
+            text-decoration: none;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-primary-link:hover {
+            opacity: 0.95;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card card-success">
-        <div class="card-body receipt-header text-center p-4">
-            <h3 class="fw-bold text-success mb-2">Cảm ơn bạn đã đặt hàng!</h3>
-            <p class="text-muted">FPerfume xin gửi bạn thông tin đơn hàng.</p>
-        </div>
-
-        <div class="card-body receipt-body" th:if="${hoaDon != null}">
-            <div class="d-flex justify-content-between mb-2">
-                <span>Mã đơn:</span>
-                <strong th:text="${hoaDon.ma}">HD-XXXX</strong>
+<div class="invoice-wrapper">
+    <div class="card card-invoice">
+        <!-- HEADER -->
+        <div class="invoice-header">
+            <div class="d-flex align-items-center mb-2">
+                <div class="success-icon-box">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <div>
+                    <div class="brand-title">FPerfume</div>
+                    <div class="invoice-subtitle fw-semibold">
+                        Cảm ơn bạn đã đặt hàng!
+                    </div>
+                    <div class="order-meta">
+                        Hóa đơn mua hàng được tạo tự động từ hệ thống FPerfume.
+                    </div>
+                </div>
             </div>
 
-            <table class="table receipt-table table-borderless w-100">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+                <div class="order-code-pill">
+                    <span>Mã đơn:</span>
+                    <span th:text="${hoaDon != null ? hoaDon.ma : 'HD-XXXX'}">HD-XXXX</span>
+                </div>
+                <!-- ĐÃ BỎ #temporals Ở ĐÂY -->
+                <div class="order-meta" th:if="${hoaDon != null and hoaDon.ngayTao != null}">
+                    Ngày đặt:
+                    <span th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                        01/01/2025 10:00
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- BODY -->
+        <div class="invoice-body" th:if="${hoaDon != null}">
+            <!-- TÓM TẮT -->
+            <div class="section-title">Tóm tắt đơn hàng</div>
+            <div class="summary-box">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Khách hàng:</span>
+                    <span th:text="${hoaDon.tenNguoiNhan}">Nguyễn Văn A</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Số điện thoại:</span>
+                    <span th:text="${hoaDon.sdt}">0123456789</span>
+                </div>
+                <div class="d-flex justify-content-between mb-0">
+                    <span>Phương thức thanh toán:</span>
+                    <span class="col-6 text-end meta-value"
+                         th:text="'Thanh toán khi nhận hàng'">
+                        Thanh toán khi nhận hàng
+                    </span>
+
+                </div>
+            </div>
+
+            <!-- DANH SÁCH SẢN PHẨM -->
+            <div class="section-title mt-3 mb-2">Chi tiết sản phẩm</div>
+            <!-- CHI TIẾT SẢN PHẨM -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-top: 8px;">
                 <thead>
                 <tr>
-                    <th style="width: 50%">Sản phẩm</th>
-                    <th class="text-center">SL</th>
-                    <th class="text-end">Tiền</th>
+                    <th align="left"
+                        style="padding: 8px 0; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 1px solid #e5e7eb;">
+                        Sản phẩm
+                    </th>
+                    <th align="center"
+                        style="padding: 8px 0; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 1px solid #e5e7eb;">
+                        SL
+                    </th>
+                    <th align="right"
+                        style="padding: 8px 0; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 1px solid #e5e7eb;">
+                        Thành tiền
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="item : ${hoaDon.hoaDonChiTiets}">
-                    <td>
-                        <div th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}" style="font-weight:bold;">Tên SP</div>
-                        <div class="small text-muted" th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml'}">50ml</div>
+                    <!-- Tên SP -->
+                    <td align="left"
+                        style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 14px;">
+                        <div style="font-weight:bold;"
+                             th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}">Tên SP</div>
+                        <div style="font-size:12px; color:#6b7280;"
+                             th:text="${item.sanPhamChiTiet.dungTich.soMl + 'ml'}">50ml</div>
                     </td>
-                    <td class="text-center" th:text="${item.soLuong}">1</td>
-                    <td class="text-end" th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'POINT', 0, 'NONE')} + ' ₫'"></td>
+
+                    <!-- Số lượng -->
+                    <td align="center"
+                        style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 14px;"
+                        th:text="${item.soLuong}">
+                        1
+                    </td>
+
+                    <!-- Thành tiền -->
+                    <td align="right"
+                        style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 14px;"
+                        th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'POINT', 0, 'NONE')} + ' ₫'">
+                        0 ₫
+                    </td>
                 </tr>
                 </tbody>
             </table>
 
-            <hr>
 
-            <div class="d-flex justify-content-between mb-1">
-                <span>Tổng tiền hàng:</span>
-                <span th:text="${#numbers.formatDecimal(hoaDon.tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-            </div>
-            <div class="d-flex justify-content-between mb-1">
-                <span>Phí vận chuyển:</span>
-                <span th:text="${#numbers.formatDecimal(hoaDon.phiShip, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-            </div>
-            <div class="d-flex justify-content-between mb-1" style="color: green" th:if="${hoaDon.tienGiamGia > 0}">
-                <span>Giảm giá:</span>
-                <span th:text="'- ' + ${#numbers.formatDecimal(hoaDon.tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-            </div>
-            <div class="d-flex justify-content-between mt-3 pt-2 border-top" style="font-size: 1.2em; font-weight: bold;">
-                <span>Thành tiền:</span>
-                <span style="color: #0d6efd;" th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+            <!-- TỔNG TIỀN -->
+            <div class="totals-box" style="margin-top: 8px; font-size:14px; line-height:1.4;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                    <tr>
+                        <td style="padding:4px 0;">Tổng tiền hàng</td>
+                        <td style="padding:4px 0; text-align:right;"
+                            th:text="${#numbers.formatDecimal(hoaDon.tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'">
+                            0 ₫
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 0;">Phí vận chuyển</td>
+                        <td style="padding:4px 0; text-align:right;"
+                            th:text="${#numbers.formatDecimal(hoaDon.phiShip, 0, 'POINT', 0, 'NONE')} + ' ₫'">
+                            0 ₫
+                        </td>
+                    </tr>
+                    <tr th:if="${hoaDon.tienGiamGia > 0}">
+                        <td style="padding:4px 0;">Giảm giá</td>
+                        <td style="padding:4px 0; text-align:right; color:#16a34a;"
+                            th:text="'- ' + ${#numbers.formatDecimal(hoaDon.tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'">
+                            - 0 ₫
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top:8px; border-top:1px solid #e5e7eb; font-weight:bold;">
+                            Thành tiền
+                        </td>
+                        <td style="padding-top:8px; border-top:1px solid #e5e7eb; text-align:right; font-weight:bold; color:#0d6efd;"
+                            th:text="${#numbers.formatDecimal(hoaDon.tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'">
+                            0 ₫
+                        </td>
+                    </tr>
+                </table>
             </div>
 
-            <div class="mt-4">
-                <h6>Thông tin nhận hàng:</h6>
-                <p class="mb-0" th:text="${hoaDon.tenNguoiNhan}"></p>
-                <p class="mb-0" th:text="${hoaDon.sdt}"></p>
-                <p class="mb-0" th:text="${hoaDon.diaChi}"></p>
+
+            <!-- THÔNG TIN NHẬN HÀNG -->
+            <div class="section-title mt-4 mb-2">THÔNG TIN NHẬN HÀNG</div>
+
+            <div class="shipping-info-box"
+                 style="background:#ffffff;border-radius:16px;padding:16px 20px;
+            border:1px solid #e5e7eb;">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                       style="border-collapse:collapse;font-size:14px;line-height:1.5;">
+                    <tr>
+                        <td style="width:130px;color:#6b7280;">Người nhận</td>
+                        <td style="font-weight:600;color:#111827;"
+                            th:text="${hoaDon.tenNguoiNhan}">Nguyễn Văn A</td>
+                    </tr>
+                    <tr>
+                        <td style="width:130px;color:#6b7280;">Số điện thoại</td>
+                        <td style="color:#111827;"
+                            th:text="${hoaDon.sdt}">0123456789</td>
+                    </tr>
+                    <tr>
+                        <td style="width:130px;color:#6b7280;vertical-align:top;padding-top:4px;">
+                            Địa chỉ
+                        </td>
+                        <td style="color:#111827;padding-top:4px;"
+                            th:text="${hoaDon.diaChi}">
+                            Địa chỉ giao hàng...
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="margin-top:12px;font-size:12px;color:#9ca3af;
+                border-top:1px dashed #e5e7eb;padding-top:8px;">
+                    Vui lòng kiểm tra kỹ thông tin khi nhận hàng. Nếu có sai sót,
+                    hãy liên hệ Hotline 0397682148 để được hỗ trợ.
+                </div>
             </div>
 
-            <div style="text-align: center; margin-top: 30px;">
+            <!-- NÚT XEM CHI TIẾT -->
+            <div style="text-align: center;">
                 <a th:href="@{'http://localhost:8080/user/order/' + ${hoaDon.ma}}"
-                   style="background-color: #198754; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                    Xem chi tiết trên Website
+                   class="btn-primary-link">
+                    Xem chi tiết đơn hàng trên website
                 </a>
+            </div>
+
+            <div class="footer-note">
+                Đây là email tự động, vui lòng không trả lời trực tiếp email này.<br/>
+                Nếu bạn cần hỗ trợ, hãy liên hệ Fanpage hoặc Hotline của FPerfume.
             </div>
         </div>
     </div>
 </div>
 
+<!-- Bootstrap Icons (cho icon check) -->
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </body>
 </html>

@@ -48,7 +48,7 @@ public class LoaiNuocHoaService {
 
         String tenLoaiMoi = loaiNuocHoaRequest.getTenLoai().trim();
 
-        if (loaiNuocHoaRepository.existsByTenLoai(tenLoaiMoi)) {
+        if (loaiNuocHoaRepository.existsByTenLoai(tenLoaiMoi) && !tenLoaiMoi.equals(loaiNuocHoa.getTenLoai())) {
             throw new RuntimeException("Tên loại nước hoa '" + tenLoaiMoi + "' đã tồn tại!");
         }
 

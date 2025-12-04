@@ -4,24 +4,43 @@
 <body>
 <div class="wrapper">
 
+    <!-- SIDEBAR -->
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
+        <!-- HEADER -->
         <header th:replace="~{/admin/fragments/header :: header}"></header>
 
+        <!-- PAGE TITLE -->
         <div class="page-heading">
             <div class="page-title">
-                <div class="row">
-                    <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-7 order-md-1 order-last">
+                        <h3 class="mb-1">
                             Chi tiết đơn hàng
-                            <span class="text-muted" th:text="${donHang.ma}">HD-XXXX</span>
+                            <span class="text-muted ms-2" th:text="${donHang.ma}">HD-XXXX</span>
                         </h3>
+                        <p class="text-muted mb-0 small">
+                            Tạo lúc
+                            <span th:text="${#temporals.format(donHang.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                                01/01/2025 10:00
+                            </span>
+                            • Kênh bán:
+                            <span class="fw-semibold"
+                                  th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}">
+                                Đơn hàng online
+                            </span>
+                        </p>
                     </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first text-md-end mt-2 mt-md-0">
-                        <a th:href="${backUrl}"
-                           class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-arrow-left"></i> Quay lại
+                    <div class="col-12 col-md-5 order-md-2 order-first text-md-end mt-2 mt-md-0">
+                        <a th:href="@{/admin/hoa-don/print/{id}(id=${donHang.id})}"
+                           class="btn btn-outline-success"
+                           target="_blank"
+                           title="In hóa đơn">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        <a th:href="${backUrl}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Quay lại danh sách
                         </a>
                     </div>
                 </div>
@@ -29,181 +48,345 @@
         </div>
 
         <div class="page-content">
+
+            <!-- STYLE RIÊNG CHO TRANG ĐƠN HÀNG -->
+            <style>
+                .order-summary-card {
+                    border-radius: 16px;
+                    border: none;
+                    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+                }
+                .order-header-chip {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 4px 10px;
+                    border-radius: 999px;
+                    background: #f3f4f6;
+                    font-size: 12px;
+                    color: #4b5563;
+                }
+                .order-meta-label {
+                    font-size: 12px;
+                    color: #6b7280;
+                    text-transform: uppercase;
+                    letter-spacing: .03em;
+                    font-weight: 600;
+                }
+                .order-meta-value {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #111827;
+                }
+                .order-total-row {
+                    font-size: 14px;
+                }
+                .order-total-row span:first-child {
+                    color: #4b5563;
+                }
+                .order-total-highlight {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #dc2626;
+                }
+                .order-status-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    border-radius: 999px;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+                .order-status-pill i {
+                    font-size: 16px;
+                }
+            </style>
+
             <section class="row">
                 <div class="col-12">
 
-                    <!-- THÔNG TIN CHUNG CỦA ĐƠN -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Thông tin đơn hàng</h5>
-                        </div>
-                        <div class="card-body row g-3">
+                    <div class="row g-3">
 
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Mã đơn hàng</label>
-                                <div th:text="${donHang.ma}">HD-XXXX</div>
-                            </div>
+                        <!-- CỘT TRÁI: THÔNG TIN + SẢN PHẨM -->
+                        <div class="col-xl-8">
 
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Trạng thái</label>
-                                <div>
-                                    <span class="badge bg-success" th:if="${donHang.trangThai == 'HOAN_THANH'}">Hoàn thành</span>
-                                    <span class="badge bg-warning text-dark" th:if="${donHang.trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</span>
-                                    <span class="badge bg-info text-dark" th:if="${donHang.trangThai == 'DANG_GIAO'}">Đang giao</span>
-                                    <span class="badge bg-secondary" th:if="${donHang.trangThai == 'DA_HUY'}">Đã hủy</span>
-                                    <span th:if="${donHang.trangThai != 'HOAN_THANH'
-                                                 and donHang.trangThai != 'CHO_XAC_NHAN'
-                                                 and donHang.trangThai != 'DANG_GIAO'
-                                                 and donHang.trangThai != 'DA_HUY'}"
-                                          th:text="${donHang.trangThai}">---</span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Kênh bán</label>
-                                <div th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}">
-                                    Đơn hàng online
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Phương thức thanh toán</label>
-                                <div th:text="${donHang.phuongThucThanhToan ?: '---'}">COD</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Ngày tạo</label>
-                                <div th:text="${#temporals.format(donHang.ngayTao, 'dd/MM/yyyy HH:mm')}">
-                                    01/01/2025 10:00
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Khách hàng (tài khoản)</label>
-                                <div th:text="${donHang.tenKhachHang != null ? donHang.tenKhachHang : 'Khách hàng không đăng nhập'}">
-                                    Khách hàng không đăng nhập
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- THÔNG TIN NGƯỜI NHẬN & ĐỊA CHỈ -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Thông tin người nhận</h5>
-                        </div>
-                        <div class="card-body row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Tên người nhận</label>
-                                <div th:text="${donHang.tenNguoiNhan}">Nguyễn Văn A</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Số điện thoại</label>
-                                <div th:text="${donHang.sdt}">0123456789</div>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Địa chỉ giao hàng</label>
-                                <div th:text="${donHang.diaChi}">Địa chỉ giao hàng...</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BẢNG CHI TIẾT SẢN PHẨM -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Sản phẩm trong đơn</h5>
-                        </div>
-                        <div class="card-body table-responsive">
-                            <table class="table table-sm table-striped align-middle">
-                                <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Ảnh</th>
-                                    <th>Tên sản phẩm</th>
-                                    <th>SKU</th>
-                                    <th>Số lượng</th>
-                                    <th>Đơn giá</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="ct, iter : ${chiTietList}">
-                                    <td th:text="${iter.index + 1}">1</td>
-                                    <td>
-                                        <img th:if="${ct.getSanPhamChiTiet().getHinhAnh()}"
-                                             th:src="@{'/images/uploads/' + ${ct.getSanPhamChiTiet().getHinhAnh()}}"
-                                             style="max-width:50px">
-                                        <span th:unless="${ct.getSanPhamChiTiet().getHinhAnh()}">---</span>
-                                    </td>
-                                    <td>
-                                        <span th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa} + ' ' + ${ct.sanPhamChiTiet.getDungTich().soMl} +' ml'">Tên nước hoa</span>
-                                    </td>
-                                    <td>
-                                        <span th:text="${ct.sanPhamChiTiet.maSKU}">SKU</span>
-                                    </td>
-                                    <td th:text="${ct.soLuong}">1</td>
-                                    <td th:text="${#numbers.formatDecimal(ct.donGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                        1.000.000 ₫
-                                    </td>
-                                </tr>
-
-                                <tr th:if="${chiTietList == null or #lists.isEmpty(chiTietList)}">
-                                    <td colspan="4" class="text-center">Không có dữ liệu chi tiết đơn hàng.</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- TỔNG TIỀN -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Tổng tiền</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Tiền hàng:</span>
-                                        <strong th:text="${#numbers.formatDecimal(donHang.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                            0 ₫
-                                        </strong>
+                            <!-- THÔNG TIN ĐƠN + NGƯỜI NHẬN -->
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-receipt-cutoff me-2 text-primary"></i>
+                                            Thông tin đơn hàng
+                                        </h5>
+                                        <small class="text-muted">Thông tin chung và người nhận</small>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Giảm giá:</span>
-                                        <strong th:text="${#numbers.formatDecimal(donHang.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                            0 ₫
-                                        </strong>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="d-flex justify-content-between">
-                                        <span>Phí ship:</span>
-                                        <strong th:text="${#numbers.formatDecimal(donHang.phiShip, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                            0 ₫
-                                        </strong>
-                                    </div>
-                                </div>
-                                <div class="col-12 mt-2">
-                                    <hr/>
-                                    <div class="d-flex justify-content-between fs-5">
-                                        <span>TỔNG THANH TOÁN:</span>
-                                        <span class="fw-bold text-danger"
-                                              th:text="${#numbers.formatDecimal(donHang.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                            0 ₫
+                                    <div>
+                                        <!-- Trạng thái làm pill đẹp hơn -->
+                                        <span class="order-status-pill bg-success text-white"
+                                              th:if="${donHang.trangThai == 'HOAN_THANH'}">
+                                            <i class="bi bi-check-circle-fill"></i> Hoàn thành
+                                        </span>
+                                        <span class="order-status-pill bg-warning text-dark"
+                                              th:if="${donHang.trangThai == 'CHO_XAC_NHAN'}">
+                                            <i class="bi bi-hourglass-split"></i> Chờ xác nhận
+                                        </span>
+                                        <span class="order-status-pill bg-info text-dark"
+                                              th:if="${donHang.trangThai == 'DANG_GIAO'}">
+                                            <i class="bi bi-truck"></i> Đang giao
+                                        </span>
+                                        <span class="order-status-pill bg-secondary text-white"
+                                              th:if="${donHang.trangThai == 'DA_HUY'}">
+                                            <i class="bi bi-x-circle-fill"></i> Đã hủy
+                                        </span>
+                                        <span class="badge bg-light text-dark"
+                                              th:if="${donHang.trangThai != 'HOAN_THANH'
+                                                     and donHang.trangThai != 'CHO_XAC_NHAN'
+                                                     and donHang.trangThai != 'DANG_GIAO'
+                                                     and donHang.trangThai != 'DA_HUY'}"
+                                              th:text="${donHang.trangThai}">
+                                            ---
                                         </span>
                                     </div>
                                 </div>
+
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- THÔNG TIN HỆ THỐNG -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Mã đơn hàng</div>
+                                                <div class="order-meta-value" th:text="${donHang.ma}">HD-XXXX</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Kênh bán</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}">
+                                                    Đơn hàng online
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Phương thức thanh toán</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.phuongThucThanhToan ?: '---'}">
+                                                    COD
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- KHÁCH HÀNG (TÀI KHOẢN) -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Khách hàng (tài khoản)</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.tenKhachHang != null ? donHang.tenKhachHang : 'Khách hàng không đăng nhập'}">
+                                                    Khách hàng không đăng nhập
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Ngày tạo</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${#temporals.format(donHang.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                                                    01/01/2025 10:00
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Ngày thanh toán</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${#temporals.format(donHang.ngayThanhToan, 'dd/MM/yyyy HH:mm')}">
+                                                    01/01/2025 10:00
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- THÔNG TIN NGƯỜI NHẬN -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Tên người nhận</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.tenNguoiNhan}">
+                                                    Nguyễn Văn A
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Số điện thoại</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.sdt}">
+                                                    0123456789
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Ghi chú</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.ghiChu}">
+                                                    01/01/2025 10:00
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="order-meta-label mb-1">Địa chỉ giao hàng</div>
+                                            <div class="order-meta-value"
+                                                 th:text="${donHang.diaChi}">
+                                                Địa chỉ giao hàng...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- BẢNG SẢN PHẨM -->
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-bag-check me-2 text-primary"></i>
+                                            Sản phẩm trong đơn
+                                        </h5>
+                                        <small class="text-muted">Danh sách các sản phẩm và số lượng khách đặt</small>
+                                    </div>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table class="table table-sm table-striped table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                        <tr class="text-nowrap">
+                                            <th>STT</th>
+                                            <th>Ảnh</th>
+                                            <th>Sản phẩm</th>
+                                            <th>Thương hiệu</th>
+                                            <th>Nồng độ</th>
+                                            <th>SKU</th>
+                                            <th class="text-center">Số lượng</th>
+                                            <th class="text-end">Đơn giá</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="ct, iter : ${chiTietList}">
+                                            <td th:text="${iter.index + 1}">1</td>
+                                            <td>
+                                                <img th:if="${ct.getSanPhamChiTiet().getHinhAnh()}"
+                                                     th:src="@{'/images/uploads/' + ${ct.getSanPhamChiTiet().getHinhAnh()}}"
+                                                     class="rounded border"
+                                                     style="max-width:50px; max-height:50px; object-fit:cover;">
+                                                <span th:unless="${ct.getSanPhamChiTiet().getHinhAnh()}">---</span>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold"
+                                                     th:text="${ct.sanPhamChiTiet.sanPham.tenNuocHoa}">
+                                                    Tên nước hoa
+                                                </div>
+                                                <div class="text-muted small">
+                                                    <span th:text="${ct.sanPhamChiTiet.getDungTich().soMl}">50</span> ml
+                                                </div>
+                                            </td>
+                                            <td th:text="${ct.getSanPhamChiTiet().sanPham.getThuongHieu().tenThuongHieu}">EDT</td>
+                                            <td th:text="${ct.sanPhamChiTiet.getNongDo().getTenNongDo()}">EDT</td>
+                                            <td th:text="${ct.sanPhamChiTiet.maSKU}">SKU</td>
+                                            <td class="text-center" th:text="${ct.soLuong}">1</td>
+                                            <td class="text-end" style="font-weight:bold; color:#dc2626;"
+                                                th:text="${#numbers.formatDecimal(ct.donGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                                1.000.000 ₫
+                                            </td>
+                                        </tr>
+
+                                        <tr th:if="${chiTietList == null or #lists.isEmpty(chiTietList)}">
+                                            <td colspan="6" class="text-center text-muted py-3">
+                                                Không có dữ liệu chi tiết đơn hàng.
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                         </div>
+
+                        <!-- CỘT PHẢI: TỔNG QUAN & TỔNG TIỀN -->
+                        <div class="col-xl-4">
+
+                            <!-- TỔNG QUAN ĐƠN HÀNG + TIỀN -->
+                            <div class="card order-summary-card mb-3">
+                                <div class="card-header border-0 pb-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title mb-1">
+                                                <i class="bi bi-currency-exchange me-2 text-success"></i>
+                                                Tổng quan thanh toán
+                                            </h5>
+                                            <small class="text-muted">
+                                                Kiểm tra lại các khoản thanh toán trước khi xử lý sau bán hàng.
+                                            </small>
+                                        </div>
+                                        <div class="order-header-chip">
+                                            <i class="bi bi-hash"></i>
+                                            <span th:text="${donHang.ma}">HD-XXXX</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+
+                                    <div class="mb-3">
+                                        <div class="order-total-row d-flex justify-content-between mb-1">
+                                            <span>Tiền hàng</span>
+                                            <span class="fw-semibold"
+                                                  th:text="${#numbers.formatDecimal(donHang.tongTienHang, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                                0 ₫
+                                            </span>
+                                        </div>
+                                        <div class="order-total-row d-flex justify-content-between mb-1">
+                                            <span>Giảm giá</span>
+                                            <span class="fw-semibold text-danger"
+                                                  th:text="${#numbers.formatDecimal(donHang.tienGiamGia, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                                0 ₫
+                                            </span>
+                                        </div>
+                                        <div class="order-total-row d-flex justify-content-between mb-1">
+                                            <span>Phí ship</span>
+                                            <span class="fw-semibold"
+                                                  th:text="${#numbers.formatDecimal(donHang.phiShip, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                                0 ₫
+                                            </span>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-semibold">TỔNG THANH TOÁN</span>
+                                            <span class="order-total-highlight"
+                                                  th:text="${#numbers.formatDecimal(donHang.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                                0 ₫
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 small text-muted">
+                                        <div class="mb-1">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Nếu có chênh lệch số liệu, vui lòng đối chiếu lại với chứng từ gốc hoặc lịch sử giao dịch.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CÓ THỂ BỔ SUNG: GHI CHÚ / LỊCH SỬ (nếu sau này có dữ liệu) -->
+                            <!--
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="bi bi-card-text me-2"></i>Ghi chú nội bộ</h6>
+                                </div>
+                                <div class="card-body small text-muted">
+                                    Chưa có ghi chú cho đơn hàng này.
+                                </div>
+                            </div>
+                            -->
+
+                        </div>
+
                     </div>
 
                 </div>
             </section>
         </div>
 
+        <!-- FOOTER -->
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
     </div>
 </div>

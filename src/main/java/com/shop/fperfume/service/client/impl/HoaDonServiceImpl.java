@@ -67,12 +67,14 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         List<HoaDonChiTiet> hoaDonChiTiets = new ArrayList<>();
 
         for (GioHangChiTiet item : cartItems) {
-            SanPhamChiTiet spct = sanPhamChiTietRepo.findById(item.getSanPhamChiTiet().getId())
-                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại ID: " + item.getSanPhamChiTiet().getId()));
+            SanPhamChiTiet spct = sanPhamChiTietRepo
+                    .findByIdAndTrangThaiTrue(item.getSanPhamChiTiet().getId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm đã ngừng kinh doanh hoặc không tồn tại"));
 
-            if (spct.getSoLuongTon() < item.getSoLuong()) {
-                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenNuocHoa() + " không đủ hàng.");
+            if (spct.getSoLuongTon() <= 0) {
+                throw new RuntimeException("Sản phẩm đã hết hàng");
             }
+
 
             // Trừ kho
             spct.setSoLuongTon(spct.getSoLuongTon() - item.getSoLuong());

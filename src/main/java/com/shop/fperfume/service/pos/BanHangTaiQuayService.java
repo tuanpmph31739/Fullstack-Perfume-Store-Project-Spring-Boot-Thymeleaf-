@@ -46,6 +46,11 @@ public class BanHangTaiQuayService {
         SanPhamChiTiet spct = sanPhamChiTietRepo.findById(idSPCT)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
+        if (spct.getTrangThai() == null || !spct.getTrangThai()) {
+            throw new IllegalArgumentException("Sản phẩm "
+                    + spct.getSanPham().getTenNuocHoa()
+                    + " đã ngừng kinh doanh");
+        }
         int ton = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
         if (ton < soLuong) throw new RuntimeException("Số lượng tồn kho không đủ (" + ton + ")");
 
@@ -73,6 +78,15 @@ public class BanHangTaiQuayService {
     public HoaDonChiTiet tangSoLuong(Integer idHoaDonChiTiet) {
         HoaDonChiTiet hdct = hoaDonChiTietRepo.findById(idHoaDonChiTiet)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
+
+        SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
+
+        // ✅ CHẶN SẢN PHẨM NGỪNG KINH DOANH
+        if (spct.getTrangThai() == null || !spct.getTrangThai()) {
+            throw new RuntimeException("Sản phẩm "
+                    + spct.getSanPham().getTenNuocHoa()
+                    + " đã ngừng kinh doanh, không thể tăng số lượng");
+        }
 
         int soLuongMoi = hdct.getSoLuong() + 1;
         int ton = hdct.getSanPhamChiTiet().getSoLuongTon() != null ? hdct.getSanPhamChiTiet().getSoLuongTon() : 0;
@@ -250,6 +264,14 @@ public class BanHangTaiQuayService {
         // Trừ tồn kho
         for (HoaDonChiTiet hdct : chiTiets) {
             SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
+
+            // CHẶN HÓA ĐƠN CÓ SẢN PHẨM NGỪNG KINH DOANH
+            if (spct.getTrangThai() == null || !spct.getTrangThai()) {
+                throw new RuntimeException("Sản phẩm "
+                        + spct.getSanPham().getTenNuocHoa()
+                        + " đã ngừng kinh doanh, không thể thanh toán hóa đơn này");
+            }
+
             int tonMoi = spct.getSoLuongTon() - hdct.getSoLuong();
             if (tonMoi < 0) throw new RuntimeException("Hết hàng: " + spct.getSanPham().getTenNuocHoa());
             spct.setSoLuongTon(tonMoi);
