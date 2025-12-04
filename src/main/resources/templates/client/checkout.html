@@ -407,7 +407,7 @@
 
         // SUBMIT FORM
         form.addEventListener("submit", function(e) {
-            e.preventDefault(); // Chặn submit để check kỹ
+            e.preventDefault(); // Chặn submit để tự xử lý
 
             let isNameValid = validateField(nameInput, 'error-tenNguoiNhan', () => nameInput.value.trim() !== "");
             let isPhoneValid = checkPhone();
@@ -419,20 +419,35 @@
             }
 
             if (isNameValid && isPhoneValid && isAddressValid) {
-                // Hiển thị Loading đẹp mắt trước khi submit thật
-                Swal.fire({
-                    title: 'Đang xử lý...',
-                    text: 'Vui lòng chờ trong giây lát',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
 
-                // Submit thật sau 500ms (để tạo cảm giác mượt)
-                setTimeout(() => {
-                    form.submit();
-                }, 500);
+                // 🔔 Hộp thoại XÁC NHẬN trước khi đặt hàng
+                Swal.fire({
+                    title: 'Xác nhận đặt hàng?',
+                    text: 'Bạn có chắc muốn đặt đơn hàng này không?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Nếu người dùng đồng ý -> hiển thị loading và submit form
+                        Swal.fire({
+                            title: 'Đang xử lý...',
+                            text: 'Vui lòng chờ trong giây lát',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        setTimeout(() => {
+                            form.submit(); // submit thật (không chạy lại listener)
+                        }, 500);
+                    }
+                    // Nếu bấm "Hủy" thì không làm gì thêm
+                });
 
             } else {
                 // Alert lỗi đẹp mắt
@@ -444,7 +459,6 @@
                     confirmButtonText: 'Đã hiểu'
                 });
 
-                // Scroll đến lỗi đầu tiên
                 const firstError = document.querySelector('.is-invalid');
                 if(firstError) {
                     firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });

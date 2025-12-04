@@ -304,33 +304,37 @@ public class BanHangTaiQuayController {
     public String thanhToan(
             @RequestParam("idHD") Integer idHD,
 
-            // THÔNG TIN KHÁCH HÀNG NHẬP Ở BÊN TRÁI
             @RequestParam(name = "hoTen", required = false) String hoTen,
             @RequestParam(name = "sdt", required = false) String sdt,
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "diaChi", required = false) String diaChi,
 
-            // CÁC THÔNG TIN THANH TOÁN / SHIP (nếu dùng)
             @RequestParam(name = "phiShip", required = false) BigDecimal phiShip,
             @RequestParam(name = "soTienKhachDua", required = false) BigDecimal soTienKhachDua,
 
             RedirectAttributes redirectAttributes) {
 
         try {
-            // 1. Nếu hóa đơn đã gán KHACHHANG, cho phép update info khách đó
+            // 1. Cập nhật thông tin khách
             banHangService.capNhatThongTinKhach(idHD, hoTen, sdt, email, diaChi);
 
             // 2. Thanh toán hóa đơn tại quầy
-            banHangService.thanhToanHoaDonTaiQuay(
+            // ⚠️ Đảm bảo method này trả về HoaDon. Nếu hiện đang là void thì sửa lại cho nó return HoaDon.
+            HoaDon hoaDon = banHangService.thanhToanHoaDonTaiQuay(
                     idHD,
-                    hoTen,          // tenNguoiNhan
-                    sdt,            // sdtGiaoHang
-                    diaChi,         // diaChiGiaoHang
-                    phiShip,        // phí ship (có thể null)
-                    soTienKhachDua  // tiền khách đưa (có thể null)
+                    hoTen,         // tên người nhận
+                    sdt,           // sđt giao hàng
+                    diaChi,        // địa chỉ giao hàng
+                    phiShip,
+                    soTienKhachDua
             );
 
             redirectAttributes.addFlashAttribute("successMessage", "Thanh toán thành công!");
+
+            // ⭐ Đưa id hóa đơn vào flash attribute để trang POS xử lý mở tab in
+            redirectAttributes.addFlashAttribute("printId", hoaDon.getId());
+
+            // Vẫn quay về trang bán hàng như bình thường
             return "redirect:/admin/ban-hang-tai-quay";
 
         } catch (RuntimeException e) {
@@ -338,6 +342,8 @@ public class BanHangTaiQuayController {
             return "redirect:/admin/ban-hang-tai-quay?idHD=" + idHD;
         }
     }
+
+
     private void capNhatThongTinKhachIfNeeded(Integer idHD,
                                               String hoTen,
                                               String sdt,

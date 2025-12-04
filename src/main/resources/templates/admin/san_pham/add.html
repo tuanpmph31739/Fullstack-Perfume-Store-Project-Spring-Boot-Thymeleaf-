@@ -116,7 +116,7 @@
                                 <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham}" class="btn btn-secondary">
                                     ← Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-primary">Lưu dòng sản phẩm</button>
+                                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn thêm dòng sản phẩm này?')">Lưu dòng sản phẩm</button>
                             </div>
 
                         </form>

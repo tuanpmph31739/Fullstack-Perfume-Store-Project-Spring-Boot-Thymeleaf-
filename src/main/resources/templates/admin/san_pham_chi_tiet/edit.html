@@ -119,10 +119,10 @@
 
                             <!-- Nút -->
                             <div class="text-end">
-                                <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham-chi-tiet}" class="btn btn-secondary">
+                                <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'" class="btn btn-secondary">
                                     ← Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn lưu?')">Cập nhật</button>
                             </div>
 
                         </form>

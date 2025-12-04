@@ -84,6 +84,7 @@ public class SanPhamClientController {
                     "giaBan", ct.getGiaBan().toPlainString(),
                     "idSpct", ct.getId().toString(),
                     "soLuongTon", ct.getSoLuongTon(),
+                    "trangThai", ct.getTrangThai(),
                     "message", "OK"
             ));
         } else {

@@ -82,7 +82,8 @@
                     <div class="qty-group">
                         <button class="btn btn-sm btn-outline-secondary" type="button" id="minusBtn"><i class="bi bi-dash"></i></button>
                         <input type="number" id="quantityInput" class="form-control" value="1" min="1"
-                               th:max="${sanPhamChiTiet.soLuongTon}" th:disabled="${sanPhamChiTiet.soLuongTon <= 0}"
+                               th:max="${sanPhamChiTiet.soLuongTon}"
+                               th:disabled="${sanPhamChiTiet.soLuongTon <= 0 or sanPhamChiTiet.trangThai == false}"
                                style="width:90px" />
                         <button class="btn btn-sm btn-outline-secondary" type="button" id="plusBtn"><i class="bi bi-plus"></i></button>
                     </div>
@@ -90,25 +91,45 @@
                 </div>
 
                 <div class="mt-3 d-grid gap-2">
-                    <!-- GIỮ span nội bộ để JS thay đổi text -->
-                    <button id="addToCartButton" class="btn btn-buy btn-lg" type="submit"
-                            th:disabled="${sanPhamChiTiet.soLuongTon <= 0}">
+                    <button id="addToCartButton"
+                            class="btn btn-buy btn-lg"
+                            type="submit"
+                            th:disabled="${sanPhamChiTiet.soLuongTon <= 0 or sanPhamChiTiet.trangThai == false}">
                         <i class="bi bi-bag-plus"></i>
-                        <span th:if="${sanPhamChiTiet.soLuongTon > 0}">Thêm vào giỏ hàng</span>
-                        <span th:if="${sanPhamChiTiet.soLuongTon <= 0}">Hết hàng</span>
+
+                        <!-- Nếu ngừng kinh doanh -->
+                        <span th:if="${sanPhamChiTiet.trangThai == false}">
+            Ngừng kinh doanh
+        </span>
+
+                        <!-- Đang bán + còn hàng -->
+                        <span th:if="${sanPhamChiTiet.trangThai != false and sanPhamChiTiet.soLuongTon > 0}">
+            Thêm vào giỏ hàng
+        </span>
+
+                        <!-- Đang bán nhưng hết hàng -->
+                        <span th:if="${sanPhamChiTiet.trangThai != false and sanPhamChiTiet.soLuongTon <= 0}">
+            Hết hàng
+        </span>
                     </button>
 
-<!--                     (tùy) Link mua ngay nếu bạn dùng-->
                     <button type="button"
                             id="buyNowButton"
-                            class="btn btn-outline-dark btn-lg w-100">
-                        Mua ngay
+                            class="btn btn-outline-dark btn-lg w-100"
+                            th:disabled="${sanPhamChiTiet.soLuongTon <= 0 or sanPhamChiTiet.trangThai == false}">
+        <span th:if="${sanPhamChiTiet.trangThai == false}">
+            Ngừng kinh doanh
+        </span>
+                        <span th:if="${sanPhamChiTiet.trangThai != false}">
+            Mua ngay
+        </span>
                     </button>
 
                     <div class="hotline d-flex align-items-center gap-2 justify-content-center">
                         <i class="bi bi-telephone"></i><span>HOTLINE</span><b>0397682148</b><span class="text-muted">(9:00 - 22:00)</span>
                     </div>
                 </div>
+
             </form>
 
             <!-- Social -->
@@ -178,6 +199,10 @@
                     <div class="pd-desc-lead"
                          th:utext="'<strong>Nhóm hương chính:</strong> ' + ${#strings.replace(sanPhamChiTiet.tenNhomHuong, '\n', '<br/>')}">
                         <strong>Nhóm hương chính:</strong> Hương Gỗ (Woody)
+                    </div>
+                    <div class="pd-desc-lead"
+                         th:utext="'<strong>Thời tiết khuyên dùng:</strong> ' + ${#strings.replace(sanPhamChiTiet.tenMuaThichHop, '\n', '<br/>')}">
+                        <strong>Thời tiết khuyên dùng:</strong> Mùa Nóng
                     </div>
                     <div class="pd-desc-body"
                          th:utext="${#strings.replace(sanPhamChiTiet.moTa, '\n', '<br/>')}">
@@ -258,7 +283,7 @@
                                             th:text="${sp.tenSanPham}">Tên sản phẩm</h6>
                                         <div class="small text-muted text-truncate"
                                              th:text="${sp.tenThuongHieu}">Thương hiệu</div>
-                                        <div class="fw-semibold text-primary mt-1"
+                                        <div class="fw-semibold mt-1" style="color: #CF944FFF"
                                              th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'POINT', 0, 'NONE')} + ' ₫'">
                                             0 ₫
                                         </div>
@@ -306,33 +331,48 @@
     function formatPrice(price){ if(price==null||isNaN(price)) return "N/A"; return parseFloat(price).toLocaleString("vi-VN")+" ₫"; }
     function updatePrice(soMl){
         if(!soMl) return;
-        const priceEl=document.getElementById('product-price');
-        const hiddenIdEl=document.getElementById('selectedSanPhamChiTietId');
-        const qtyInputEl=document.getElementById('quantityInput');
-        const submitBtn=document.getElementById('addToCartButton');
-        const btnText=submitBtn.querySelector('span');
+        const priceEl = document.getElementById('product-price');
+        const hiddenIdEl = document.getElementById('selectedSanPhamChiTietId');
+        const qtyInputEl = document.getElementById('quantityInput');
+        const submitBtn = document.getElementById('addToCartButton');
+        const btnText = submitBtn.querySelector('span');
+        const stockTextEl = document.getElementById('stockText');
+        const buyNowBtn = document.getElementById('buyNowButton');
+
         fetch(`/san-pham/${idSanPham}/gia?soMl=${soMl}`)
             .then(r=>r.json())
             .then(data=>{
-                if(data.giaBan && data.idSpct){
+                if (data.giaBan && data.idSpct) {
                     priceEl.innerText = formatPrice(data.giaBan);
                     hiddenIdEl.value = data.idSpct;
-                    const stock = parseInt(data.soLuongTon||0);
+
+                    const stock = parseInt(data.soLuongTon || 0);
+                    const isActive = data.trangThai === true
+                        || data.trangThai === 1
+                        || data.trangThai === '1';
+
+
                     qtyInputEl.max = stock;
+                    if (stockTextEl) stockTextEl.innerText = stock;
 
-                    // 👇 THÊM ĐOẠN NÀY
-                    const stockTextEl = document.getElementById('stockText');
-                    if (stockTextEl) {
-                        stockTextEl.innerText = stock;
-                    }
-
-                    if (stock<=0){
-                        qtyInputEl.value=0; qtyInputEl.disabled=true; submitBtn.disabled=true;
-                        if(btnText) btnText.innerText='Hết hàng';
+                    if (!isActive) {
+                        qtyInputEl.value = 0;
+                        qtyInputEl.disabled = true;
+                        submitBtn.disabled = true;
+                        if (buyNowBtn) buyNowBtn.disabled = true;
+                        if (btnText) btnText.innerText = 'Ngừng kinh doanh';
+                    } else if (stock <= 0) {
+                        qtyInputEl.value = 0;
+                        qtyInputEl.disabled = true;
+                        submitBtn.disabled = true;
+                        if (buyNowBtn) buyNowBtn.disabled = true;
+                        if (btnText) btnText.innerText = 'Hết hàng';
                     } else {
-                        if(parseInt(qtyInputEl.value)<1) qtyInputEl.value=1;
-                        qtyInputEl.disabled=false; submitBtn.disabled=false;
-                        if(btnText) btnText.innerText='Thêm vào giỏ hàng';
+                        if (parseInt(qtyInputEl.value) < 1) qtyInputEl.value = 1;
+                        qtyInputEl.disabled = false;
+                        submitBtn.disabled = false;
+                        if (buyNowBtn) buyNowBtn.disabled = false;
+                        if (btnText) btnText.innerText = 'Thêm vào giỏ hàng';
                     }
                 }
             })

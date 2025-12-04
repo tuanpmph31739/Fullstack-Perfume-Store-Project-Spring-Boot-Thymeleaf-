@@ -133,8 +133,6 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             @Param("maxP") BigDecimal maxP,
             Pageable pageable
     );
-//    @Query("SELECT spct FROM SanPhamChiTiet spct JOIN FETCH spct.sanPham sp")
-//    List<SanPhamChiTiet> findAllWithSanPham();
     @Query("SELECT spct FROM SanPhamChiTiet spct " +
             "JOIN FETCH spct.sanPham sp " +
             "LEFT JOIN FETCH spct.dungTich dt") // Thêm dòng này
@@ -226,5 +224,12 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     Page<SanPhamChiTiet> searchByKeyword(@Param("kw") String keyword, Pageable pageable);
 
 
+    Optional<SanPhamChiTiet> findByIdAndTrangThaiTrue(Integer id);
 
+    List<SanPhamChiTiet> findBySanPhamIdAndTrangThaiTrue(Integer sanPhamId);
+
+    // nếu cần lọc thêm tồn kho > 0:
+    List<SanPhamChiTiet> findBySanPhamIdAndTrangThaiTrueAndSoLuongTonGreaterThan(
+            Integer sanPhamId, Integer soLuongTon
+    );
 }

@@ -49,4 +49,6 @@ public class DonHangResponse {
     // Thông tin người dùng (join NguoiDung)
     private String tenKhachHang;
     private String tenNhanVien;
+
+    private String ghiChu;
 }

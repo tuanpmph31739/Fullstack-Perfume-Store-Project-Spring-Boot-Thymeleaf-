@@ -52,7 +52,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Kênh bán</label>
                                     <input type="text" class="form-control form-control-sm"
-                                           th:value="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn tại quầy' : 'Đơn Website'}"
+                                           th:value="${donHang.kenhBan == 'TAI_QUAY' ? 'Đơn tại quầy' : 'Đơn online'}"
                                            readonly>
                                 </div>
 
@@ -115,7 +115,7 @@
                                     <a th:href="${backUrl}" class="btn btn-outline-secondary btn-sm">
                                         Hủy
                                     </a>
-                                    <button type="submit" class="btn btn-primary btn-sm">
+                                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Xác nhận lưu?')">
                                         Lưu thay đổi
                                     </button>
                                 </div>
