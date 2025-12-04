@@ -33,7 +33,8 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**", "/admin/**","/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**", "/thuong-hieu/**", "/cart/**", "/checkout/**", "/gioi-thieu/**", "/order/**").permitAll() // Cho phép trang chủ
+                        .requestMatchers("/**", "/admin/**","/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**",
+                                "/thuong-hieu/**", "/cart/**", "/checkout/**", "/gioi-thieu/**", "/order/**", "/user/orders/**").permitAll() // Cho phép trang chủ
 //                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
                         .anyRequest().authenticated()
                 )

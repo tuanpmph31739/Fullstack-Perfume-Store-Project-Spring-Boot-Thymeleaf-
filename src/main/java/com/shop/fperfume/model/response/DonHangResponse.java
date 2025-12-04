@@ -21,6 +21,7 @@ public class DonHangResponse {
 
     private String ma;
     private LocalDateTime ngayTao;
+    private LocalDateTime ngaySua;
     private LocalDateTime ngayThanhToan;
     private LocalDateTime ngayGiaoHang;
 

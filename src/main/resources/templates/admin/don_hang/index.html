@@ -32,26 +32,65 @@
                                     <span class="input-group-text">
                                         <i class="bi bi-search"></i>
                                     </span>
+
+                                    <!-- giữ kênh bán + trạng thái khi search -->
                                     <input type="hidden" name="kenhBan" th:value="${kenhBan}">
+                                    <input type="hidden" name="trangThai" th:value="${trangThai}">
+
                                     <input type="text" name="keyword" class="form-control"
                                            placeholder="Tìm theo mã đơn, người nhận, SĐT..."
                                            th:value="${keyword}">
-                                    <button class="btn btn-primary" type="submit">Tìm</button>
+                                    <button class="btn btn-primary" style="margin-right: 3px" type="submit">Tìm</button>
+                                    <a th:href="@{/admin/don-hang}"
+                                       class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Xoá lọc
+                                    </a>
                                 </div>
                             </form>
 
                             <!-- 2 nút channel: Website / Tại quầy -->
                             <div class="btn-group btn-group-sm ms-md-3" role="group">
-                                <a th:href="@{/admin/don-hang(kenhBan='WEB')}"
+                                <a th:href="@{/admin/don-hang(kenhBan='WEB', keyword=${keyword}, trangThai=${trangThai})}"
                                    class="btn"
                                    th:classappend="${kenhBan == 'WEB'} ? 'btn-success' : 'btn-outline-success'">
                                     Đơn hàng online
                                 </a>
-                                <a th:href="@{/admin/don-hang(kenhBan='TAI_QUAY')}"
+                                <a th:href="@{/admin/don-hang(kenhBan='TAI_QUAY', keyword=${keyword}, trangThai=${trangThai})}"
                                    class="btn"
                                    th:classappend="${kenhBan == 'TAI_QUAY'} ? 'btn-success' : 'btn-outline-success'">
                                     Đơn hàng tại quầy
                                 </a>
+                            </div>
+
+                            <!-- Lọc trạng thái -->
+                            <div class="ms-md-3">
+                                <select class="form-select form-select-sm"
+                                        onchange="location.href=this.value">
+                                    <option th:value="@{/admin/don-hang(kenhBan=${kenhBan}, keyword=${keyword})}"
+                                            th:selected="${trangThai == null or trangThai == ''}">
+                                        Tất cả trạng thái
+                                    </option>
+                                    <option th:value="@{/admin/don-hang(trangThai='CHO_XAC_NHAN',kenhBan=${kenhBan},keyword=${keyword})}"
+                                            th:selected="${trangThai == 'CHO_XAC_NHAN'}">
+                                        Chờ xác nhận
+                                    </option>
+                                    <option th:value="@{/admin/don-hang(trangThai='DANG_CHO_THANH_TOAN',kenhBan=${kenhBan},keyword=${keyword})}"
+                                            th:selected="${trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                        Đang chờ thanh toán
+                                    </option>
+                                    <option th:value="@{/admin/don-hang(trangThai='DANG_GIAO',kenhBan=${kenhBan},keyword=${keyword})}"
+                                            th:selected="${trangThai == 'DANG_GIAO'}">
+                                        Đang giao
+                                    </option>
+                                    <option th:value="@{/admin/don-hang(trangThai='HOAN_THANH',kenhBan=${kenhBan},keyword=${keyword})}"
+                                            th:selected="${trangThai == 'HOAN_THANH'}">
+                                        Hoàn thành
+                                    </option>
+                                    <option th:value="@{/admin/don-hang(trangThai='DA_HUY',kenhBan=${kenhBan},keyword=${keyword})}"
+                                            th:selected="${trangThai == 'DA_HUY'}">
+                                        Đã hủy
+                                    </option>
+                                </select>
                             </div>
 
                         </div>
@@ -76,25 +115,47 @@
                                 <tbody>
                                 <tr th:each="dh, iter : ${page.data}">
                                     <td th:text="${(page.currentPage - 1) * page.size + iter.index + 1}"></td>
-                                    <td th:text="${dh.ma}"></td>
-                                    <td th:text="${dh.tenNguoiNhan}"></td>
-                                    <td th:text="${dh.sdt}"></td>
-                                    <td th:text="${dh.phuongThucThanhToan ?: '---'}"></td>
-                                    <td th:text="${#temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm')}"></td>
+
+                                    <!-- Mã đơn: nếu null/rỗng => '-' -->
+                                    <td th:text="${dh.ma != null and !#strings.isEmpty(dh.ma) ? dh.ma : '-'}"></td>
+
+                                    <!-- Người nhận -->
+                                    <td th:text="${dh.tenNguoiNhan != null and !#strings.isEmpty(dh.tenNguoiNhan) ? dh.tenNguoiNhan : '-'}"></td>
+
+                                    <!-- SĐT -->
+                                    <td th:text="${dh.sdt != null and !#strings.isEmpty(dh.sdt) ? dh.sdt : '-'}"></td>
+
+                                    <!-- Thanh toán -->
+                                    <td th:text="${dh.phuongThucThanhToan != null and !#strings.isEmpty(dh.phuongThucThanhToan) ? dh.phuongThucThanhToan : '---'}"></td>
+
+                                    <!-- Ngày tạo: nếu null => '-' -->
+                                    <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+
+                                    <!-- Trạng thái -->
                                     <td>
                                         <span class="badge bg-success" th:if="${dh.trangThai == 'HOAN_THANH'}">Hoàn thành</span>
                                         <span class="badge bg-warning text-dark" th:if="${dh.trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</span>
                                         <span class="badge bg-primary text-white" th:if="${dh.trangThai == 'DANG_CHO_THANH_TOAN'}">Đang chờ thanh toán</span>
                                         <span class="badge bg-info text-dark" th:if="${dh.trangThai == 'DANG_GIAO'}">Đang giao</span>
                                         <span class="badge bg-secondary" th:if="${dh.trangThai == 'DA_HUY'}">Đã hủy</span>
+
+                                        <!-- Fallback: lạ hoặc null -->
                                         <span th:if="${dh.trangThai != 'HOAN_THANH'
                                                      and dh.trangThai != 'CHO_XAC_NHAN'
                                                      and dh.trangThai != 'DANG_CHO_THANH_TOAN'
                                                      and dh.trangThai != 'DANG_GIAO'
                                                      and dh.trangThai != 'DA_HUY'}"
-                                              th:text="${dh.trangThai}">---</span>
+                                              th:text="${dh.trangThai != null and !#strings.isEmpty(dh.trangThai) ? dh.trangThai : '---'}">
+                                            ---
+                                        </span>
                                     </td>
-                                    <td th:text="${dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy' : 'Đơn hàng online'}"></td>
+
+                                    <!-- Kênh bán -->
+                                    <td th:text="${
+                                          dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy'
+                                        : (dh.kenhBan == 'WEB' ? 'Đơn hàng online' : '-')
+                                     }"></td>
+
                                     <td>
                                         <a th:href="@{/admin/don-hang/view/{id}(id=${dh.id})}"
                                            class="btn btn-outline-secondary btn-sm" title="Xem chi tiết">
@@ -105,7 +166,7 @@
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <a th:href="@{/admin/hoa-don/print/{id}(id=${dh.id})}"
-                                           class="btn btn-outline-success"
+                                           class="btn btn-outline-success btn-sm"
                                            target="_blank"
                                            title="In hóa đơn">
                                             <i class="bi bi-printer"></i>
