@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:href="@{/admin/assets/compiled/jpg/logo3.png}">
+<head>
     <meta charset="UTF-8">
+    <link rel="icon"
+          type="image/png"
+          th:href="@{/admin/assets/compiled/jpg/logo3.png}" />
     <title th:text="${isTamTinh} ? 'Phiếu tạm tính #' + ${donHang.ma} : 'Hóa đơn #' + ${donHang.ma}">
         Hóa đơn
     </title>
