@@ -172,18 +172,23 @@ public class GioHangClientServiceImpl implements GioHangClientService {
         context.setVariable("hoaDon", hoaDon);
         context.setVariable("emailNhan", emailNhan);
 
-        // 2. Render ra HTML từ file template "email/email-order.html"
+        // ⚠️ Base URL – tạm dùng localhost, sau này cho vào application.properties
+        String baseUrl = "http://localhost:8080";
+        String orderDetailUrl = baseUrl + "/user/orders/" + hoaDon.getMa();
+
+        // truyền xuống template email
+        context.setVariable("orderDetailUrl", orderDetailUrl);
+
+        // Render ra HTML từ template
         String htmlContent = templateEngine.process("client/email-order", context);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            // 3. Dùng email được truyền vào từ tham số
             helper.setTo(emailNhan);
-
             helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true = gửi dưới dạng HTML
+            helper.setText(htmlContent, true); // HTML
             helper.setFrom("famumintouan@gmail.com", "FPerfume");
 
             mailSender.send(message);
@@ -193,5 +198,6 @@ public class GioHangClientServiceImpl implements GioHangClientService {
             System.err.println("Lỗi gửi mail: " + e.getMessage());
         }
     }
+
 
 }

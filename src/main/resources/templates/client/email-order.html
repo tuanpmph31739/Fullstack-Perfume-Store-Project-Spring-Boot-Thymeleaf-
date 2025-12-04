@@ -397,8 +397,10 @@
 
             <!-- NÚT XEM CHI TIẾT -->
             <div style="text-align: center;">
-                <a th:href="@{'http://localhost:8080/user/order/' + ${hoaDon.ma}}"
-                   class="btn-primary-link">
+                <a th:href="${orderDetailUrl}"
+                   class="btn-primary-link"
+                   target="_blank"
+                   rel="noopener noreferrer">
                     Xem chi tiết đơn hàng trên website
                 </a>
             </div>

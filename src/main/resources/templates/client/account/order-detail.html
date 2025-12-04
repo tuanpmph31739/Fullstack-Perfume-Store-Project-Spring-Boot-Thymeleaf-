@@ -4,7 +4,7 @@
 <body>
 <div th:replace="~{client/fragments/header :: header}"></div>
 
-<div class="container mt-4" th:if="${successMessage != null || errorMessage != null}">
+<div class="container pd-wrap" th:if="${successMessage != null || errorMessage != null}">
     <div th:if="${successMessage}" class="alert alert-success shadow-sm border-0 rounded-3 d-flex align-items-center">
         <i class="bi bi-check-circle-fill me-2 fs-5"></i> <span th:text="${successMessage}"></span>
     </div>
@@ -13,13 +13,31 @@
     </div>
 </div>
 
-<div class="container pd-wrap my-5">
+<div class="container pd-wrap">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="@{/account/orders}" class="text-decoration-none text-muted hover-link"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a></li>
-            <li class="breadcrumb-item active fw-bold" aria-current="page" th:text="'Chi tiết đơn hàng #' + ${order.ma}"></li>
+            <li class="breadcrumb-item">
+                <!-- Nếu là khách (xem qua /user/orders/{ma}) -->
+                <a th:if="${guestView} == true"
+                   th:href="@{/}"
+                   class="text-decoration-none text-muted hover-link">
+                    <i class="bi bi-arrow-left"></i> Quay lại trang chủ
+                </a>
+
+                <!-- Nếu là user đã đăng nhập (xem qua /account/orders/...) -->
+                <a th:if="${guestView} != true"
+                   th:href="@{/account/orders}"
+                   class="text-decoration-none text-muted hover-link">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active fw-bold" aria-current="page"
+                th:text="'Chi tiết đơn hàng #' + ${order.ma}">
+            </li>
         </ol>
     </nav>
+
 
     <div class="row g-4">
         <div class="col-lg-8">
@@ -149,18 +167,24 @@
 <div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <form th:action="@{/account/orders/cancel}" method="POST">
+            <form th:action="${guestView} == true ? @{/user/orders/cancel} : @{/account/orders/cancel}"
+                  method="POST">
                 <div class="modal-header border-bottom-0">
-                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận hủy đơn</h5>
+                    <h5 class="modal-title fw-bold text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Xác nhận hủy đơn
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-0">
                     <p class="text-muted mb-3">
-                        Bạn có chắc chắn muốn hủy đơn hàng <strong class="text-dark">[[${order.ma}]]</strong> không?
+                        Bạn có chắc chắn muốn hủy đơn hàng
+                        <strong class="text-dark">[[${order.ma}]]</strong> không?
                         <br><span class="small text-danger fst-italic">Hành động này không thể hoàn tác.</span>
                     </p>
 
-                    <input type="hidden" name="id" th:value="${order.id}">
+                    <!-- vẫn giữ id như cũ -->
+                    <input type="hidden" name="id" th:value="${order.id}"/>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark">Lý do hủy (Bắt buộc):</label>
@@ -169,10 +193,15 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác nhận Hủy</button>
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                        Xác nhận Hủy
+                    </button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
