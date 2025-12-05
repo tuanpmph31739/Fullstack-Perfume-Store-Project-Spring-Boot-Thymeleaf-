@@ -16,6 +16,7 @@ import org.thymeleaf.context.Context;
 
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -120,25 +121,32 @@ public class GioHangClientServiceImpl implements GioHangClientService {
         GiamGia voucher = giamGiaRepository.findByMa(maGiamGia)
                 .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ"));
 
-        // ----------- KIỂM TRA SỐ LƯỢNG VOUCHER -----------
-        if (voucher.getSoLuong() != null && voucher.getSoLuong() <= 0) {
+        LocalDateTime now = LocalDateTime.now();
+        if (voucher.getNgayBatDau().isAfter(now) || voucher.getNgayKetThuc().isBefore(now)) {
+            throw new RuntimeException("Voucher đã hết hạn hoặc chưa được kích hoạt");
+        }
+
+        if (!voucher.getTrangThai()) {
+            throw new RuntimeException("Voucher đang bị khóa");
+        }
+
+        if (voucher.getSoLuong() == null || voucher.getSoLuong() <= 0) {
             throw new RuntimeException("Voucher đã hết số lượt sử dụng!");
         }
 
-        // ----------- KIỂM TRA SẢN PHẨM ÁP DỤNG ----------
         if ("SANPHAM".equals(voucher.getPhamViApDung())) {
-
             SanPhamChiTiet spctDuocGiam = voucher.getSanPhamChiTiet();
-            boolean khopSanPham = gioHang.getGioHangChiTiets().stream()
+            boolean hopLe = gioHang.getGioHangChiTiets().stream()
                     .anyMatch(ct -> ct.getSanPhamChiTiet().getId().equals(spctDuocGiam.getId()));
 
-            if (!khopSanPham) {
-                throw new RuntimeException("Mã giảm giá không áp dụng cho sản phẩm này!");
+            if (!hopLe) {
+                throw new RuntimeException("Voucher không áp dụng cho sản phẩm trong giỏ!");
             }
         }
 
-        // Nếu hợp lệ thì gắn mã vào giỏ
+        // ✔️ CHỈ GÁN VOUCHER VÀO GIỎ – KHÔNG TRỪ SỐ LƯỢNG
         gioHang.setGiamGia(voucher);
+
         return gioHangRepository.save(gioHang);
     }
 

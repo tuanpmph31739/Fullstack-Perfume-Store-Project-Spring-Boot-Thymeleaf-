@@ -1,8 +1,9 @@
 package com.shop.fperfume.controller.client;
 
 import com.shop.fperfume.config.VNPayConfig;
+import com.shop.fperfume.entity.GiamGia;
 import com.shop.fperfume.entity.HoaDon;
-import com.shop.fperfume.entity.NguoiDung;
+import com.shop.fperfume.repository.GiamGiaRepository;
 import com.shop.fperfume.repository.HoaDonRepository;
 import com.shop.fperfume.service.client.GioHangClientService;
 import com.shop.fperfume.service.client.VnPayService;
@@ -27,97 +28,100 @@ import java.util.*;
 @RequestMapping("/payment")
 public class PaymentController {
 
-    @Autowired private VNPayConfig vnPayConfig;
-    @Autowired private HoaDonRepository hoaDonRepository;
-    @Autowired private VnPayService vnPayService;
-    @Autowired private GioHangClientService gioHangClientService;
+    @Autowired
+    private VNPayConfig vnPayConfig;
 
-    private static final String SESSION_CART_KEY = "GUEST_CART";
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
+
+    @Autowired
+    private GiamGiaRepository giamGiaRepository;
+
+    @Autowired
+    private VnPayService vnPayService;
+
+    @Autowired
+    private GioHangClientService gioHangClientService;
 
     @GetMapping("/vnpay/return")
     public String vnpayReturn(HttpServletRequest request, Model model, HttpSession session) {
-        // 1. Lấy tham số từ VNPay
+
         Map<String, String> fields = new HashMap<>();
-        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = params.nextElement();
             String fieldValue = request.getParameter(fieldName);
-            if (fieldValue != null && !fieldValue.isEmpty()) {
+            if (fieldValue != null && fieldValue.length() > 0) {
                 fields.put(fieldName, fieldValue);
             }
         }
 
-        // 2. Xử lý chữ ký bảo mật (Hash)
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-        if (fields.containsKey("vnp_SecureHashType")) fields.remove("vnp_SecureHashType");
-        if (fields.containsKey("vnp_SecureHash")) fields.remove("vnp_SecureHash");
+        fields.remove("vnp_SecureHashType");
+        fields.remove("vnp_SecureHash");
 
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
-        StringBuilder hashData = new StringBuilder();
-        Iterator<String> itr = fieldNames.iterator();
+        StringBuilder sb = new StringBuilder();
+
         try {
-            while (itr.hasNext()) {
+            for (Iterator<String> itr = fieldNames.iterator(); itr.hasNext();) {
                 String fieldName = itr.next();
                 String fieldValue = fields.get(fieldName);
-                if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    hashData.append(fieldName);
-                    hashData.append('=');
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
-                    if (itr.hasNext()) hashData.append('&');
-                }
+                sb.append(fieldName)
+                        .append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
+                if (itr.hasNext()) sb.append('&');
             }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 
-        String vnp_HashSecret = vnPayConfig.getHashSecret();
-        String secureHash = vnPayService.hmacSHA512(vnp_HashSecret, hashData.toString());
+        String secureHash = vnPayService.hmacSHA512(vnPayConfig.getHashSecret(), sb.toString());
 
-        // 3. Kiểm tra kết quả
-        if (vnp_SecureHash.equals(secureHash)) {
-            String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
-            String vnp_TxnRef = request.getParameter("vnp_TxnRef");
-
-            if ("00".equals(vnp_ResponseCode)) {
-                // === THANH TOÁN THÀNH CÔNG ===
-
-                // A. Tìm đơn hàng trong Database
-                HoaDon hoaDon = hoaDonRepository.findByMa(vnp_TxnRef).orElse(null);
-
-                if (hoaDon != null) {
-                    // B. Kiểm tra trạng thái hiện tại để tránh cập nhật trùng lặp
-                    if ("DANG_CHO_THANH_TOAN".equals(hoaDon.getTrangThai())) {
-
-                        // --- QUAN TRỌNG: CẬP NHẬT DATABASE TẠI ĐÂY ---
-                        hoaDon.setTrangThai("HOAN_THANH"); // Cập nhật trạng thái
-                        hoaDon.setNgayThanhToan(java.time.LocalDateTime.now()); // Cập nhật ngày giờ
-
-                        hoaDonRepository.save(hoaDon); // <--- LỆNH LƯU QUAN TRỌNG NHẤT
-                        System.out.println("Đã cập nhật đơn hàng " + vnp_TxnRef + " thành ĐÃ HOÀN THÀNH");
-
-                        // C. Xóa giỏ hàng (Code cũ của bạn)
-                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
-                            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-                            gioHangClientService.clearCart(userDetails.getUser());
-                        }
-                        session.removeAttribute("GUEST_CART");
-                    }
-
-                    // Chuyển hướng sang trang thành công
-                    return "redirect:/order/success/" + hoaDon.getId();
-                } else {
-                    model.addAttribute("errorMessage", "Lỗi: Không tìm thấy đơn hàng có mã " + vnp_TxnRef);
-                    return "client/payment_failure";
-                }
-            } else {
-                // Thanh toán thất bại/Hủy
-                model.addAttribute("errorMessage", "Giao dịch thất bại. Mã lỗi: " + vnp_ResponseCode);
-                return "client/payment_failure";
-            }
-        } else {
+        if (!secureHash.equals(vnp_SecureHash)) {
             model.addAttribute("errorMessage", "Lỗi bảo mật: Chữ ký không hợp lệ!");
             return "client/payment_failure";
         }
+
+        // ------------ VALID HASH → XỬ LÝ THANH TOÁN -------------- //
+        String responseCode = request.getParameter("vnp_ResponseCode");
+        String orderCode = request.getParameter("vnp_TxnRef");
+
+        HoaDon hoaDon = hoaDonRepository.findByMa(orderCode).orElse(null);
+
+        if (hoaDon == null) {
+            model.addAttribute("errorMessage", "Không tìm thấy đơn hàng!");
+            return "client/payment_failure";
+        }
+
+        if ("00".equals(responseCode)) {
+
+            // CHỈ cập nhật khi đơn đang chờ thanh toán
+            if ("DANG_CHO_THANH_TOAN".equals(hoaDon.getTrangThai())) {
+
+                hoaDon.setTrangThai("HOAN_THANH");
+                hoaDon.setNgayThanhToan(java.time.LocalDateTime.now());
+                hoaDonRepository.save(hoaDon);
+
+                // 🔥🔥 TRỪ MÃ GIẢM GIÁ
+                GiamGia giamGia = hoaDon.getGiamGia();
+                if (giamGia != null && giamGia.getSoLuong() > 0) {
+                    giamGia.setSoLuong(giamGia.getSoLuong() - 1);
+                    giamGiaRepository.save(giamGia);
+                }
+
+                // Xóa giỏ hàng
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof CustomUserDetails user) {
+                    gioHangClientService.clearCart(user.getUser());
+                }
+                session.removeAttribute("GUEST_CART");
+            }
+
+            return "redirect:/order/success/" + hoaDon.getId();
+        }
+
+        model.addAttribute("errorMessage", "Thanh toán thất bại! Mã lỗi: " + responseCode);
+        return "client/payment_failure";
     }
 }
