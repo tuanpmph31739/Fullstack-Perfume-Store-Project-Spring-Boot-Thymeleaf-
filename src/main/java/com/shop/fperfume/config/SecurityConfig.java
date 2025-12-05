@@ -34,6 +34,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**", "/thuong-hieu/**", "/cart/**", "/checkout/**", "/gioi-thieu/**").permitAll() // Cho phép trang chủ
+                        .requestMatchers("/admin/nhan-vien/**","/admin/nhan-vien").hasAnyRole("ADMIN")
+                        .requestMatchers("/admin/khach-hang/**","/admin/khach-hang").hasAnyRole("ADMIN", "NHANVIEN")
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
                         .anyRequest().authenticated()
                 )

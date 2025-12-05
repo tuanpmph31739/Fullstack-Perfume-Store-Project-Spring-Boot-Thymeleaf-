@@ -1,4 +1,5 @@
-<div id="sidebar" class="sidebar-desktop active" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org">
+<div id="sidebar" class="sidebar-desktop active" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.w3.org/1999/xhtml">
     <div class="sidebar-wrapper ps ps--active-y">
         <!-- Header -->
         <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-2">
@@ -71,10 +72,21 @@
                     </ul>
                 </li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/nguoidung'} ? 'active'">
-                    <a th:href="@{/admin/nguoidung}" class="sidebar-link">
-                        <i class="bi bi-people"></i>
-                        <span>Quản lý người dùng</span>
+                <li class="sidebar-item"
+                    sec:authorize="hasAnyRole('ADMIN')"
+                    th:classappend="${#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhan-vien')} ? 'active'">
+                    <a th:href="@{/admin/nhan-vien}" class="sidebar-link">
+                        <i class="bi bi-person-badge-fill"></i>
+                        <span>Quản lý nhân viên</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item"
+                    sec:authorize="hasAnyRole('ADMIN', 'NHANVIEN')"
+                    th:classappend="${#strings.startsWith(currentPath != null ? currentPath : '', '/admin/khach-hang')} ? 'active'">
+                    <a th:href="@{/admin/khach-hang}" class="sidebar-link">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Quản lý khách hàng</span>
                     </a>
                 </li>
 
