@@ -23,6 +23,7 @@ public class NhanVienController {
     public NhanVienController(NguoiDungService service, NguoiDungRepository repo) {
         this.service = service;
         this.repo = repo;
+//        hi
     }
 
     @GetMapping
