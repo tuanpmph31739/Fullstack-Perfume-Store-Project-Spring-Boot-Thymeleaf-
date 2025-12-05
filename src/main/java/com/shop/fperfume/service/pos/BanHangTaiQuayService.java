@@ -281,7 +281,20 @@ public class BanHangTaiQuayService {
         hoaDon.setTrangThai("HOAN_THANH");
         hoaDon.setNgayThanhToan(LocalDateTime.now());
 
+        /* ---------------------------
+         * 🚀 TRỪ SỐ LƯỢNG VOUCHER Ở ĐÂY
+         * --------------------------- */
+        if (hoaDon.getGiamGia() != null) {
+            GiamGia voucher = hoaDon.getGiamGia();
+
+            if (voucher.getSoLuong() != null && voucher.getSoLuong() > 0) {
+                voucher.setSoLuong(voucher.getSoLuong() - 1);
+                giamGiaRepo.save(voucher);
+            }
+        }
+
         return hoaDonRepo.save(hoaDon);
+
     }
 
     /**
