@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+<body>
+<div class="wrapper">
+    <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
+    <div id="main">
+        <header th:replace="/admin/fragments/header :: header"></header>
+        <div class="page-heading">
+            <h3 th:text="${nguoiDung.id == null ? 'Thêm nhân viên' : 'Sửa nhân viên'}"></h3>
+        </div>
+        <div class="page-content">
+            <div class="card p-4">
+                <form id="formNguoiDung" th:action="@{/admin/nhan-vien/save}" th:object="${nguoiDung}" method="post">
+                    <input type="hidden" th:field="*{id}" id="userId">
+                    <input type="hidden" id="oldEmail" th:value="${nguoiDung.email}">
+
+                    <input type="hidden" th:field="*{vaiTro}">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã nhân viên</label>
+                            <input type="text" class="form-control" th:field="*{ma}" placeholder="Tự động tạo">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Họ tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{hoTen}" id="hoTen">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" th:field="*{email}" id="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mật khẩu</label>
+                            <input type="password" class="form-control" th:field="*{matKhau}" id="matKhau" placeholder="Để trống nếu không đổi">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Giới tính</label>
+                            <select class="form-select" th:field="*{gioiTinh}">
+                                <option value="1">Nam</option>
+                                <option value="0">Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ngày sinh</label>
+                            <input type="date" class="form-control" th:field="*{ngaySinh}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">SĐT</label>
+                            <input type="text" class="form-control" th:field="*{sdt}" id="sdt">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Địa chỉ</label>
+                            <input type="text" class="form-control" th:field="*{diaChi}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <select class="form-select" th:field="*{trangThai}">
+                                <option value="true">Hoạt động</option>
+                                <option value="false">Khóa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <a href="/admin/nhan-vien" class="btn btn-secondary">Quay lại</a>
+                        <button type="submit" class="btn btn-success">Lưu lại</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <footer th:replace="/admin/fragments/footer :: footer"></footer>
+    </div>
+</div>
+<script th:replace="/admin/fragments/script :: script"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:inline="javascript">
+    // (Copy đoạn Script JS SweetAlert cũ của bạn vào đây)
+    // LƯU Ý: Sửa đường dẫn fetch thành: /admin/nhan-vien/check-email
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("formNguoiDung");
+        const successMsg = [[${success}]];
+        const errorMsg = [[${error}]];
+
+        if (successMsg) Swal.fire({icon: 'success', title: 'Thành công!', text: successMsg, timer: 2000, showConfirmButton: false});
+        if (errorMsg) Swal.fire({icon: 'error', title: 'Lỗi!', text: errorMsg});
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("userId").value;
+            const email = document.getElementById("email").value.trim();
+            const oldEmail = document.getElementById("oldEmail").value.trim();
+            const hoTen = document.getElementById("hoTen").value.trim();
+            const matKhau = document.getElementById("matKhau").value.trim();
+
+            if (!hoTen) return Swal.fire("Lỗi", "Nhập họ tên", "error");
+            if (!email) return Swal.fire("Lỗi", "Nhập email", "error");
+            if (!id && !matKhau) return Swal.fire("Lỗi", "Nhập mật khẩu cho nhân viên mới", "error");
+
+            if (!id || (id && email !== oldEmail)) {
+                const res = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
+                if (await res.json()) return Swal.fire("Lỗi", "Email đã tồn tại", "error");
+            }
+
+            Swal.fire({title: "Lưu nhân viên?", icon: "question", showCancelButton: true, confirmButtonText: "Lưu"}).then(r => {
+                if(r.isConfirmed) form.submit();
+            });
+        });
+    });
+</script>
+</body>
+</html>

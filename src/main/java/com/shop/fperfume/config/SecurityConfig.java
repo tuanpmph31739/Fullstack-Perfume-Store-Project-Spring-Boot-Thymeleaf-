@@ -33,9 +33,11 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**", "/admin/**","/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**",
+                        .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**",
                                 "/thuong-hieu/**", "/cart/**", "/checkout/**", "/gioi-thieu/**", "/order/**", "/user/orders/**").permitAll() // Cho phép trang chủ
-//                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
+                        .requestMatchers("/admin/nhan-vien/**","/admin/nhan-vien").hasAnyRole("ADMIN")
+                        .requestMatchers("/admin/khach-hang/**","/admin/khach-hang").hasAnyRole("ADMIN", "NHANVIEN")
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
