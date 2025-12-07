@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,19 +30,49 @@ public class NguoiDungService {
     @Autowired
     private JavaMailSender mailSender;
 
-    // --- CRUD cơ bản ---
-    public Page<NguoiDung> getAll(String vaiTro,
-                                  Boolean trangThai,
-                                  String keyword,
-                                  Pageable pageable) {
-        return repo.findByFilter(vaiTro, trangThai, keyword, pageable);
+
+
+    // 1. Lấy danh sách NHÂN VIÊN (Chỉ Admin dùng)
+    public Page<NguoiDung> getAllNhanVien(String keyword, Boolean trangThai, Pageable pageable) {
+        // Chỉ lấy role NHAN_VIEN
+        return repo.searchAndFilter(keyword, List.of("NHANVIEN"), trangThai, pageable);
+    }
+
+    // 2. Lấy danh sách KHÁCH HÀNG (Admin và Nhân viên đều dùng)
+    public Page<NguoiDung> getAllKhachHang(String keyword, Boolean trangThai, Pageable pageable) {
+        // Chỉ lấy role KHACH_HANG
+        return repo.searchAndFilter(keyword, List.of("KHACHHANG"), trangThai, pageable);
     }
 
     public Optional<NguoiDung> getById(Long id) {
         return repo.findById(id);
     }
 
+    // 3. Hàm Save thông minh (Xử lý pass và mã tại đây luôn)
     public NguoiDung save(NguoiDung nd) {
+        // Tạo mã nếu chưa có
+        if (nd.getMa() == null || nd.getMa().isEmpty()) {
+            String prefix = nd.getVaiTro().equals("NHANVIEN") ? "NV" : "KH";
+            nd.setMa(prefix + System.currentTimeMillis());
+        }
+
+        // Xử lý mật khẩu
+        if (nd.getId() == null) {
+            // Thêm mới -> Mã hóa pass
+            nd.setMatKhau(passwordEncoder.encode(nd.getMatKhau()));
+        } else {
+            // Cập nhật
+            NguoiDung oldUser = repo.findById(nd.getId()).orElse(null);
+            if (oldUser != null) {
+                if (nd.getMatKhau() == null || nd.getMatKhau().isEmpty()) {
+                    // Không nhập pass mới -> Giữ pass cũ
+                    nd.setMatKhau(oldUser.getMatKhau());
+                } else {
+                    // Nhập pass mới -> Mã hóa lại
+                    nd.setMatKhau(passwordEncoder.encode(nd.getMatKhau()));
+                }
+            }
+        }
         return repo.save(nd);
     }
 
@@ -48,7 +80,6 @@ public class NguoiDungService {
         repo.deleteById(id);
     }
 
-    // --- Đăng ký tài khoản + gửi mail xác minh ---
     public void register(NguoiDung user, String siteURL) {
         user.setMatKhau(passwordEncoder.encode(user.getMatKhau()));
         user.setVerificationCode(UUID.randomUUID().toString());

@@ -5,7 +5,7 @@
 <div class="wrapper">
     <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
     <div id="main">
-        <header th:replace="/admin/fragments/header :: header"></header>
+        <header th:replace="~{/admin/fragments/header :: header(${nguoiDung.id == null ? 'Thêm Khách hàng' : 'Cập nhật Khách hàng'})}"></header>
         <div class="page-heading">
             <h3 th:text="${nguoiDung.id == null ? 'Thêm Khách hàng' : 'Cập nhật Khách hàng'}"></h3>
         </div>
