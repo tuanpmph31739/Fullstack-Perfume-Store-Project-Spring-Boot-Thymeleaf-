@@ -33,7 +33,8 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                        // Static resources & trang public
+
+main
                         .requestMatchers(
                                 "/",
                                 "/login",
