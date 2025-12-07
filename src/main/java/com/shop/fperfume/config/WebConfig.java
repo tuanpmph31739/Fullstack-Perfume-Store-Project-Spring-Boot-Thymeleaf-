@@ -30,7 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
                 // Áp dụng cho TẤT CẢ các URL
                 .addPathPatterns("/**")
                 // TRỪ các file tĩnh (CSS, JS, Ảnh...) để tăng hiệu suất
-                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/admin.assets.compiled/**");
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/assets.assets.compiled/**");
     }
 
 

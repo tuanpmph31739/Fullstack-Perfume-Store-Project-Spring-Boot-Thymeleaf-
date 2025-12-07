@@ -23,7 +23,7 @@ public class DonHangController {
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepository;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 12;
 
     @GetMapping
     public String index(Model model,

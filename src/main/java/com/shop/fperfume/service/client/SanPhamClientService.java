@@ -89,19 +89,28 @@ public class SanPhamClientService {
         BigDecimal maxP = (maxPrice == null || maxPrice <= 0) ? null : new BigDecimal(maxPrice);
         int brandsSize = (brandIds == null || brandIds.isEmpty()) ? 0 : brandIds.size();
 
-        Pageable pageable = switch (sort == null ? "" : sort) {
-            case "price_asc"  -> PageRequest.of(pageIndex, pageSize, org.springframework.data.domain.Sort.by("GiaBan").ascending());
-            case "price_desc" -> PageRequest.of(pageIndex, pageSize, org.springframework.data.domain.Sort.by("GiaBan").descending());
-            case "newest"     -> PageRequest.of(pageIndex, pageSize, org.springframework.data.domain.Sort.by("Id").descending());
-            default           -> PageRequest.of(pageIndex, pageSize);
-        };
+        // Pageable chỉ để phân trang, không cần sort ở đây nữa
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+
+        // Chuẩn hoá sort cho query
+        String sortKey;
+        if ("price_asc".equalsIgnoreCase(sort)) {
+            sortKey = "price_asc";
+        } else if ("price_desc".equalsIgnoreCase(sort)) {
+            sortKey = "price_desc";
+        } else if ("newest".equalsIgnoreCase(sort)) {
+            sortKey = "newest";
+        } else {
+            sortKey = ""; // mặc định, sẽ rơi về ORDER BY PId
+        }
 
         Page<SanPhamChiTiet> page = sanPhamChiTietRepository.searchAdvancedOneVariant(
-                brandIds, brandsSize, loaiNuocHoa, minP, maxP, pageable
+                brandIds, brandsSize, loaiNuocHoa, minP, maxP, sortKey, pageable
         );
 
         return page.map(SanPhamChiTietResponse::new);
     }
+
 
     public List<SanPhamChiTietResponse> getRelatedProducts(
             Integer idSpct,

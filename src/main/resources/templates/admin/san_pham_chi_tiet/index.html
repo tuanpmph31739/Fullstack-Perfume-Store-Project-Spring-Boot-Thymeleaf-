@@ -8,187 +8,178 @@
 
     <div id="main">
 
-        <header th:replace="~{/admin/fragments/header :: header}"></header>
-
-        <div class="page-heading">
-            <div class="page-title">
-                <div class="row">
-                    <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Quản lý Sản phẩm chi tiết</h3>
-                    </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first text-end">
-                        <a th:href="@{/admin/san-pham-chi-tiet/add}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Thêm sản phẩm chi tiết
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <header th:replace="~{/admin/fragments/header :: header('Quản lý Sản phẩm chi tiết')}"></header>
         <div class="page-content">
             <section class="row">
                 <div class="card table-card">
 
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Danh sách sản phẩm chi tiết</h5>
+
+                        <a th:href="@{/admin/san-pham-chi-tiet/add}"
+                           class="btn btn-primary d-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Thêm sản phẩm chi tiết</span>
+                        </a>
                     </div>
 
                     <div class="card-body">
 
-                        <!-- FORM LỌC -->
-                        <form th:action="@{/admin/san-pham-chi-tiet}" method="get">
+                        <!-- ========== FORM LỌC MỚI (TRÊN BẢNG) ========== -->
+                        <form th:action="@{/admin/san-pham-chi-tiet}" method="get" class="mb-3" id="filterForm">
+                            <div class="row g-2 align-items-end">
 
-                            <div class="table-responsive">
-                                <table class="table table-striped table-fixed align-middle">
-                                    <thead>
-                                    <tr>
-                                        <th>STT</th>
-                                        <th>Ảnh</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th>SKU</th>
-                                        <th>Giá</th>
-                                        <th>ML</th>
-                                        <th>Nồng độ</th>
-                                        <th>Tồn</th>
-                                        <th>Trạng thái</th>
-                                        <th>Hành động</th>
-                                    </tr>
+                                <!-- 1. INPUT SEARCH ĐA TRƯỜNG -->
+                                <div class="col-md-6">
+                                    <input type="text" name="keyword"
+                                           class="form-control form-control-sm"
+                                           placeholder="Tìm kiếm sản phẩm theo tên, mã SKU..."
+                                           th:value="${keyword}"
+                                           id="keywordInput">
+                                </div>
 
-                                    <!-- Lọc -->
-                                    <tr>
-                                        <th></th>
-                                        <th></th>
+                                <!-- 2. Dung tích -->
+                                <div class="col-md-1">
+                                    <select name="dungTichId" class="form-select form-select-sm" id="dungTichFilter">
+                                        <option value="">Tất cả dung tích</option>
+                                        <option th:each="dt : ${listDungTich}"
+                                                th:value="${dt.id}"
+                                                th:text="${dt.soMl} + ' ml'"
+                                                th:selected="${dungTichId != null and dungTichId == dt.id}">
+                                        </option>
+                                    </select>
+                                </div>
 
-                                        <th>
-                                            <input type="text" name="keyword"
-                                                   class="form-control form-control-sm"
-                                                   placeholder="Tên SP..."
-                                                   th:value="${keyword}">
+                                <!-- 3. Nồng độ -->
+                                <div class="col-md-1">
+                                    <select name="nongDoId" class="form-select form-select-sm" id="nongDoFilter">
+                                        <option value="">Tất cả nồng độ</option>
+                                        <option th:each="nd : ${listNongDo}"
+                                                th:value="${nd.id}"
+                                                th:text="${nd.tenNongDo}"
+                                                th:selected="${nongDoId != null and nongDoId == nd.id}">
+                                        </option>
+                                    </select>
+                                </div>
 
-                                        </th>
-
-                                        <th>
-                                            <input type="text" name="sku"
-                                                   class="form-control form-control-sm"
-                                                   placeholder="SKU..."
-                                                   th:value="${sku}">
-
-                                        </th>
-
-                                        <th>
-                                            <div class="d-flex gap-1">
-
-                                                <!-- Hiển thị cho người dùng (có chấm) -->
-                                                <input type="text"
-                                                       id="giaMinDisplay"
-                                                       class="form-control form-control-sm"
-                                                       placeholder="Từ"
-                                                       th:value="${giaMin != null ? #numbers.formatInteger(giaMin, 0, 'POINT') : ''}">
-
-                                                <input type="text"
-                                                       id="giaMaxDisplay"
-                                                       class="form-control form-control-sm"
-                                                       placeholder="Đến"
-                                                       th:value="${giaMax != null ? #numbers.formatInteger(giaMax, 0, 'POINT') : ''}">
-
-                                                <!-- Giá trị thật gửi lên server -->
-                                                <input type="hidden" name="giaMin" id="giaMin" th:value="${giaMin}">
-                                                <input type="hidden" name="giaMax" id="giaMax" th:value="${giaMax}">
-                                            </div>
-                                        </th>
+                                <!-- 4. Sắp xếp giá -->
+                                <div class="col-md-1">
+                                    <select name="sort" class="form-select form-select-sm" id="sortPrice">
+                                        <option value="" th:selected="${sort == null or sort == ''}">Giá mặc định</option>
+                                        <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Giá tăng dần</option>
+                                        <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Giá giảm dần</option>
+                                    </select>
+                                </div>
 
 
-                                        <th>
-                                            <select name="dungTichId" class="form-select form-select-sm">
-                                                <option value="">Tất cả</option>
-                                                <option th:each="dt : ${listDungTich}"
-                                                        th:value="${dt.id}"
-                                                        th:text="${dt.soMl}"
-                                                        th:selected="${dungTichId != null and dungTichId == dt.id}">
-                                                </option>
-                                            </select>
-                                        </th>
+                                <!-- 5. Trạng thái -->
+                                <div class="col-md-1">
+                                    <select name="trangThai" class="form-select form-select-sm" id="trangThaiFilter">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="true"
+                                                th:selected="${trangThai != null and trangThai == true}">
+                                            Đang bán
+                                        </option>
+                                        <option value="false"
+                                                th:selected="${trangThai != null and trangThai == false}">
+                                            Ngừng bán
+                                        </option>
+                                    </select>
+                                </div>
 
-                                        <th>
-                                            <select name="nongDoId" class="form-select form-select-sm">
-                                                <option value="">Tất cả</option>
-                                                <option th:each="nd : ${listNongDo}"
-                                                        th:value="${nd.id}"
-                                                        th:text="${nd.tenNongDo}"
-                                                        th:selected="${nongDoId != null and nongDoId == nd.id}">
-                                                </option>
-                                            </select>
-                                        </th>
 
-                                        <th></th>
-                                        <th></th>
+                                <div class="col-12 col-lg-2 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
+                                    <div class="ms-lg-auto d-flex gap-2">
+                                        <button type="submit"
+                                                class="btn btn-primary px-3 py-2 fw-semibold"
+                                                title="Lọc">
+                                            <i class="bi bi-funnel me-1"></i>
+                                            <span>Lọc</span>
+                                        </button>
 
-                                        <th>
-                                            <button type="submit" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-funnel"></i>
-                                            </button>
-                                            <a th:href="@{/admin/san-pham-chi-tiet}" class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-x-lg"></i>
-                                            </a>
-                                        </th>
-                                    </tr>
-                                    </thead>
+                                        <a th:href="@{/admin/san-pham-chi-tiet}"
+                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </div>
+                                </div>
 
-                                    <tbody>
-
-                                    <tr th:each="spct, iter : ${page.data}">
-                                        <td th:text="${(page.currentPage - 1) * page.size + iter.index + 1}"></td>
-
-                                        <td>
-                                            <img th:if="${spct.hinhAnh}"
-                                                 th:src="@{'/images/uploads/' + ${spct.hinhAnh}}"
-                                                 style="max-width:50px">
-                                            <span th:unless="${spct.hinhAnh}">---</span>
-                                        </td>
-
-                                        <td th:text="${spct.tenSanPham}"></td>
-                                        <td th:text="${spct.maSKU}"></td>
-                                        <td th:text="${#numbers.formatInteger(spct.giaBan,0,'POINT')} + ' đ'"></td>
-                                        <td th:text="${spct.soMl} + ' ml'"></td>
-                                        <td th:text="${spct.tenNongDo} ?: '---'"></td>
-                                        <td th:text="${spct.soLuongTon}"></td>
-
-                                        <td>
-                                            <span th:if="${spct.trangThai}" class="badge bg-success">Đang bán</span>
-                                            <span th:unless="${spct.trangThai}" class="badge bg-secondary">Ngừng bán</span>
-                                        </td>
-
-                                        <td>
-                                            <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${spct.id})}"
-                                               class="btn btn-info btn-sm">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-
-                                            <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${spct.id})}"
-                                               class="btn btn-warning btn-sm">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-
-                                            <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${spct.id})}"
-                                               onclick="return confirm('Bạn chắc muốn xóa?')"
-                                               class="btn btn-danger btn-sm">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    <tr th:if="${#lists.isEmpty(page.data)}">
-                                        <td colspan="10" class="text-center">Không có sản phẩm.</td>
-                                    </tr>
-
-                                    </tbody>
-                                </table>
                             </div>
                         </form>
+                        <!-- ========== HẾT FORM LỌC MỚI ========== -->
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-fixed align-middle">
+                                <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>SKU</th>
+                                    <th>Giá</th>
+                                    <th>ML</th>
+                                    <th>Nồng độ</th>
+                                    <th>Tồn</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                                </thead>
+
+                                <tbody id="spctTableBody">
+                                <tr th:each="spct, iter : ${page.data}">
+                                    <td th:text="${(page.currentPage - 1) * page.size + iter.index + 1}"></td>
+
+                                    <td>
+                                        <img th:if="${spct.hinhAnh}"
+                                             th:src="@{'/images/uploads/' + ${spct.hinhAnh}}"
+                                             style="max-width:50px">
+                                        <span th:unless="${spct.hinhAnh}">---</span>
+                                    </td>
+
+                                    <td th:text="${spct.tenSanPham}"></td>
+                                    <td th:text="${spct.maSKU}"></td>
+                                    <td th:text="${#numbers.formatInteger(spct.giaBan,0,'POINT')} + ' đ'"></td>
+                                    <td th:text="${spct.soMl} + ' ml'"></td>
+                                    <td th:text="${spct.tenNongDo} ?: '---'"></td>
+                                    <td th:text="${spct.soLuongTon}"></td>
+
+                                    <td>
+                                        <span th:if="${spct.trangThai}" class="badge bg-success">Đang bán</span>
+                                        <span th:unless="${spct.trangThai}" class="badge bg-secondary">Ngừng bán</span>
+                                    </td>
+
+                                    <td>
+                                        <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${spct.id})}"
+                                           class="btn btn-info btn-sm">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${spct.id})}"
+                                           class="btn btn-warning btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${spct.id})}"
+                                           onclick="return confirm('Bạn chắc muốn xóa?')"
+                                           class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(page.data)}">
+                                    <td colspan="10" class="text-center">Không có sản phẩm.</td>
+                                </tr>
+                                </tbody>
+
+                            </table>
+                        </div>
                     </div>
 
                     <!-- PHÂN TRANG -->
-                    <div class="card-footer" th:if="${page.totalPage > 1}">
+                    <div class="card-footer" id="paginationWrapper" th:if="${page.totalPage > 1}">
                         <nav>
                             <ul class="pagination justify-content-center">
 
@@ -197,16 +188,16 @@
                                     th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/san-pham-chi-tiet(
-                                            page=${page.currentPage - 1},
-                                            keyword=${keyword},
-                                            sku=${sku},
-                                            giaMin=${giaMin},
-                                            giaMax=${giaMax},
-                                            dungTichId=${dungTichId},
-                                            nongDoId=${nongDoId}
-                                       )}">
+                                                page=${page.currentPage - 1},
+                                                keyword=${keyword},
+                                                dungTichId=${dungTichId},
+                                                nongDoId=${nongDoId},
+                                                trangThai=${trangThai},
+                                                sort=${sort}
+                                           )}">
                                         Previous
                                     </a>
+
                                 </li>
 
                                 <!-- Các trang -->
@@ -217,14 +208,14 @@
                                        th:href="@{/admin/san-pham-chi-tiet(
                                             page=${i},
                                             keyword=${keyword},
-                                            sku=${sku},
-                                            giaMin=${giaMin},
-                                            giaMax=${giaMax},
                                             dungTichId=${dungTichId},
-                                            nongDoId=${nongDoId}
+                                            nongDoId=${nongDoId},
+                                            trangThai=${trangThai},
+                                            sort=${sort}
                                        )}"
                                        th:text="${i}">
                                     </a>
+
                                 </li>
 
                                 <!-- Next -->
@@ -234,14 +225,14 @@
                                        th:href="@{/admin/san-pham-chi-tiet(
                                             page=${page.currentPage + 1},
                                             keyword=${keyword},
-                                            sku=${sku},
-                                            giaMin=${giaMin},
-                                            giaMax=${giaMax},
                                             dungTichId=${dungTichId},
-                                            nongDoId=${nongDoId}
+                                            nongDoId=${nongDoId},
+                                            trangThai=${trangThai},
+                                            sort=${sort}
                                        )}">
                                         Next
                                     </a>
+
                                 </li>
 
                             </ul>
@@ -256,7 +247,143 @@
     </div>
 </div>
 
+<!-- chỉ cần include script 1 lần -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
-</body>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form            = document.getElementById("filterForm");
+        if (!form) return;
+
+        const keywordInput    = document.getElementById("keywordInput");
+        const dungTichFilter  = document.getElementById("dungTichFilter");
+        const nongDoFilter    = document.getElementById("nongDoFilter");
+        const trangThaiFilter = document.getElementById("trangThaiFilter");
+        const sortPriceSelect = document.getElementById("sortPrice");
+
+        const tbody           = document.getElementById("spctTableBody");
+        const paginationWrap  = document.getElementById("paginationWrapper");
+
+        if (!tbody) return;
+
+        // Hàm build URL từ form + page
+        function buildUrl(page) {
+            const params = new URLSearchParams(new FormData(form));
+            if (page) {
+                params.set("page", page);
+            } else {
+                params.delete("page"); // để server default = 1
+            }
+            return form.action + "?" + params.toString();
+        }
+
+        // Hàm gọi AJAX + render lại tbody + pagination
+        function fetchAndRender(url) {
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+
+                    const newTbody = doc.getElementById("spctTableBody");
+                    const newPagination = doc.getElementById("paginationWrapper");
+
+                    if (newTbody) {
+                        tbody.innerHTML = newTbody.innerHTML;
+                    }
+
+                    if (paginationWrap) {
+                        if (newPagination) {
+                            paginationWrap.innerHTML = newPagination.innerHTML;
+                            paginationWrap.classList.remove("d-none");
+                        } else {
+                            // Không còn phân trang
+                            paginationWrap.innerHTML = "";
+                            paginationWrap.classList.add("d-none");
+                        }
+                    } else if (newPagination) {
+                        const card = document.querySelector(".table-card");
+                        if (card) {
+                            card.appendChild(newPagination);
+                        }
+                    }
+
+                    // Gán lại sự kiện click cho pagination link sau mỗi lần render
+                    bindPaginationEvents();
+                })
+                .catch(err => {
+                    console.error("Lỗi tải dữ liệu:", err);
+                });
+        }
+
+        // Hàm trigger filter về page 1
+        function triggerFilterToFirstPage() {
+            const url = buildUrl(1);
+            fetchAndRender(url);
+        }
+
+        // Debounce khi gõ keyword
+        let typingTimer;
+        function debounceFilter() {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                triggerFilterToFirstPage();
+            }, 300);
+        }
+
+        // 1. Auto search khi gõ keyword (tên / SKU)
+        if (keywordInput) {
+            keywordInput.addEventListener("input", function () {
+                debounceFilter();
+            });
+
+            // Nếu Enter thì lọc luôn (page 1)
+            keywordInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    triggerFilterToFirstPage();
+                }
+            });
+        }
+
+        // 2. Auto filter khi đổi combobox (dung tích, nồng độ, trạng thái, sort giá)
+        [dungTichFilter, nongDoFilter, trangThaiFilter, sortPriceSelect].forEach(el => {
+            if (el) {
+                el.addEventListener("change", function () {
+                    triggerFilterToFirstPage();
+                });
+            }
+        });
+
+        // 3. Chặn submit mặc định (nút Lọc) -> dùng AJAX
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            triggerFilterToFirstPage();
+        });
+
+        // 4. Bắt sự kiện click phân trang để dùng AJAX
+        function bindPaginationEvents() {
+            if (!paginationWrap) return;
+            const links = paginationWrap.querySelectorAll("a.page-link");
+            links.forEach(a => {
+                a.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const url = this.href;
+                    if (!url) return;
+                    fetchAndRender(url);
+                });
+            });
+        }
+
+        // Gán cho phân trang lần đầu
+        bindPaginationEvents();
+    });
+</script>
+
+</body>
 </html>

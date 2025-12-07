@@ -90,40 +90,58 @@ public class SanPhamChiTietService {
                 .toList();
     }
 
+    /** Dành cho chỗ khác cần chỉ phân trang basic */
     public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo, Integer pageSize) {
-        return getPage(pageNo, pageSize,  null, null, null, null, null, null);
+        return getPage(pageNo, pageSize, null, null, null, null, null);
     }
 
-    public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo, Integer pageSize,
+    /**
+     * Phân trang + lọc + sort cho màn ADMIN
+     */
+    public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo,
+                                                          Integer pageSize,
                                                           String keyword,
-                                                          String sku,
-                                                          BigDecimal giaMin,
-                                                          BigDecimal giaMax,
                                                           Integer dungTichId,
-                                                          Integer nongDoId) {
+                                                          Integer nongDoId,
+                                                          Boolean trangThai,
+                                                          String sort) {
+
         if (pageNo == null || pageNo < 1) {
             pageNo = 1;
         }
 
-        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+        // Chuẩn hoá keyword/trangThai
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) keyword = null;
+        }
+
+        // Xử lý sort
+        Sort sortSpec;
+        if ("priceAsc".equalsIgnoreCase(sort)) {
+            sortSpec = Sort.by(Sort.Direction.ASC, "giaBan");
+        } else if ("priceDesc".equalsIgnoreCase(sort)) {
+            sortSpec = Sort.by(Sort.Direction.DESC, "giaBan");
+        } else {
+            // Mặc định: mới nhất trước (id giảm dần)
+            sortSpec = Sort.by(Sort.Direction.DESC, "id");
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortSpec);
 
         Page<SanPhamChiTiet> pageEntity =
                 sanPhamChiTietRepository.searchSanPhamChiTiet(
                         keyword,
-                        sku,
-                        giaMin,
-                        giaMax,
                         dungTichId,
                         nongDoId,
+                        trangThai,
                         pageable
                 );
 
-        // Dùng constructor SanPhamChiTietResponse(SanPhamChiTiet ct) bạn đã có sẵn
         Page<SanPhamChiTietResponse> pageResponse = pageEntity.map(SanPhamChiTietResponse::new);
 
         return new PageableObject<>(pageResponse);
     }
-
 
     @Transactional
     public void addSanPhamChiTiet(SanPhamChiTietRequest sanPhamChiTietRequest) {

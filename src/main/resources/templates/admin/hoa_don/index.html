@@ -7,125 +7,113 @@
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
-        <header th:replace="~{/admin/fragments/header :: header}"></header>
-
-        <div class="page-heading">
-            <div class="page-title">
-                <div class="row">
-                    <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Quản lý Hóa đơn</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <header th:replace="~{/admin/fragments/header :: header('Quản lý Hoá đơn')}"></header>
 
         <div class="page-content">
             <section class="row">
                 <div class="card table-card">
 
-                    <!-- BỘ LỌC / TÌM KIẾM -->
-                    <div class="card-header">
-                        <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-
-                            <!-- Ô tìm kiếm -->
-                            <form th:action="@{/admin/hoa-don}" method="get" class="flex-grow-1">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-                                    <input type="text" name="keyword" class="form-control"
-                                           placeholder="Tìm theo mã HĐ, người nhận, SĐT..."
-                                           th:value="${keyword}">
-                                    <button class="btn btn-primary" style="margin-right: 3px" type="submit">Tìm</button>
-                                    <a th:href="@{/admin/hoa-don}"
-                                       class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle"></i> Xoá lọc
-                                    </a>
-                                </div>
-
-                                <!-- giữ filter khác -->
-                                <input type="hidden" name="kenhBan" th:value="${kenhBan}">
-                                <input type="hidden" name="trangThai" th:value="${trangThai}">
-                            </form>
-
-                            <!-- Bộ lọc kênh bán -->
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm"
-                                        onchange="location.href=this.value">
-
-                                    <!-- TẤT CẢ KÊNH BÁN -->
-                                    <option
-                                            th:value="@{/admin/hoa-don(
-                                                page=1,
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}"
-                                            th:selected="${kenhBan == null or kenhBan == ''}">
-                                        Tất cả kênh bán
-                                    </option>
-
-                                    <!-- CHỈ ĐƠN ONLINE -->
-                                    <option
-                                            th:value="@{/admin/hoa-don(
-                                                page=1,
-                                                kenhBan='WEB',
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}"
-                                            th:selected="${kenhBan == 'WEB'}">
-                                        Đơn hàng online
-                                    </option>
-
-                                    <!-- CHỈ ĐƠN TẠI QUẦY -->
-                                    <option
-                                            th:value="@{/admin/hoa-don(
-                                                page=1,
-                                                kenhBan='TAI_QUAY',
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}"
-                                            th:selected="${kenhBan == 'TAI_QUAY'}">
-                                        Đơn hàng tại quầy
-                                    </option>
-                                </select>
-                            </div>
-
-                            <!-- Filter trạng thái -->
-                            <div class="ms-md-3">
-                                <select class="form-select form-select-sm"
-                                        onchange="location.href=this.value">
-                                    <option th:value="@{/admin/hoa-don(kenhBan=${kenhBan}, keyword=${keyword})}"
-                                            th:selected="${trangThai == null or trangThai == ''}">
-                                        Tất cả trạng thái
-                                    </option>
-                                    <option th:value="@{/admin/hoa-don(trangThai='CHO_XAC_NHAN',kenhBan=${kenhBan},keyword=${keyword})}"
-                                            th:selected="${trangThai == 'CHO_XAC_NHAN'}">
-                                        Chờ xác nhận
-                                    </option>
-                                    <option th:value="@{/admin/hoa-don(trangThai='DANG_CHO_THANH_TOAN',kenhBan=${kenhBan},keyword=${keyword})}"
-                                            th:selected="${trangThai == 'DANG_CHO_THANH_TOAN'}">
-                                        Chờ thanh toán
-                                    </option>
-                                    <option th:value="@{/admin/hoa-don(trangThai='DANG_GIAO',kenhBan=${kenhBan},keyword=${keyword})}"
-                                            th:selected="${trangThai == 'DANG_GIAO'}">
-                                        Đang giao
-                                    </option>
-                                    <option th:value="@{/admin/hoa-don(trangThai='HOAN_THANH',kenhBan=${kenhBan},keyword=${keyword})}"
-                                            th:selected="${trangThai == 'HOAN_THANH'}">
-                                        Hoàn thành
-                                    </option>
-                                    <option th:value="@{/admin/hoa-don(trangThai='DA_HUY',kenhBan=${kenhBan},keyword=${keyword})}"
-                                            th:selected="${trangThai == 'DA_HUY'}">
-                                        Đã hủy
-                                    </option>
-                                </select>
-                            </div>
-
-                        </div>
+                    <!-- HEADER CARD -->
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0">Danh sách Hoá đơn</h5>
                     </div>
 
-                    <!-- TABLE -->
                     <div class="card-body">
+
+                        <!-- ========== FORM LỌC (AJAX) ========== -->
+                        <form th:action="@{/admin/hoa-don}" method="get" class="mb-3" id="filterForm">
+                            <div class="row g-2 align-items-end">
+
+                                <!-- 1. Tìm kiếm -->
+                                <div class="col-md-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text"
+                                               name="keyword"
+                                               class="form-control"
+                                               placeholder="Tìm theo mã HĐ, người nhận, SĐT..."
+                                               th:value="${keyword}"
+                                               id="keywordInput">
+                                    </div>
+                                </div>
+
+                                <!-- 2. Kênh bán -->
+                                <div class="col-md-3 col-lg-2">
+                                    <select class="form-select form-select-sm"
+                                            name="kenhBan"
+                                            id="kenhBanFilter">
+                                        <option value=""
+                                                th:selected="${kenhBan == null or kenhBan == ''}">
+                                            Tất cả kênh bán
+                                        </option>
+                                        <option value="WEB"
+                                                th:selected="${kenhBan == 'WEB'}">
+                                            Đơn hàng online
+                                        </option>
+                                        <option value="TAI_QUAY"
+                                                th:selected="${kenhBan == 'TAI_QUAY'}">
+                                            Đơn hàng tại quầy
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- 3. Trạng thái -->
+                                <div class="col-md-3 col-lg-2">
+                                    <select class="form-select form-select-sm"
+                                            name="trangThai"
+                                            id="trangThaiFilter">
+                                        <option value=""
+                                                th:selected="${trangThai == null or trangThai == ''}">
+                                            Tất cả trạng thái
+                                        </option>
+                                        <option value="CHO_XAC_NHAN"
+                                                th:selected="${trangThai == 'CHO_XAC_NHAN'}">
+                                            Chờ xác nhận
+                                        </option>
+                                        <option value="DANG_CHO_THANH_TOAN"
+                                                th:selected="${trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                            Chờ thanh toán
+                                        </option>
+                                        <option value="DANG_GIAO"
+                                                th:selected="${trangThai == 'DANG_GIAO'}">
+                                            Đang giao
+                                        </option>
+                                        <option value="HOAN_THANH"
+                                                th:selected="${trangThai == 'HOAN_THANH'}">
+                                            Hoàn thành
+                                        </option>
+                                        <option value="DA_HUY"
+                                                th:selected="${trangThai == 'DA_HUY'}">
+                                            Đã hủy
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- 4. Nút Lọc / Xóa -->
+                                <div class="col-12 col-lg-2 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit"
+                                                class="btn btn-primary px-3 py-2 fw-semibold"
+                                                title="Lọc">
+                                            <i class="bi bi-funnel me-1"></i>
+                                            <span>Lọc</span>
+                                        </button>
+                                        <a th:href="@{/admin/hoa-don}"
+                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                        <!-- ========== HẾT FORM LỌC ========== -->
+
+                        <!-- TABLE -->
                         <div class="table-responsive">
                             <table class="table table-striped align-middle">
                                 <thead>
@@ -144,7 +132,7 @@
                                     <th>Hành động</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="hoaDonTableBody">
                                 <tr th:each="hd, iter : ${page.data}">
                                     <!-- STT -->
                                     <td th:text="${(page.currentPage - 1) * page.size + iter.index + 1}"></td>
@@ -152,22 +140,16 @@
                                     <!-- Mã HĐ -->
                                     <td class="fw-semibold text-primary"
                                         th:text="${#strings.isEmpty(hd.ma) ? '-' : hd.ma}">
-                                        HD001
                                     </td>
 
                                     <!-- Khách hàng -->
                                     <td>
-                                        <!-- Nếu đã có tên khách hàng -->
                                         <span th:if="${!#strings.isEmpty(hd.tenKhachHang)}"
-                                              th:text="${hd.tenKhachHang}">
-            Tên khách
-        </span>
-
-                                        <!-- Nếu chưa có, fallback theo kênh bán -->
+                                              th:text="${hd.tenKhachHang}"></span>
                                         <span th:if="${#strings.isEmpty(hd.tenKhachHang)}">
-            <span th:if="${hd.kenhBan == 'TAI_QUAY'}">Khách tại quầy</span>
-            <span th:if="${hd.kenhBan != 'TAI_QUAY'}">Khách online không đăng nhập</span>
-        </span>
+                                            <span th:if="${hd.kenhBan == 'TAI_QUAY'}">Khách tại quầy</span>
+                                            <span th:if="${hd.kenhBan != 'TAI_QUAY'}">Khách online không đăng nhập</span>
+                                        </span>
                                     </td>
 
                                     <!-- Người nhận -->
@@ -176,69 +158,60 @@
                                     <!-- SĐT -->
                                     <td th:text="${#strings.isEmpty(hd.sdt) ? '-' : hd.sdt}"></td>
 
-                                    <!-- Kênh bán (null -> -) -->
+                                    <!-- Kênh bán -->
                                     <td th:text="${
-            hd.kenhBan == null ? '-' :
-            (hd.kenhBan == 'TAI_QUAY' ? 'Tại quầy' : 'Online')
-        }">
-                                    </td>
+                                        hd.kenhBan == null ? '-' :
+                                        (hd.kenhBan == 'TAI_QUAY' ? 'Tại quầy' : 'Online')
+                                    }"></td>
 
                                     <!-- Thanh toán -->
-                                    <td th:text="${#strings.isEmpty(hd.phuongThucThanhToan) ? '-' : hd.phuongThucThanhToan}">
-                                        Tiền mặt
-                                    </td>
+                                    <td th:text="${#strings.isEmpty(hd.phuongThucThanhToan) ? '-' : hd.phuongThucThanhToan}"></td>
 
                                     <!-- Tổng tiền -->
                                     <td th:text="${
-            hd.tongThanhToan != null
-            ? #numbers.formatDecimal(hd.tongThanhToan, 0, 'POINT', 0, 'NONE') + ' ₫'
-            : '-'
-        }">
-                                        0 ₫
-                                    </td>
+                                        hd.tongThanhToan != null
+                                        ? #numbers.formatDecimal(hd.tongThanhToan, 0, 'POINT', 0, 'NONE') + ' ₫'
+                                        : '-'
+                                    }"></td>
 
-                                    <!-- Trạng thái (giữ như cũ, chỉ thêm fallback '-') -->
+                                    <!-- Trạng thái -->
                                     <td>
-        <span class="badge bg-success" th:if="${hd.trangThai == 'HOAN_THANH'}">
-            Hoàn thành
-        </span>
+                                        <span class="badge bg-success" th:if="${hd.trangThai == 'HOAN_THANH'}">
+                                            Hoàn thành
+                                        </span>
                                         <span class="badge bg-warning text-dark" th:if="${hd.trangThai == 'CHO_XAC_NHAN'}">
-            Chờ xác nhận
-        </span>
+                                            Chờ xác nhận
+                                        </span>
                                         <span class="badge bg-info text-dark" th:if="${hd.trangThai == 'DANG_GIAO'}">
-            Đang giao
-        </span>
+                                            Đang giao
+                                        </span>
                                         <span class="badge bg-info text-dark" th:if="${hd.trangThai == 'DANG_CHO_THANH_TOAN'}">
-            Chờ thanh toán
-        </span>
+                                            Chờ thanh toán
+                                        </span>
                                         <span class="badge bg-danger" th:if="${hd.trangThai == 'DA_HUY'}">
-            Đã hủy
-        </span>
+                                            Đã hủy
+                                        </span>
 
-                                        <!-- Các trạng thái lạ hoặc null -->
+                                        <!-- Trạng thái khác / null -->
                                         <span th:if="${hd.trangThai == null
-                     or (hd.trangThai != 'HOAN_THANH'
-                         and hd.trangThai != 'CHO_XAC_NHAN'
-                         and hd.trangThai != 'DANG_CHO_THANH_TOAN'
-                         and hd.trangThai != 'DANG_GIAO'
-                         and hd.trangThai != 'DA_HUY')}"
-                                              th:text="${hd.trangThai != null ? hd.trangThai : '-'}">
-            -
-        </span>
+                                                     or (hd.trangThai != 'HOAN_THANH'
+                                                         and hd.trangThai != 'CHO_XAC_NHAN'
+                                                         and hd.trangThai != 'DANG_CHO_THANH_TOAN'
+                                                         and hd.trangThai != 'DANG_GIAO'
+                                                         and hd.trangThai != 'DA_HUY')}"
+                                              th:text="${hd.trangThai != null ? hd.trangThai : '-'}"></span>
                                     </td>
 
                                     <!-- Ngày tạo -->
                                     <td th:text="${hd.ngayTao != null
-                  ? #temporals.format(hd.ngayTao, 'dd/MM/yyyy HH:mm')
-                  : '-'}">
-                                        01/01/2025 10:00
+                                                  ? #temporals.format(hd.ngayTao, 'dd/MM/yyyy HH:mm')
+                                                  : '-'}">
                                     </td>
 
                                     <!-- Ngày sửa -->
                                     <td th:text="${hd.ngaySua != null
-                  ? #temporals.format(hd.ngaySua, 'dd/MM/yyyy HH:mm')
-                  : '-'}">
-                                        01/01/2025 10:00
+                                                  ? #temporals.format(hd.ngaySua, 'dd/MM/yyyy HH:mm')
+                                                  : '-'}">
                                     </td>
 
                                     <!-- Hành động -->
@@ -256,10 +229,8 @@
                                     </td>
                                 </tr>
 
-
                                 <!-- Không có dữ liệu -->
                                 <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
-                                    <!-- 12 cột -->
                                     <td colspan="12" class="text-center text-muted">
                                         Không có hóa đơn nào.
                                     </td>
@@ -269,8 +240,8 @@
                         </div>
                     </div>
 
-                    <!-- PHÂN TRANG -->
-                    <div class="card-footer" th:if="${page.totalPage > 1}">
+                    <!-- PHÂN TRANG (AJAX) -->
+                    <div class="card-footer" id="paginationWrapper" th:if="${page.totalPage > 1}">
                         <nav>
                             <ul class="pagination justify-content-center">
 
@@ -326,5 +297,135 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form            = document.getElementById("filterForm");
+        if (!form) return;
+
+        const keywordInput    = document.getElementById("keywordInput");
+        const kenhBanFilter   = document.getElementById("kenhBanFilter");
+        const trangThaiFilter = document.getElementById("trangThaiFilter");
+
+        const tbody           = document.getElementById("hoaDonTableBody");
+        const paginationWrap  = document.getElementById("paginationWrapper");
+
+        if (!tbody) return;
+
+        // Build URL từ form + page
+        function buildUrl(page) {
+            const params = new URLSearchParams(new FormData(form));
+            if (page) {
+                params.set("page", page);
+            } else {
+                params.delete("page"); // default page = 1
+            }
+            return form.action + "?" + params.toString();
+        }
+
+        // AJAX: load + render lại tbody + pagination
+        function fetchAndRender(url) {
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc    = parser.parseFromString(html, "text/html");
+
+                    const newTbody      = doc.getElementById("hoaDonTableBody");
+                    const newPagination = doc.getElementById("paginationWrapper");
+
+                    if (newTbody) {
+                        tbody.innerHTML = newTbody.innerHTML;
+                    }
+
+                    if (paginationWrap) {
+                        if (newPagination) {
+                            paginationWrap.innerHTML = newPagination.innerHTML;
+                            paginationWrap.classList.remove("d-none");
+                        } else {
+                            paginationWrap.innerHTML = "";
+                            paginationWrap.classList.add("d-none");
+                        }
+                    } else if (newPagination) {
+                        const card = document.querySelector(".table-card");
+                        if (card) {
+                            card.appendChild(newPagination);
+                        }
+                    }
+
+                    bindPaginationEvents();
+                })
+                .catch(err => {
+                    console.error("Lỗi tải dữ liệu:", err);
+                });
+        }
+
+        // Trigger filter về page 1
+        function triggerFilterToFirstPage() {
+            const url = buildUrl(1);
+            fetchAndRender(url);
+        }
+
+        // Debounce cho keyword
+        let typingTimer;
+        function debounceFilter() {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                triggerFilterToFirstPage();
+            }, 300);
+        }
+
+        // 1. Auto search theo keyword
+        if (keywordInput) {
+            keywordInput.addEventListener("input", function () {
+                debounceFilter();
+            });
+            keywordInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    triggerFilterToFirstPage();
+                }
+            });
+        }
+
+        // 2. Auto filter khi đổi kênh bán / trạng thái
+        [kenhBanFilter, trangThaiFilter].forEach(el => {
+            if (el) {
+                el.addEventListener("change", function () {
+                    triggerFilterToFirstPage();
+                });
+            }
+        });
+
+        // 3. Chặn submit mặc định -> dùng AJAX
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            triggerFilterToFirstPage();
+        });
+
+        // 4. Click phân trang -> AJAX
+        function bindPaginationEvents() {
+            if (!paginationWrap) return;
+            const links = paginationWrap.querySelectorAll("a.page-link");
+            links.forEach(a => {
+                a.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const url = this.href;
+                    if (!url) return;
+                    fetchAndRender(url);
+                });
+            });
+        }
+
+        // Lần đầu vào trang
+        bindPaginationEvents();
+    });
+</script>
+
 </body>
 </html>

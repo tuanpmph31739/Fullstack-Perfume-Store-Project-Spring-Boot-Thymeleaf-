@@ -17,8 +17,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-
 @Controller
 @RequestMapping("/admin/san-pham-chi-tiet")
 public class SanPhamChiTietController {
@@ -32,25 +30,23 @@ public class SanPhamChiTietController {
     @Autowired
     private NongDoService nongDoService;
 
-    private final int PAGE_SIZE = 10;
+    private final int PAGE_SIZE = 9;
 
     @GetMapping
     public String index(Model model,
                         @RequestParam(value = "page", defaultValue = "1") Integer pageNo,
                         @RequestParam(value = "keyword", required = false) String keyword,
-                        @RequestParam(value = "sku", required = false) String sku,
-                        @RequestParam(value = "giaMin", required = false) BigDecimal giaMin,
-                        @RequestParam(value = "giaMax", required = false) BigDecimal giaMax,
                         @RequestParam(value = "dungTichId", required = false) Integer dungTichId,
-                        @RequestParam(value = "nongDoId", required = false) Integer nongDoId
-    ) {
+                        @RequestParam(value = "nongDoId", required = false) Integer nongDoId,
+                        @RequestParam(value = "trangThai", required = false) Boolean trangThai,
+                        @RequestParam(value = "sort", required = false) String sort) {
 
         if (pageNo == null || pageNo < 1) {
             pageNo = 1;
         }
 
         PageableObject<SanPhamChiTietResponse> pageData =
-                sanPhamChiTietService.getPage(pageNo, PAGE_SIZE, keyword, sku, giaMin, giaMax, dungTichId, nongDoId);
+                sanPhamChiTietService.getPage(pageNo, PAGE_SIZE, keyword, dungTichId, nongDoId, trangThai, sort);
 
         model.addAttribute("page", pageData);
         model.addAttribute("page.metaDataAvailable", true);
@@ -58,11 +54,10 @@ public class SanPhamChiTietController {
 
         // Giữ lại filter
         model.addAttribute("keyword", keyword);
-        model.addAttribute("sku", sku);
-        model.addAttribute("giaMin", giaMin);
-        model.addAttribute("giaMax", giaMax);
         model.addAttribute("dungTichId", dungTichId);
         model.addAttribute("nongDoId", nongDoId);
+        model.addAttribute("trangThai", trangThai);
+        model.addAttribute("sort", sort);
 
         loadDropdownData(model);
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
@@ -100,7 +95,6 @@ public class SanPhamChiTietController {
         } catch (RuntimeException e) {
             bindingResult.rejectValue("maSKU", "error.maSKU", e.getMessage());
             loadDropdownData(model);
-            model.addAttribute("currentPath", "/admin/san-pham");
             model.addAttribute("backUrl", backUrl);
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/add";
@@ -126,7 +120,6 @@ public class SanPhamChiTietController {
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             model.addAttribute("hinhAnhHienTai", responseDto.getHinhAnh());
 
-            // Lấy URL trước đó để sau khi update quay lại đúng trang + filter
             String referer = request.getHeader("Referer");
             model.addAttribute("backUrl", referer);
 
@@ -153,7 +146,7 @@ public class SanPhamChiTietController {
                 model.addAttribute("hinhAnhHienTai", sanPhamChiTietService.getById(id).getHinhAnh());
             } catch (Exception ignored) {}
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
-            model.addAttribute("backUrl", backUrl); // để form vẫn giữ hidden backUrl
+            model.addAttribute("backUrl", backUrl);
             return "admin/san_pham_chi_tiet/edit";
         }
 
@@ -176,7 +169,6 @@ public class SanPhamChiTietController {
             return "admin/san_pham_chi_tiet/edit";
         }
 
-        // Nếu có backUrl thì quay về đúng trang + filter, không thì về list mặc định
         if (backUrl != null && !backUrl.isBlank()) {
             return "redirect:" + backUrl;
         }
@@ -190,7 +182,6 @@ public class SanPhamChiTietController {
         model.addAttribute("sanPhamChiTietResponse", sanPhamChiTietService.getById(id));
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
-        // Gửi backUrl sang view để nút "Quay lại" giữ trang + filter
         String referer = request.getHeader("Referer");
         model.addAttribute("backUrl", referer);
 

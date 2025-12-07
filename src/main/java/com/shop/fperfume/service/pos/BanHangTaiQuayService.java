@@ -195,8 +195,26 @@ public class BanHangTaiQuayService {
         }
 
         // Nếu voucher áp cho 1 sản phẩm nhưng giỏ không có sản phẩm đó -> báo lỗi
+        // Nếu voucher áp cho 1 sản phẩm nhưng giỏ không có sản phẩm đó -> báo lỗi rõ tên mã SKU
         if (giamGia.getSanPhamChiTiet() != null && tongTienApDung.compareTo(BigDecimal.ZERO) == 0) {
-            throw new RuntimeException("Mã giảm giá không áp dụng cho sản phẩm này");
+
+            SanPhamChiTiet spVoucher = giamGia.getSanPhamChiTiet();
+            String maSku = null;
+            if (spVoucher != null) {
+                try {
+                    maSku = spVoucher.getMaSKU(); // hoặc getMaSku() tuỳ tên getter trong entity
+                } catch (Exception e) {
+                    // nếu có vấn đề getter thì cứ để null, fallback message chung
+                }
+            }
+
+            if (maSku != null && !maSku.isBlank()) {
+                throw new RuntimeException(
+                        "Mã giảm giá chỉ có thể áp dụng cho sản phẩm có mã SKU: " + maSku
+                );
+            } else {
+                throw new RuntimeException("Mã giảm giá chỉ áp dụng cho một sản phẩm cụ thể trong giỏ hàng");
+            }
         }
 
         // Tính tiền giảm chính xác (theo phạm vi)
