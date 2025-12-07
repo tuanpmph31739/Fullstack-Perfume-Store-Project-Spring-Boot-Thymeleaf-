@@ -4,6 +4,7 @@ import com.shop.fperfume.dto.CheckoutRequestDTO;
 import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.NguoiDung;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,4 +24,7 @@ public interface HoaDonClientService {
 
     // Hủy đơn hàng
     void cancelOrder(Integer hoaDonId, NguoiDung khachHang, String lyDoHuy);
+
+
+    HoaDon cancelOrderGuest(Integer hoaDonId, String lyDoHuy);
 }

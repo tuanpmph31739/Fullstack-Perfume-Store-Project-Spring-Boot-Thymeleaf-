@@ -19,19 +19,26 @@ public class ThuongHieuController {
     @Autowired
     private ThuongHieuService thuongHieuService;
 
-    private final int PAGE_SIZE = 15;
+    private final int PAGE_SIZE = 12;
 
 
     @GetMapping
     public String index(Model model,
-                        @RequestParam(name = "page", defaultValue = "1") Integer pageNo) {
-        if (pageNo < 1) pageNo = 1;
+                        @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
+                        @RequestParam(name = "keyword", required = false) String keyword) {
 
-        PageableObject<ThuongHieuResponse> page = thuongHieuService.paging(pageNo, PAGE_SIZE);
+        if (pageNo == null || pageNo < 1) pageNo = 1;
+
+        PageableObject<ThuongHieuResponse> page =
+                thuongHieuService.paging(pageNo, PAGE_SIZE, keyword);
 
         model.addAttribute("page", page);
         model.addAttribute("pageMetaDataAvailable", page != null);
         model.addAttribute("pageSize", PAGE_SIZE);
+
+        // giữ lại keyword để bind lại vào ô input
+        model.addAttribute("keyword", keyword);
+
         model.addAttribute("currentPath", "/admin/thuong-hieu");
 
         return "admin/thuong_hieu/index";

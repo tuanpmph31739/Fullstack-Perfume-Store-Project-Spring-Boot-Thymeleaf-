@@ -22,7 +22,7 @@ public class HoaDonAdminController {
     private final DonHangService donHangService;
     private final HoaDonChiTietRepository hoaDonChiTietRepository;
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 12;
 
     /**
      * Trang danh sách HÓA ĐƠN
@@ -46,7 +46,7 @@ public class HoaDonAdminController {
         }
 
         PageableObject<DonHangResponse> page =
-                donHangService.pagingDonHang(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai);
+                donHangService.pagingHoaDon(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai);
 
         model.addAttribute("page", page);
         model.addAttribute("page.metaDataAvailable", true);

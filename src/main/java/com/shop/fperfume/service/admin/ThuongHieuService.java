@@ -181,6 +181,26 @@ public class ThuongHieuService {
         return new PageableObject<>(responses);
     }
 
+    public PageableObject<ThuongHieuResponse> paging(Integer pageNo, Integer pageSize, String keyword) {
+        if (pageNo == null || pageNo < 1) {
+            pageNo = 1;
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+
+        Page<ThuongHieu> page;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            page = thuongHieuRepository.findAll(pageable);
+        } else {
+            String kw = keyword.trim();
+            page = thuongHieuRepository.searchByKeyword(kw, pageable);
+        }
+
+        Page<ThuongHieuResponse> responses = page.map(ThuongHieuResponse::new);
+        return new PageableObject<>(responses);
+    }
+
     // 🧩 Hàm generateSlug tái sử dụng cho thêm/sửa
     private String generateSlug(String tenThuongHieu) {
         String slug = Normalizer.normalize(tenThuongHieu, Normalizer.Form.NFD);

@@ -33,13 +33,38 @@ public class SecurityConfig {
         http
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/verify", "/css/**", "/js/**", "/images/**", "/san-pham/**",
-                                "/thuong-hieu/**", "/cart/**", "/checkout/**", "/gioi-thieu/**", "/order/**", "/user/orders/**").permitAll() // Cho phép trang chủ
-                        .requestMatchers("/admin/nhan-vien/**","/admin/nhan-vien").hasAnyRole("ADMIN")
-                        .requestMatchers("/admin/khach-hang/**","/admin/khach-hang").hasAnyRole("ADMIN", "NHANVIEN")
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "NHANVIEN")
+                        // Static resources & trang public
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/register",
+                                "/verify",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/webjars/**",
+                                "/gioi-thieu/**",
+                                "/san-pham/**",
+                                "/thuong-hieu/**",
+                                "/cart/**",
+                                "/checkout/**",
+                                "/order/**",
+                                "/assets/**",
+                                "/user/orders/**"   // ✅ khách vãng lai xem / huỷ đơn
+                        ).permitAll()
+
+
+                        .requestMatchers("/admin/**")
+                        .hasAnyRole("ADMIN", "NHANVIEN")
+
+                        // Khu tài khoản user (phải đăng nhập)
+                        .requestMatchers("/account/**")
+                        .authenticated()
+
+                        // Các request khác mặc định yêu cầu đăng nhập
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")

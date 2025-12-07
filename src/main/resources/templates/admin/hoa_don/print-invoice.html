@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon"
           type="image/png"
-          th:href="@{/admin/assets/compiled/jpg/logo3.png}" />
+          th:href="@{/assets/assets/compiled/jpg/logo3.png}" />
     <title th:text="${isTamTinh} ? 'Phiếu tạm tính #' + ${donHang.ma} : 'Hóa đơn #' + ${donHang.ma}">
         Hóa đơn
     </title>
@@ -55,6 +55,19 @@
             .invoice-wrapper { box-shadow:none; margin:0; border-radius:0; }
             .btn-print { display:none; }
         }
+        .qr-payment {
+            border-top: 1px dashed #e5e7eb;
+            margin-top: 16px;
+            padding-top: 12px;
+        }
+
+        .qr-payment img {
+            background: #fff;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 6px 16px rgba(15,23,42,0.18);
+        }
+
     </style>
 </head>
 <body>
@@ -183,6 +196,7 @@
         </tbody>
     </table>
 
+
     <!-- Tổng tiền -->
     <div class="mt-2">
         <div class="totals-row d-flex justify-content-between">
@@ -197,12 +211,16 @@
                 - 0 đ
             </span>
         </div>
-        <div class="totals-row d-flex justify-content-between">
+
+        <!-- Phí ship: chỉ hiển thị khi đơn hàng ONLINE -->
+        <div class="totals-row d-flex justify-content-between"
+             th:if="${donHang.kenhBan == 'WEB'}">
             <span>Phí ship</span>
             <span th:text="${#numbers.formatDecimal(donHang.phiShip, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                 0 đ
             </span>
         </div>
+
         <div class="totals-grand d-flex justify-content-between">
             <span>Thành tiền</span>
             <span th:text="${#numbers.formatDecimal(donHang.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' đ'">
@@ -210,7 +228,25 @@
             </span>
         </div>
     </div>
+
+    <!-- QR Thanh toán VietQR -->
+    <div class="text-center mt-3">
+        <div class="section-title mb-1">QUÉT MÃ QR THANH TOÁN</div>
+        <img th:src="@{|https://img.vietqr.io/image/970422-0397682148-compact2.png
+                    ?amount=${#numbers.formatDecimal(donHang.tongThanhToan, 0, 'NONE', 0, 'NONE')}
+                    &addInfo=Thanh+toan+don+${donHang.ma}
+                    &accountName=NGUYEN +THE +MANH|}"
+             alt="QR thanh toán"
+             style="max-width:220px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.1);">
+        <div class="small text-muted mt-2">
+            Vui lòng kiểm tra kỹ số tiền và nội dung chuyển khoản trước khi xác nhận.
+        </div>
+    </div>
+
+
 </div>
+
+
 
 <!-- Auto print nếu được truyền autoPrint=true -->
 <script th:inline="javascript">

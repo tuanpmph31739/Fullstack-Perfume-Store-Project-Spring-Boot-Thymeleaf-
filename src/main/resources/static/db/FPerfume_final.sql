@@ -941,4 +941,3 @@ SELECT * FROM NguoiDung;
 SELECT * FROM GioHang;
 SELECT * FROM GioHangChiTiet;
 GO
-update NguoiDung set VaiTro = 'ADMIN' where id = 5
