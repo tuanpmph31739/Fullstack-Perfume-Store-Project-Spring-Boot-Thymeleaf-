@@ -39,7 +39,9 @@
                 </div>
                 <div class="pd-thumbs" id="thumbs">
                     <button type="button" class="active">
-                        <img th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" alt="thumb"/>
+                        <img id="thumbImage"
+                             th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}"
+                             alt="thumb"/>
                     </button>
                 </div>
             </div>
@@ -160,16 +162,29 @@
                     </li>
                     <li class="info-item">
                         <div class="ic"><img src="/images/nong-do-icon.png" alt="Concentration" style="width:20px;height:20px"></div>
-                        <div>Nồng độ: <span th:text="${sanPhamChiTiet.tenNongDo}">Eau De Parfum</span></div>
+                        <div>
+                            Nồng độ:
+                            <span id="nongDoText"
+                                  th:text="${sanPhamChiTiet.tenNongDo}">
+                                Eau De Parfum
+                            </span>
+                        </div>
                     </li>
+
                     <li class="info-item">
                         <div class="ic"><img src="/images/gioi-tinh-icon.png" alt="Gender" style="width:20px;height:20px"></div>
                         <div>Giới tính: <span th:text="${sanPhamChiTiet.tenLoaiNuocHoa}">Unisex</span></div>
                     </li>
                     <li class="info-item">
                         <div class="ic"><i class="bi bi-upc-scan"></i></div>
-                        <div>SKU: <span th:text="${sanPhamChiTiet.maSKU}"></span></div>
+                        <div>
+                            SKU:
+                            <span id="skuText"
+                                  th:text="${sanPhamChiTiet.maSKU}">
+                            </span>
+                        </div>
                     </li>
+
                 </ul>
             </aside>
         </div>
@@ -331,52 +346,76 @@
     function formatPrice(price){ if(price==null||isNaN(price)) return "N/A"; return parseFloat(price).toLocaleString("vi-VN")+" ₫"; }
     function updatePrice(soMl){
         if(!soMl) return;
-        const priceEl = document.getElementById('product-price');
-        const hiddenIdEl = document.getElementById('selectedSanPhamChiTietId');
-        const qtyInputEl = document.getElementById('quantityInput');
-        const submitBtn = document.getElementById('addToCartButton');
-        const btnText = submitBtn.querySelector('span');
-        const stockTextEl = document.getElementById('stockText');
-        const buyNowBtn = document.getElementById('buyNowButton');
+        const priceEl      = document.getElementById('product-price');
+        const hiddenIdEl   = document.getElementById('selectedSanPhamChiTietId');
+        const qtyInputEl   = document.getElementById('quantityInput');
+        const submitBtn    = document.getElementById('addToCartButton');
+        const btnText      = submitBtn.querySelector('span');
+        const stockTextEl  = document.getElementById('stockText');
+        const buyNowBtn    = document.getElementById('buyNowButton');
+
+        const mainImg      = document.getElementById('mainImage');
+        const thumbImg     = document.getElementById('thumbImage');   // nếu có
+        const nongDoEl     = document.getElementById('nongDoText');   // span nồng độ
+        const skuEl        = document.getElementById('skuText');      // span SKU
 
         fetch(`/san-pham/${idSanPham}/gia?soMl=${soMl}`)
-            .then(r=>r.json())
-            .then(data=>{
+            .then(r => r.json())
+            .then(data => {
                 if (data.giaBan && data.idSpct) {
+                    // Giá
                     priceEl.innerText = formatPrice(data.giaBan);
-                    hiddenIdEl.value = data.idSpct;
+                    hiddenIdEl.value  = data.idSpct;
 
+                    // Tồn kho + trạng thái
                     const stock = parseInt(data.soLuongTon || 0);
                     const isActive = data.trangThai === true
                         || data.trangThai === 1
                         || data.trangThai === '1';
 
-
                     qtyInputEl.max = stock;
                     if (stockTextEl) stockTextEl.innerText = stock;
 
+                    // 🆕 ẢNH
+                    if (data.hinhAnh && mainImg) {
+                        const newSrc = `/images/uploads/${data.hinhAnh}`;
+                        mainImg.src = newSrc;
+                        if (thumbImg) thumbImg.src = newSrc;
+                    }
+
+                    // 🆕 NỒNG ĐỘ
+                    if (nongDoEl && data.tenNongDo) {
+                        nongDoEl.innerText = data.tenNongDo;
+                    }
+
+                    // 🆕 SKU
+                    if (skuEl && data.maSKU) {
+                        skuEl.innerText = data.maSKU;
+                    }
+
+                    // Logic nút / số lượng
                     if (!isActive) {
-                        qtyInputEl.value = 0;
+                        qtyInputEl.value   = 0;
                         qtyInputEl.disabled = true;
-                        submitBtn.disabled = true;
+                        submitBtn.disabled  = true;
                         if (buyNowBtn) buyNowBtn.disabled = true;
                         if (btnText) btnText.innerText = 'Ngừng kinh doanh';
                     } else if (stock <= 0) {
-                        qtyInputEl.value = 0;
+                        qtyInputEl.value   = 0;
                         qtyInputEl.disabled = true;
-                        submitBtn.disabled = true;
+                        submitBtn.disabled  = true;
                         if (buyNowBtn) buyNowBtn.disabled = true;
                         if (btnText) btnText.innerText = 'Hết hàng';
                     } else {
                         if (parseInt(qtyInputEl.value) < 1) qtyInputEl.value = 1;
                         qtyInputEl.disabled = false;
-                        submitBtn.disabled = false;
+                        submitBtn.disabled  = false;
                         if (buyNowBtn) buyNowBtn.disabled = false;
                         if (btnText) btnText.innerText = 'Thêm vào giỏ hàng';
                     }
                 }
             })
-            .catch(err=>console.error('Lỗi cập nhật giá:',err));
+            .catch(err => console.error('Lỗi cập nhật giá:', err));
     }
 </script>
 </body>

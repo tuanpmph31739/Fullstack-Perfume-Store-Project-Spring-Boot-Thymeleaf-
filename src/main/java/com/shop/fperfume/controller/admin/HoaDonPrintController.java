@@ -4,13 +4,11 @@ import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.HoaDonChiTiet;
 import com.shop.fperfume.repository.HoaDonChiTietRepository;
 import com.shop.fperfume.repository.HoaDonRepository;
+import com.shop.fperfume.service.common.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +19,7 @@ public class HoaDonPrintController {
 
     private final HoaDonRepository hoaDonRepo;
     private final HoaDonChiTietRepository hoaDonChiTietRepo;
+    private final QrCodeService qrCodeService;   // ✅ thêm service QR
 
     @GetMapping("/print/{id}")
     public String printInvoice(@PathVariable("id") Integer id,
@@ -35,12 +34,17 @@ public class HoaDonPrintController {
         model.addAttribute("donHang", hoaDon);
         model.addAttribute("chiTietList", chiTietList);
 
-        // Đơn CHƯA hoàn thành => Phiếu tạm tính, ngược lại => Hóa đơn
         boolean isTamTinh = !"HOAN_THANH".equalsIgnoreCase(hoaDon.getTrangThai());
         model.addAttribute("isTamTinh", isTamTinh);
 
-        // Auto print sau khi load
         model.addAttribute("autoPrint", autoPrint != null && autoPrint);
+
+        // ✅ Sinh QR theo số tiền + mã đơn
+        String qrBase64 = qrCodeService.generatePaymentQrBase64(
+                hoaDon.getMa(),
+                hoaDon.getTongThanhToan()
+        );
+        model.addAttribute("qrCodeBase64", qrBase64);
 
         return "admin/hoa_don/print-invoice";
     }

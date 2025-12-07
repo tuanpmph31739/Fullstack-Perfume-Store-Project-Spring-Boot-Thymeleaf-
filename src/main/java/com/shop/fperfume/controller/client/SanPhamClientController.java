@@ -76,21 +76,40 @@ public class SanPhamClientController {
 
     @GetMapping("/{idSanPham}/gia")
     @ResponseBody
-    public ResponseEntity<?> getProductPrice(@PathVariable Integer idSanPham, @RequestParam Integer soMl) {
-        Optional<SanPhamChiTiet> sanPhamChiTiet = sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
+    public ResponseEntity<?> getProductPrice(@PathVariable Integer idSanPham,
+                                             @RequestParam Integer soMl) {
+
+        Optional<SanPhamChiTiet> sanPhamChiTiet =
+                sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
+
         if (sanPhamChiTiet.isPresent()) {
             SanPhamChiTiet ct = sanPhamChiTiet.get();
+
+            String tenNongDo = null;
+            if (ct.getNongDo() != null) {
+                tenNongDo = ct.getNongDo().getTenNongDo();
+            }
+
             return ResponseEntity.ok(Map.of(
-                    "giaBan", ct.getGiaBan().toPlainString(),
-                    "idSpct", ct.getId().toString(),
+                    "giaBan", ct.getGiaBan() != null ? ct.getGiaBan().toPlainString() : null,
+                    "idSpct", ct.getId(),
                     "soLuongTon", ct.getSoLuongTon(),
                     "trangThai", ct.getTrangThai(),
+
+                    // 🆕 thêm 3 field này
+                    "hinhAnh", ct.getHinhAnh(),
+                    "tenNongDo", tenNongDo,
+                    "maSKU", ct.getMaSKU(),
+
                     "message", "OK"
             ));
         } else {
-            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy biến thể theo dung tích"));
+            return ResponseEntity
+                    .status(404)
+                    .body(Map.of("message", "Không tìm thấy biến thể theo dung tích"));
         }
     }
+
 
     @ModelAttribute("brands")
     public List<ThuongHieuResponse> loadBrands() {

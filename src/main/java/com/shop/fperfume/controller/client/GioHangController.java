@@ -51,24 +51,29 @@ public class GioHangController {
             NguoiDung khachHang = userDetails.getUser();
             GioHang gioHang = gioHangClientService.getCartByUser(khachHang);
             gioHangToView = gioHang;
-            cartData = cartHelperService.calculateCartData(gioHang); // <<< SỬA
+            cartData = cartHelperService.calculateCartData(gioHang);
         } else {
             // --- CHƯA ĐĂNG NHẬP ---
             @SuppressWarnings("unchecked")
             Map<Integer, Integer> guestCart =
                     (Map<Integer, Integer>) session.getAttribute(SESSION_CART_KEY);
 
-            gioHangToView = cartHelperService.buildVirtualCartFromSession(guestCart); // <<< SỬA
-            cartData = cartHelperService.calculateCartData(gioHangToView); // <<< SỬA
+            gioHangToView = cartHelperService.buildVirtualCartFromSession(guestCart);
+            cartData = cartHelperService.calculateCartData(gioHangToView);
         }
 
+        BigDecimal tongTienHang = (BigDecimal) cartData.get("tongTienHang");
+
         model.addAttribute("gioHang", gioHangToView);
-        model.addAttribute("tongTienHang", cartData.get("tongTienHang"));
-        model.addAttribute("tienGiamGia", cartData.get("tienGiamGia"));
-        model.addAttribute("tongThanhToan", cartData.get("tongThanhToan"));
+        model.addAttribute("tongTienHang", tongTienHang);
+
+
+        model.addAttribute("tienGiamGia", BigDecimal.ZERO);
+        model.addAttribute("tongThanhToan", tongTienHang);
 
         return "client/cart";
     }
+
 
     /* =========================================================
      * 2. THÊM SẢN PHẨM VÀO GIỎ (AJAX) (ĐÃ SỬA)
@@ -276,13 +281,18 @@ public class GioHangController {
      * 8. HELPER: Tạo JSON trả về cho AJAX (ĐÃ SỬA)
      * ========================================================= */
     private Map<String, Object> createAjaxResponse(GioHang gioHang, String message) {
-        // <<< SỬA: Gọi service helper >>>
         Map<String, Object> cartData = cartHelperService.calculateCartData(gioHang);
 
+        BigDecimal tongTienHang = (BigDecimal) cartData.get("tongTienHang");
+
         Map<String, Object> cartSummary = new HashMap<>();
-        cartSummary.put("subtotal", cartData.get("tongTienHang"));
-        cartSummary.put("discount", cartData.get("tienGiamGia"));
-        cartSummary.put("total", cartData.get("tongThanhToan"));
+        cartSummary.put("subtotal", tongTienHang);
+
+        // ❌ Không hiển thị giảm giá ở giỏ hàng
+        cartSummary.put("discount", BigDecimal.ZERO);
+
+        // Tổng cộng trên cart = tổng tiền hàng (chưa trừ voucher)
+        cartSummary.put("total", tongTienHang);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -292,4 +302,5 @@ public class GioHangController {
 
         return response;
     }
+
 }
