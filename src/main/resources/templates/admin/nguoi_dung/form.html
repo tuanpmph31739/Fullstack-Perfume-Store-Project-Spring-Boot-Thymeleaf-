@@ -5,86 +5,90 @@
 <div class="wrapper">
     <aside th:replace="/admin/fragments/sidebar :: sidebar"></aside>
     <div id="main">
-        <header th:replace="/admin/fragments/header :: header"></header>
-        <div class="page-heading">
-            <h3 th:text="${nguoiDung.id == null ? 'Thêm người dùng' : 'Chỉnh sửa người dùng'}"></h3>
-        </div>
+        <header th:replace="~{/admin/fragments/header :: header(${nguoiDung.id == null ? 'Thêm người dùng' : 'Chỉnh sửa người dùng'})}"></header>
 
         <div class="page-content">
             <section class="row">
-                <div class="card p-4">
-                    <form th:action="@{/admin/nguoi-dung/save}" th:object="${nguoiDung}" method="post">
-                        <input type="hidden" th:field="*{id}">
+                <div class="card p-3">
+                    <div class="card-header">
+                        <h5>Thông tin Người dùng</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/nguoi-dung/save}" th:object="${nguoiDung}" method="post">
+                            <input type="hidden" th:field="*{id}">
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label>Mã người dùng</label>
-                                <input type="text" class="form-control" th:field="*{ma}" placeholder="VD: ND01">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>Mã người dùng</label>
+                                    <input type="text" class="form-control" th:field="*{ma}" placeholder="VD: ND01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Họ tên</label>
+                                    <input type="text" class="form-control" th:field="*{hoTen}" required>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label>Họ tên</label>
-                                <input type="text" class="form-control" th:field="*{hoTen}" required>
-                            </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label>Email</label>
-                                <input type="email" class="form-control" th:field="*{email}" required>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control" th:field="*{email}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Mật khẩu</label>
+                                    <input type="password" class="form-control" th:field="*{matKhau}" required>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label>Mật khẩu</label>
-                                <input type="password" class="form-control" th:field="*{matKhau}" required>
-                            </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label>Giới tính</label>
-                                <select class="form-select" th:field="*{gioiTinh}">
-                                    <option value="1">Nam</option>
-                                    <option value="0">Nữ</option>
-                                </select>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label>Giới tính</label>
+                                    <select class="form-select" th:field="*{gioiTinh}">
+                                        <option value="1">Nam</option>
+                                        <option value="0">Nữ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Ngày sinh</label>
+                                    <input type="date" class="form-control" th:field="*{ngaySinh}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Số điện thoại</label>
+                                    <input type="text" class="form-control" th:field="*{sdt}">
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label>Ngày sinh</label>
-                                <input type="date" class="form-control" th:field="*{ngaySinh}">
-                            </div>
-                            <div class="col-md-4">
-                                <label>Số điện thoại</label>
-                                <input type="text" class="form-control" th:field="*{sdt}">
-                            </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label>Địa chỉ</label>
-                                <input type="text" class="form-control" th:field="*{diaChi}">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>Địa chỉ</label>
+                                    <input type="text" class="form-control" th:field="*{diaChi}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Vai trò</label>
+                                    <select class="form-select" th:field="*{vaiTro}">
+                                        <option value="ADMIN">ADMIN</option>
+                                        <option value="NHANVIEN">NHÂN VIÊN</option>
+                                        <option value="KHACHHANG">KHÁCH HÀNG</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Trạng thái</label>
+                                    <select class="form-select" th:field="*{trangThai}">
+                                        <option value="true">Hoạt động</option>
+                                        <option value="false">Khóa</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <label>Vai trò</label>
-                                <select class="form-select" th:field="*{vaiTro}">
-                                    <option value="ADMIN">ADMIN</option>
-                                    <option value="NHANVIEN">NHÂN VIÊN</option>
-                                    <option value="KHACHHANG">KHÁCH HÀNG</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label>Trạng thái</label>
-                                <select class="form-select" th:field="*{trangThai}">
-                                    <option value="true">Hoạt động</option>
-                                    <option value="false">Khóa</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="text-end">
-                            <a href="/admin/nguoi-dung" class="btn btn-secondary">Quay lại</a>
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Xác nhận muốn lưu người dùng này?')">
-                                <i class="bi bi-save"></i> Lưu lại
-                            </button>
-                        </div>
-                    </form>
+                            <div class="text-end">
+                                <a href="/admin/nguoi-dung" class="btn btn-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Xác nhận muốn lưu người dùng này?')">
+                                    <i class="bi bi-save"></i> Lưu lại
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+
                 </div>
             </section>
         </div>

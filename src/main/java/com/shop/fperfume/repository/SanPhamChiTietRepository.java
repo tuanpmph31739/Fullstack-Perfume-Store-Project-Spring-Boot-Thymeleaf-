@@ -107,7 +107,15 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             )
             SELECT * FROM ranked
             WHERE rn = 1
-            ORDER BY PId
+            ORDER BY
+                -- Giá tăng dần
+                CASE WHEN :sort = 'price_asc'  THEN GiaBan END ASC,
+                -- Giá giảm dần
+                CASE WHEN :sort = 'price_desc' THEN GiaBan END DESC,
+                -- Mới nhất (theo Id sản phẩm)
+                CASE WHEN :sort = 'newest'     THEN PId   END DESC,
+                -- Mặc định
+                PId
             """,
             countQuery = """
             WITH base AS (
@@ -131,8 +139,10 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
             @Param("loai") String loai,
             @Param("minP") BigDecimal minP,
             @Param("maxP") BigDecimal maxP,
+            @Param("sort") String sort,          // 🆕 thêm tham số sort
             Pageable pageable
     );
+
     @Query("SELECT spct FROM SanPhamChiTiet spct " +
             "JOIN FETCH spct.sanPham sp " +
             "LEFT JOIN FETCH spct.dungTich dt") // Thêm dòng này
@@ -167,25 +177,25 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
 
 
     @Query("""
-    SELECT spct
-    FROM SanPhamChiTiet spct
+        SELECT spct
+        FROM SanPhamChiTiet spct
         JOIN spct.sanPham sp
         LEFT JOIN spct.dungTich dt
         LEFT JOIN spct.nongDo nd
-    WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(sp.tenNuocHoa) LIKE LOWER(CONCAT('%', :keyword, '%')))
-      AND (:sku IS NULL OR :sku = '' OR LOWER(spct.maSKU) LIKE LOWER(CONCAT('%', :sku, '%')))
-      AND (:giaMin IS NULL OR spct.giaBan >= :giaMin)
-      AND (:giaMax IS NULL OR spct.giaBan <= :giaMax)
-      AND (:dungTichId IS NULL OR dt.id = :dungTichId)
-      AND (:nongDoId IS NULL OR nd.id = :nongDoId)
-""")
+        WHERE (:keyword IS NULL OR :keyword = '' 
+                  OR LOWER(sp.tenNuocHoa) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                  OR LOWER(spct.maSKU)     LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:dungTichId IS NULL OR dt.id = :dungTichId)
+          AND (:nongDoId   IS NULL OR nd.id = :nongDoId)
+          AND (:trangThai  IS NULL OR spct.trangThai = :trangThai)
+    """)
     Page<SanPhamChiTiet> searchSanPhamChiTiet(@Param("keyword") String keyword,
-                                              @Param("sku") String sku,
-                                              @Param("giaMin") BigDecimal giaMin,
-                                              @Param("giaMax") BigDecimal giaMax,
                                               @Param("dungTichId") Integer dungTichId,
                                               @Param("nongDoId") Integer nongDoId,
+                                              @Param("trangThai") Boolean trangThai,
                                               Pageable pageable);
+
+
 
 
     @Query("""

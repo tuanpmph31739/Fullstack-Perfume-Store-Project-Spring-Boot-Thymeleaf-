@@ -94,7 +94,7 @@
     }
 </style>
 
-<div class="container pd-wrap my-5">
+<div class="container pd-wrap">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-dark">Thanh Toán Đơn Hàng</h2>
         <p class="text-muted">Vui lòng kiểm tra kỹ thông tin trước khi đặt hàng</p>
@@ -232,6 +232,37 @@
                             </ul>
                         </div>
 
+                        <!-- 🔻 PHẦN MÃ GIẢM GIÁ Ở CHECKOUT -->
+                        <div class="mb-3">
+                            <!-- Form apply voucher (AJAX) -->
+                            <div class="input-group" id="voucher-form">
+                                <input type="text" id="voucherCode" class="form-control" placeholder="Nhập mã giảm giá" autocomplete="off">
+                                <button class="btn text-white ms-2" style="background-color: var(--color-primary);" type="button" id="apply-voucher-btn">
+                                    Áp dụng
+                                </button>
+                            </div>
+                            <div id="voucher-inline-error" class="small text-danger mt-1 d-none"></div>
+
+                        </div>
+
+                        <!-- Nếu đã có mã gắn trên giỏ -->
+                        <div th:if="${gioHang.giamGia != null}"
+                             class="alert alert-success py-2 px-3 mb-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-check-circle-fill me-1"></i>
+                                Đã áp dụng mã:
+                                <strong th:text="${gioHang.giamGia.ma}">VOUCHER</strong>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger border-0"
+                                    id="remove-voucher-btn"
+                                    title="Hủy mã">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                        <!-- 🔺 HẾT PHẦN MÃ GIẢM GIÁ -->
+
+
                         <div class="border-top pt-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Tạm tính:</span>
@@ -360,7 +391,6 @@
         const countryCode = document.getElementById("countryCode");
         const fullPhone = document.getElementById("fullPhone");
 
-        // Hàm hiển thị lỗi tại chỗ (Inline)
         function setInvalid(input, errorId, isInvalid) {
             const errorEl = document.getElementById(errorId);
             if (isInvalid) {
@@ -374,14 +404,12 @@
             }
         }
 
-        // Hàm validate chung
         function validateField(input, errorId, checkFn) {
             const isValid = checkFn();
             setInvalid(input, errorId, !isValid);
             return isValid;
         }
 
-        // Real-time validation events
         nameInput.addEventListener('input', () => validateField(nameInput, 'error-tenNguoiNhan', () => nameInput.value.trim() !== ""));
 
         emailInput.addEventListener('input', () => {
@@ -404,8 +432,7 @@
         phoneInput.addEventListener('input', checkPhone);
         countryCode.addEventListener('change', checkPhone);
 
-
-        // SUBMIT FORM
+        // SUBMIT FORM ĐẶT HÀNG
         form.addEventListener("submit", function(e) {
             e.preventDefault(); // Chặn submit để tự xử lý
 
@@ -420,7 +447,6 @@
 
             if (isNameValid && isPhoneValid && isAddressValid) {
 
-                // 🔔 Hộp thoại XÁC NHẬN trước khi đặt hàng
                 Swal.fire({
                     title: 'Xác nhận đặt hàng?',
                     text: 'Bạn có chắc muốn đặt đơn hàng này không?',
@@ -432,7 +458,6 @@
                     cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Nếu người dùng đồng ý -> hiển thị loading và submit form
                         Swal.fire({
                             title: 'Đang xử lý...',
                             text: 'Vui lòng chờ trong giây lát',
@@ -443,14 +468,12 @@
                         });
 
                         setTimeout(() => {
-                            form.submit(); // submit thật (không chạy lại listener)
+                            form.submit(); // submit thật
                         }, 500);
                     }
-                    // Nếu bấm "Hủy" thì không làm gì thêm
                 });
 
             } else {
-                // Alert lỗi đẹp mắt
                 Swal.fire({
                     icon: 'error',
                     title: 'Thông tin chưa đủ!',
@@ -466,7 +489,104 @@
                 }
             }
         });
+
+        // ============= VOUCHER Ở TRANG CHECKOUT =============
+        const applyVoucherBtn = document.getElementById("apply-voucher-btn");
+        const voucherCodeInput = document.getElementById("voucherCode");
+        const voucherInlineError = document.getElementById("voucher-inline-error");
+        const removeVoucherBtn = document.getElementById("remove-voucher-btn");
+
+        const csrfTokenEl = document.querySelector('meta[name="_csrf"]');
+        const csrfHeaderEl = document.querySelector('meta[name="_csrf_header"]');
+        const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : null;
+        const csrfHeader = csrfHeaderEl ? csrfHeaderEl.getAttribute('content') : null;
+
+        if (applyVoucherBtn) {
+            applyVoucherBtn.addEventListener("click", function () {
+                voucherInlineError.classList.add('d-none');
+
+                const code = voucherCodeInput.value.trim();
+                if (!code) {
+                    voucherInlineError.textContent = "Vui lòng nhập mã giảm giá.";
+                    voucherInlineError.classList.remove('d-none');
+                    voucherCodeInput.focus();
+                    return;
+                }
+
+                const body = new URLSearchParams();
+                body.append("maGiamGia", code);
+
+                fetch("/cart/apply-voucher", {
+                    method: "POST",
+                    headers: Object.assign(
+                        { "Content-Type": "application/x-www-form-urlencoded" },
+                        (csrfToken && csrfHeader) ? { [csrfHeader]: csrfToken } : {}
+                    ),
+                    body: body
+                })
+                    .then(async res => {
+                        if (res.ok) {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Áp dụng mã thành công!',
+                                showConfirmButton: false,
+                                timer: 1200
+                            });
+                            window.location.reload();
+                        } else {
+                            let data = {};
+                            try { data = await res.json(); } catch (_) {}
+                            const msg = data.message || "Không thể áp dụng mã giảm giá.";
+                            throw new Error(msg);
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Không áp dụng được mã',
+                            text: err.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        }
+
+        if (removeVoucherBtn) {
+            removeVoucherBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                fetch("/cart/remove-voucher", {
+                    method: "POST",
+                    headers: (csrfToken && csrfHeader) ? { [csrfHeader]: csrfToken } : {}
+                })
+                    .then(async res => {
+                        if (res.ok) {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Đã hủy mã giảm giá',
+                                showConfirmButton: false,
+                                timer: 1000
+                            });
+                            window.location.reload();
+                        } else {
+                            let data = {};
+                            try { data = await res.json(); } catch (_) {}
+                            const msg = data.message || "Không thể hủy mã giảm giá.";
+                            throw new Error(msg);
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: err.message,
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            });
+        }
+        // ============= HẾT VOUCHER CHECKOUT =============
     });
 </script>
+
 </body>
 </html>

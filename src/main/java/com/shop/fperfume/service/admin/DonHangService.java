@@ -11,6 +11,12 @@ public interface DonHangService {
                                                   String keyword,
                                                   String trangThai);
 
+    PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
+                                                 int pageSize,
+                                                 String kenhBan,
+                                                 String keyword,
+                                                 String trangThai);
+
     DonHangResponse getById(Integer id);
 
     void updateDonHang(Integer idHoaDon,

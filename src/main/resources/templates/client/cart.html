@@ -17,7 +17,7 @@
     </div>
 
     <div th:if="${gioHang != null && !gioHang.gioHangChiTiets.isEmpty()}" class="row">
-        <div class="col-lg-8">
+        <div class="col-12">
             <table class="table align-middle">
                 <thead>
                 <tr>
@@ -61,51 +61,37 @@
                                 th:attr="data-item-id=${item.sanPhamChiTiet.id}" title="Xóa sản phẩm">X</button>
                     </td>
                 </tr>
+
+                <tr class="table-light">
+                    <!-- 3 cột đầu để trống -->
+                    <td colspan="3"></td>
+
+                    <!-- Cột 4: cùng cột với "Số lượng" -->
+                    <td class="fw-semibold">
+                        Tổng cộng:
+                    </td>
+
+                    <!-- Cột 5: số tiền -->
+                    <td class="fw-bold text-primary align-middle">
+        <span id="cart-total"
+              th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
+                    </td>
+
+                    <!-- Cột 6: nút thanh toán -->
+                    <td class="align-middle">
+                        <a th:href="@{/order/checkout}"
+                           class="btn btn-primary btn-sm w-100 fw-semibold"
+                           style="background-color: var(--color-primary); border: none;">
+                            TIẾN HÀNH<br>THANH TOÁN
+                        </a>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card border rounded-3">
-                <div class="card-body p-4">
-                    <h5 class="fw-semibold">TÓM TẮT ĐƠN HÀNG</h5>
-
-                    <ul class="list-group list-group-flush mt-3">
-                        <li class="list-group-item d-flex justify-content-between px-0">
-                            <span>Tạm tính</span>
-                            <span id="cart-subtotal" th:text="${#numbers.formatDecimal(tongTienHang, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0">
-                            <span>Giảm giá</span>
-                            <span id="cart-discount" class="text-danger" th:text="'- ' + ${#numbers.formatDecimal(tienGiamGia, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 fw-semibold fs-5">
-                            <span>Tổng cộng</span>
-                            <span id="cart-total" class="text-primary" th:text="${#numbers.formatDecimal(tongThanhToan, 0, 'POINT', 0, 'NONE')} + ' ₫'"></span>
-                        </li>
-                    </ul>
-
-                    <form th:action="@{/cart/apply-voucher}" method="POST" class="d-flex mt-4" id="voucher-form">
-                        <input type="text" name="maGiamGia" class="form-control" placeholder="Nhập mã giảm giá">
-                        <button type="submit" class="btn text-white ms-2" style="background-color: var(--color-primary);">Áp Dụng</button>
-                    </form>
-
-                    <div th:if="${gioHang.giamGia != null}" class="alert alert-success mt-2 p-2">
-                        Đã áp dụng mã: <strong th:text="${gioHang.giamGia.ma}"></strong>
-
-                        <form th:action="@{/cart/remove-voucher}" method="POST" class="float-end" id="remove-voucher-form">
-                            <button type="submit" class="btn-close"></button>
-                        </form>
-                    </div>
-
-                    <a th:href="@{/order/checkout}" class="btn btn-primary w-100 mt-4 fw-semibold"
-                       style="background-color: var(--color-primary); border: none; padding: 12px 0;">
-                        TIẾN HÀNH THANH TOÁN
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
+
+
 </div>
 
 <div th:replace="~{client/fragments/footer :: footer}"></div>

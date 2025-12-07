@@ -124,8 +124,33 @@ public class GiamGiaService {
     // Phân trang
     @Transactional
     public PageableObject<GiamGiaResponse> paging(Integer pageNo, Integer pageSize) {
+        return paging(pageNo, pageSize, null, null, null);
+    }
+
+    // Phân trang + lọc + search cho trang index mới
+    @Transactional
+    public PageableObject<GiamGiaResponse> paging(Integer pageNo,
+                                                  Integer pageSize,
+                                                  String keyword,
+                                                  String loaiGiam,
+                                                  Boolean trangThai) {
+        if (pageNo == null || pageNo < 1) pageNo = 1;
+        if (pageSize == null || pageSize < 1) pageSize = 10;
+
+        // Normalize chuỗi rỗng
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) keyword = null;
+        }
+        if (loaiGiam != null) {
+            loaiGiam = loaiGiam.trim();
+            if (loaiGiam.isEmpty()) loaiGiam = null;
+        }
+
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
-        Page<GiamGia> page = giamGiaRepository.findAll(pageable);
+
+        Page<GiamGia> page = giamGiaRepository.searchGiamGia(keyword, loaiGiam, trangThai, pageable);
+
         return new PageableObject<>(page.map(GiamGiaResponse::new));
     }
 }

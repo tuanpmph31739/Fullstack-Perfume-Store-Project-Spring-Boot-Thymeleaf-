@@ -29,8 +29,11 @@ public class NguoiDungService {
     private JavaMailSender mailSender;
 
     // --- CRUD cơ bản ---
-    public Page<NguoiDung> getAll(String vaiTro, Boolean trangThai, Pageable pageable) {
-        return repo.findByFilter(vaiTro, trangThai, pageable);
+    public Page<NguoiDung> getAll(String vaiTro,
+                                  Boolean trangThai,
+                                  String keyword,
+                                  Pageable pageable) {
+        return repo.findByFilter(vaiTro, trangThai, keyword, pageable);
     }
 
     public Optional<NguoiDung> getById(Long id) {

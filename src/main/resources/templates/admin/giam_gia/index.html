@@ -6,140 +6,247 @@
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
-        <header th:replace="~{/admin/fragments/header :: header}"></header>
-
-        <div class="page-heading">
-            <div class="page-title">
-                <div class="row order-last">
-                    <div class="col-12 col-md-6">
-                        <h3>Quản lý Giảm giá</h3>
-                    </div>
-                    <div class="col-12 col-md-6 text-end">
-                        <a th:href="@{/admin/giam-gia/add}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Thêm Giảm giá
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <header th:replace="~{/admin/fragments/header :: header('Quản lý Giảm giá')}"></header>
 
         <div class="page-content">
             <section class="row">
                 <div class="card table-card">
-                    <div class="card-header">
-                        <h5>Danh sách Giảm giá</h5>
+
+                    <!-- HEADER: tiêu đề + nút thêm -->
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0">Danh sách Giảm giá</h5>
+                        <a th:href="@{/admin/giam-gia/add}"
+                           class="btn btn-primary d-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Thêm Giảm giá</span>
+                        </a>
                     </div>
 
                     <div class="card-body">
 
+                        <!-- ALERT -->
                         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
                         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-                        <table class="table table-striped table-hover align-middle">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Mã</th>
-                                <th>Tên</th>
-                                <th>Mô tả</th> <!-- Thêm mô tả -->
-                                <th>Loại giảm</th>
-                                <th>Giá trị</th>
-                                <th>Số lượng</th>
-                                <th>Điều kiện</th>
-                                <th>Ngày áp dụng</th>
-                                <th>Trạng thái</th>
-                                <th>Áp dụng cho</th>
-                                <th>Hành động</th>
-                            </tr>
-                            </thead>
+                        <!-- ========== FORM LỌC (AJAX) ========== -->
+                        <form th:action="@{/admin/giam-gia}" method="get" class="mb-3" id="filterForm">
+                            <div class="row g-2 align-items-end">
 
-                            <tbody>
-                            <tr th:each="g, st : ${page.data}">
-                                <td th:text="${(page.currentPage - 1) * page.size + st.index + 1}"></td>
-                                <td th:text="${g.ma}"></td>
-                                <td th:text="${g.ten}"></td>
+                                <!-- 1. Từ khóa: mã / tên / mô tả -->
+                                <div class="col-md-5">
+                                    <input type="text"
+                                           name="keyword"
+                                           class="form-control form-control-sm"
+                                           placeholder="Tìm theo mã, tên, mô tả..."
+                                           th:value="${keyword}"
+                                           id="keywordInput">
+                                </div>
 
-                                <!-- Mô tả -->
-                                <td th:text="${g.moTa}"></td>
+                                <!-- 2. Loại giảm -->
+                                <div class="col-md-2">
+                                    <select name="loaiGiam"
+                                            class="form-select form-select-sm"
+                                            id="loaiGiamFilter">
+                                        <option value="" th:selected="${loaiGiam == null or loaiGiam == ''}">
+                                            Tất cả loại giảm
+                                        </option>
+                                        <option value="PERCENT" th:selected="${loaiGiam == 'PERCENT'}">Giảm %</option>
+                                        <option value="AMOUNT" th:selected="${loaiGiam == 'AMOUNT'}">Giảm tiền</option>
+                                    </select>
+                                </div>
 
-                                <td>
-                                    <span th:switch="${g.loaiGiam}">
-                                        <span th:case="'PERCENT'">Giảm %</span>
-                                        <span th:case="'AMOUNT'">Giảm tiền</span>
-                                        <span th:case="*">Không xác định</span>
-                                    </span>
-                                </td>
+                                <!-- 3. Trạng thái -->
+                                <div class="col-md-2">
+                                    <select name="trangThai"
+                                            class="form-select form-select-sm"
+                                            id="trangThaiFilter">
+                                        <option value=""
+                                                th:selected="${trangThai == null}">
+                                            Tất cả trạng thái
+                                        </option>
+                                        <option value="true"
+                                                th:selected="${trangThai != null and trangThai == true}">
+                                            Đang áp dụng
+                                        </option>
+                                        <option value="false"
+                                                th:selected="${trangThai != null and trangThai == false}">
+                                            Ngừng
+                                        </option>
+                                    </select>
+                                </div>
 
-                                <td>
-                                    <span th:if="${g.loaiGiam == 'PERCENT'}"
-                                          th:text="${g.giaTri + '%'}"></span>
+                                <!-- 4. Nút Lọc / Xóa -->
+                                <div class="col-12 col-lg-3 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit"
+                                                class="btn btn-primary px-3 py-2 fw-semibold"
+                                                title="Lọc">
+                                            <i class="bi bi-funnel me-1"></i>
+                                            <span>Lọc</span>
+                                        </button>
 
-                                    <span th:if="${g.loaiGiam == 'AMOUNT'}"
-                                          th:text="${#numbers.formatDecimal(g.giaTri,0,0)} + ' đ'"></span>
-                                </td>
+                                        <a th:href="@{/admin/giam-gia}"
+                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </div>
+                                </div>
 
-                                <td th:text="${g.soLuong}"></td>
+                            </div>
+                        </form>
+                        <!-- ========== HẾT FORM LỌC ========== -->
 
-                                <td>
-                                    <small>
-                                        Min: <span th:text="${#numbers.formatDecimal(g.donHangToiThieu,0,0)}"></span> đ<br>
-                                        Max: <span th:text="${#numbers.formatDecimal(g.giamToiDa,0,0)}"></span> đ
-                                    </small>
-                                </td>
+                        <!-- TABLE -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Mã</th>
+                                    <th>Tên</th>
+                                    <th>Mô tả</th>
+                                    <th>Loại giảm</th>
+                                    <th>Giá trị</th>
+                                    <th>Số lượng</th>
+                                    <th>Điều kiện</th>
+                                    <th>Ngày áp dụng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Áp dụng cho</th>
+                                    <th>Hành động</th>
+                                </tr>
+                                </thead>
 
-                                <td>
-                                    <span th:text="${#temporals.format(g.ngayBatDau,'dd/MM/yyyy')}"></span> -
-                                    <span th:text="${#temporals.format(g.ngayKetThuc,'dd/MM/yyyy')}"></span>
-                                </td>
+                                <tbody id="giamGiaTableBody">
+                                <tr th:each="g, st : ${page.data}">
+                                    <td th:text="${(page.currentPage - 1) * page.size + st.index + 1}"></td>
+                                    <td th:text="${g.ma}"></td>
+                                    <td th:text="${g.ten}"></td>
 
-                                <td>
-                                    <span class="badge"
-                                          th:classappend="${g.trangThai} ? ' bg-success' : ' bg-secondary'"
-                                          th:text="${g.trangThai} ? 'Đang áp dụng' : 'Ngừng'"></span>
-                                </td>
+                                    <!-- Mô tả -->
+                                    <td th:text="${g.moTa}"></td>
 
-                                <td th:text="${g.tenSanPhamChiTiet != null ? g.tenSanPhamChiTiet : 'Toàn cửa hàng'}"></td>
+                                    <!-- Loại giảm -->
+                                    <td>
+                                        <span th:switch="${g.loaiGiam}">
+                                            <span th:case="'PERCENT'">Giảm %</span>
+                                            <span th:case="'AMOUNT'">Giảm tiền</span>
+                                            <span th:case="*">Không xác định</span>
+                                        </span>
+                                    </td>
 
-                                <td>
-                                    <a th:href="@{/admin/giam-gia/edit/{id}(id=${g.id})}"
-                                       class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                                    <!-- Giá trị -->
+                                    <td>
+                                        <span th:if="${g.loaiGiam == 'PERCENT'}"
+                                              th:text="${g.giaTri + '%'}"></span>
 
-                                    <a th:href="@{/admin/giam-gia/delete/{id}(id=${g.id})}"
-                                       class="btn btn-danger btn-sm"
-                                       onclick="return confirm('Bạn có chắc muốn xóa?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
+                                        <span th:if="${g.loaiGiam == 'AMOUNT'}"
+                                              th:text="${#numbers.formatDecimal(g.giaTri, 0, 'POINT', 0, 'NONE')} + ' đ'"></span>
 
-                            <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
-                                <td colspan="12" class="text-center">Không có giảm giá nào.</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                    </td>
+
+                                    <td th:text="${g.soLuong}"></td>
+
+                                    <!-- Điều kiện -->
+                                    <td>
+                                        <small>
+                                            Đơn hàng tối thiểu: <span th:text="${#numbers.formatDecimal(g.donHangToiThieu, 0, 'POINT', 0, 'NONE')}"></span> đ<br>
+                                            Giảm tối đa: <span th:text="${#numbers.formatDecimal(g.giamToiDa, 0, 'POINT', 0, 'NONE')}"></span> đ
+
+                                        </small>
+                                    </td>
+
+                                    <!-- Ngày áp dụng -->
+                                    <td>
+                                        <small>
+                                            Ngày bắt đầu: <span th:text="${#temporals.format(g.ngayBatDau,'dd/MM/yyyy')}"></span> <br>
+                                            Ngày kết thúc: <span th:text="${#temporals.format(g.ngayKetThuc,'dd/MM/yyyy')}"></span>
+                                        </small>
+                                    </td>
+
+                                    <!-- Trạng thái -->
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${g.trangThai} ? ' bg-success' : ' bg-secondary'"
+                                              th:text="${g.trangThai} ? 'Đang áp dụng' : 'Ngừng'"></span>
+                                    </td>
+
+                                    <!-- Phạm vi áp dụng -->
+                                    <td th:text="${g.tenSanPhamChiTiet != null ? g.tenSanPhamChiTiet : 'Toàn cửa hàng'}"></td>
+
+                                    <!-- Hành động -->
+                                    <td>
+                                        <a th:href="@{/admin/giam-gia/edit/{id}(id=${g.id})}"
+                                           class="btn btn-warning btn-sm" title="Sửa">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <a th:href="@{/admin/giam-gia/delete/{id}(id=${g.id})}"
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Bạn có chắc muốn xóa?')"
+                                           title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${page.data == null || #lists.isEmpty(page.data)}">
+                                    <td colspan="12" class="text-center">Không có giảm giá nào.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="card-footer" th:if="${page.totalPage > 1}">
+                    <!-- PHÂN TRANG (AJAX) -->
+                    <div class="card-footer" id="paginationWrapper" th:if="${page.totalPage > 1}">
                         <nav>
                             <ul class="pagination justify-content-center">
-                                <li class="page-item" th:classappend="${page.currentPage <= 1} ? 'disabled'">
+
+                                <!-- Previous -->
+                                <li class="page-item"
+                                    th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/giam-gia(page=${page.currentPage - 1})}">Previous</a>
+                                       th:href="@{/admin/giam-gia(
+                                            page=${page.currentPage - 1},
+                                            keyword=${keyword},
+                                            loaiGiam=${loaiGiam},
+                                            trangThai=${trangThai}
+                                       )}">
+                                        Previous
+                                    </a>
                                 </li>
 
+                                <!-- Số trang -->
                                 <li class="page-item"
                                     th:each="i : ${#numbers.sequence(1, page.totalPage)}"
                                     th:classappend="${i == page.currentPage} ? 'active'">
-                                    <a class="page-link" th:text="${i}"
-                                       th:href="@{/admin/giam-gia(page=${i})}"></a>
+                                    <a class="page-link"
+                                       th:text="${i}"
+                                       th:href="@{/admin/giam-gia(
+                                            page=${i},
+                                            keyword=${keyword},
+                                            loaiGiam=${loaiGiam},
+                                            trangThai=${trangThai}
+                                       )}">
+                                    </a>
                                 </li>
 
-                                <li class="page-item" th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
+                                <!-- Next -->
+                                <li class="page-item"
+                                    th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
-                                       th:href="@{/admin/giam-gia(page=${page.currentPage + 1})}">Next</a>
+                                       th:href="@{/admin/giam-gia(
+                                            page=${page.currentPage + 1},
+                                            keyword=${keyword},
+                                            loaiGiam=${loaiGiam},
+                                            trangThai=${trangThai}
+                                       )}">
+                                        Next
+                                    </a>
                                 </li>
+
                             </ul>
                         </nav>
                     </div>
@@ -153,5 +260,133 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<!-- ========== JS LỌC + PHÂN TRANG AJAX ========== -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form           = document.getElementById("filterForm");
+        if (!form) return;
+
+        const keywordInput   = document.getElementById("keywordInput");
+        const loaiGiamFilter = document.getElementById("loaiGiamFilter");
+        const trangThaiFilter= document.getElementById("trangThaiFilter");
+
+        const tbody          = document.getElementById("giamGiaTableBody");
+        const paginationWrap = document.getElementById("paginationWrapper");
+
+        if (!tbody) return;
+
+        // Build URL từ form + page
+        function buildUrl(page) {
+            const params = new URLSearchParams(new FormData(form));
+            if (page) {
+                params.set("page", page);
+            } else {
+                params.delete("page"); // để server default = 1
+            }
+            return form.action + "?" + params.toString();
+        }
+
+        // AJAX fetch + render
+        function fetchAndRender(url) {
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+
+                    const newTbody      = doc.getElementById("giamGiaTableBody");
+                    const newPagination = doc.getElementById("paginationWrapper");
+
+                    if (newTbody) {
+                        tbody.innerHTML = newTbody.innerHTML;
+                    }
+
+                    if (paginationWrap) {
+                        if (newPagination) {
+                            paginationWrap.innerHTML = newPagination.innerHTML;
+                            paginationWrap.classList.remove("d-none");
+                        } else {
+                            paginationWrap.innerHTML = "";
+                            paginationWrap.classList.add("d-none");
+                        }
+                    } else if (newPagination) {
+                        const card = document.querySelector(".table-card");
+                        if (card) {
+                            card.appendChild(newPagination);
+                        }
+                    }
+
+                    bindPaginationEvents();
+                })
+                .catch(err => {
+                    console.error("Lỗi tải dữ liệu:", err);
+                });
+        }
+
+        function triggerFilterToFirstPage() {
+            const url = buildUrl(1);
+            fetchAndRender(url);
+        }
+
+        // Debounce cho keyword
+        let typingTimer;
+        function debounceFilter() {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                triggerFilterToFirstPage();
+            }, 300);
+        }
+
+        // Auto search theo keyword
+        if (keywordInput) {
+            keywordInput.addEventListener("input", debounceFilter);
+            keywordInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    triggerFilterToFirstPage();
+                }
+            });
+        }
+
+        // Auto filter khi đổi combobox
+        [loaiGiamFilter, trangThaiFilter].forEach(el => {
+            if (el) {
+                el.addEventListener("change", function () {
+                    triggerFilterToFirstPage();
+                });
+            }
+        });
+
+        // Chặn submit form -> dùng AJAX
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            triggerFilterToFirstPage();
+        });
+
+        // Bắt sự kiện click phân trang
+        function bindPaginationEvents() {
+            if (!paginationWrap) return;
+            const links = paginationWrap.querySelectorAll("a.page-link");
+            links.forEach(a => {
+                a.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const url = this.href;
+                    if (!url) return;
+                    fetchAndRender(url);
+                });
+            });
+        }
+
+        // Gán lần đầu
+        bindPaginationEvents();
+    });
+</script>
+
 </body>
 </html>

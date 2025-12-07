@@ -51,6 +51,27 @@ public class DonHangServiceImpl implements DonHangService {
     }
 
     @Override
+    public PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
+                                                        int pageSize,
+                                                        String kenhBan,
+                                                        String keyword,
+                                                        String trangThai) {
+
+        if (pageNo < 1) pageNo = 1;
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
+                Sort.by(Sort.Direction.DESC, "ngayTao"));
+
+        Page<HoaDon> pageHoaDon =
+                donHangRepository.searchHoaDon(keyword, kenhBan, trangThai, pageable);
+
+        Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
+
+        return new PageableObject<>(pageDto);
+    }
+
+
+    @Override
     public DonHangResponse getById(Integer id) {
         HoaDon hd = donHangRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));

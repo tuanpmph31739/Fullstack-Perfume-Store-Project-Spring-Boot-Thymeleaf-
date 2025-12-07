@@ -9,18 +9,18 @@
 
     <div id="main">
         <!-- HEADER -->
-        <header th:replace="~{/admin/fragments/header :: header}"></header>
+        <header th:replace="~{/admin/fragments/header :: header('Xem chi tiết Hoá đơn')}"></header>
 
         <!-- PAGE TITLE -->
         <div class="page-heading">
             <div class="page-title">
                 <div class="row align-items-center">
                     <div class="col-12 col-md-7 order-md-1 order-last">
-                        <h3 class="mb-1">
+                        <h3 class="mb-1" style="margin-left: 5px">
                             Chi tiết hóa đơn
                             <span class="text-muted ms-2" th:text="${hoaDon.ma} ?: 'HD-XXXX'">HD-XXXX</span>
                         </h3>
-                        <p class="text-muted mb-0 small">
+                        <p class="text-muted mb-0 small" style="margin-left: 5px">
                             Tạo lúc
                             <span th:text="${hoaDon.ngayTao != null ? #temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}">
                                 01/01/2025 10:00

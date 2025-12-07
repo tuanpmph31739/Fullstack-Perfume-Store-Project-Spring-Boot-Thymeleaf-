@@ -26,14 +26,28 @@ public class GiamGiaController {
     // ================================
     @GetMapping
     public String index(Model model,
-                        @RequestParam(defaultValue = "1") Integer page,
-                        @RequestParam(defaultValue = "10") Integer size) {
+                        @RequestParam(name = "page", defaultValue = "1") Integer page,
+                        @RequestParam(name = "size", defaultValue = "10") Integer size,
+                        @RequestParam(name = "keyword", required = false) String keyword,
+                        @RequestParam(name = "loaiGiam", required = false) String loaiGiam,
+                        @RequestParam(name = "trangThai", required = false) Boolean trangThai) {
 
-        PageableObject<GiamGiaResponse> pageableObject = giamGiaService.paging(page, size);
+        if (page < 1) page = 1;
+
+        PageableObject<GiamGiaResponse> pageableObject =
+                giamGiaService.paging(page, size, keyword, loaiGiam, trangThai);
+
         model.addAttribute("page", pageableObject);
         model.addAttribute("currentPath", "/admin/giam-gia");
+
+        // Để giữ lại giá trị trên form lọc
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("loaiGiam", loaiGiam);
+        model.addAttribute("trangThai", trangThai);
+
         return "admin/giam_gia/index";
     }
+
 
     // ================================
     //  Trang thêm mới

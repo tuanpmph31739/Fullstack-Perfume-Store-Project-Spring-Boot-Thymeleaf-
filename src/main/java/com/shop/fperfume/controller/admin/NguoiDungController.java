@@ -21,6 +21,7 @@ public class NguoiDungController {
 
     private final NguoiDungService service;
     private final NguoiDungRepository nguoiDungRepository;
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -29,23 +30,28 @@ public class NguoiDungController {
         this.nguoiDungRepository = nguoiDungRepository;
     }
 
-
     @GetMapping
     public String danhSach(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String vaiTro,
             @RequestParam(required = false) Boolean trangThai,
+            @RequestParam(required = false) String keyword,
             Model model) {
 
+        if (page < 0) page = 0;
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<NguoiDung> pageData = service.getAll(vaiTro, trangThai, pageable);
+        Page<NguoiDung> pageData = service.getAll(vaiTro, trangThai, keyword, pageable);
 
         model.addAttribute("pageData", pageData);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pageData.getTotalPages());
+
         model.addAttribute("selectedVaiTro", vaiTro);
         model.addAttribute("selectedTrangThai", trangThai);
+        model.addAttribute("keyword", keyword);
+
         model.addAttribute("currentPath", "/admin/nguoi-dung");
         return "admin/nguoi_dung/index";
     }
@@ -56,7 +62,6 @@ public class NguoiDungController {
         model.addAttribute("nguoiDung", new NguoiDung());
         return "admin/nguoi_dung/form";
     }
-
 
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Long id, Model model) {
@@ -76,16 +81,15 @@ public class NguoiDungController {
             return "redirect:/admin/nguoi-dung/add";
         }
 
-        // ✅ Nếu không có mã => sinh tự động
+        // Nếu không có mã => sinh tự động
         if (nguoiDung.getMa() == null || nguoiDung.getMa().isEmpty()) {
             nguoiDung.setMa("ND" + System.currentTimeMillis());
         }
 
-        // ✅ Nếu là cập nhật user cũ
+        // Cập nhật user cũ
         if (nguoiDung.getId() != null) {
             NguoiDung oldUser = nguoiDungRepository.findById(nguoiDung.getId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-
 
             if (nguoiDung.getMatKhau() == null || nguoiDung.getMatKhau().isEmpty()) {
                 nguoiDung.setMatKhau(oldUser.getMatKhau());
@@ -101,21 +105,15 @@ public class NguoiDungController {
         return "redirect:/admin/nguoi-dung";
     }
 
-
-
     @GetMapping("/check-email")
     @ResponseBody
     public boolean checkEmail(@RequestParam String email) {
         return nguoiDungRepository.findByEmail(email).isPresent();
     }
 
-
-
-
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id) {
         service.delete(id);
         return "redirect:/admin/nguoi-dung";
     }
-
 }
