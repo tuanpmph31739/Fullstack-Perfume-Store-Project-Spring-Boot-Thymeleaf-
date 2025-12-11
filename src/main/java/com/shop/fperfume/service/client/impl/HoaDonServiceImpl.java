@@ -27,6 +27,7 @@ public class HoaDonServiceImpl implements HoaDonClientService {
     @Autowired private CartHelperService cartHelperService;
     @Autowired
     private HoaDonChiTietRepository hoaDonChiTietRepo;
+
     // =========================
     //        TẠO ĐƠN HÀNG
     // =========================
@@ -100,21 +101,27 @@ public class HoaDonServiceImpl implements HoaDonClientService {
             }
         }
 
-        // Nếu không pending payment -> THỰC HIỆN TRỪ KHO ngay khi tạo đơn (để tránh sell-through)
-        // Nếu pending -> chỉ tạo chi tiết mà không trừ kho ở đây
+        // Nếu không pending payment -> THỰC HIỆN TRỪ KHO ngay khi tạo đơn (COD)
+        // Nếu pending (VNPay) -> chỉ tạo chi tiết, KHÔNG trừ kho ở đây
+        // Nếu không pending payment -> TRỪ KHO NGAY
+        // Nếu pending (VNPay) -> CHƯA trừ kho, chỉ tạo chi tiết
         for (GioHangChiTiet item : cartItems) {
             SanPhamChiTiet spct = sanPhamChiTietRepo.findByIdAndTrangThaiTrue(item.getSanPhamChiTiet().getId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm đã ngừng kinh doanh hoặc không tồn tại"));
 
             int qty = item.getSoLuong();
 
-            // ✅ LUÔN trừ kho, bất kể phương thức thanh toán là gì
-            int newTon = spct.getSoLuongTon() - qty;
-            if (newTon < 0) {
-                throw new RuntimeException("Sản phẩm " + getTenSanPhamSafe(spct) + " không đủ tồn khi trừ kho.");
+            // 🔹 COD, chuyển khoản thường... => trừ kho ngay
+            if (!isPendingPayment) {
+                int tonCu = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+                int newTon = tonCu - qty;
+                if (newTon < 0) {
+                    throw new RuntimeException("Sản phẩm " + getTenSanPhamSafe(spct) + " không đủ tồn khi trừ kho.");
+                }
+                spct.setSoLuongTon(newTon);
+                sanPhamChiTietRepo.save(spct);
             }
-            spct.setSoLuongTon(newTon);
-            sanPhamChiTietRepo.save(spct);
+            // 🔹 VNPay: KHÔNG trừ kho ở đây, để dành sang lúc VNPay báo thành công
 
             HoaDonChiTiet hdct = new HoaDonChiTiet();
             hdct.setHoaDon(hoaDon);
@@ -126,7 +133,10 @@ public class HoaDonServiceImpl implements HoaDonClientService {
 
             tongTienHang = tongTienHang.add(spct.getGiaBan().multiply(BigDecimal.valueOf(qty)));
         }
+
+
         hoaDon.setTongTienHang(tongTienHang);
+
 
 // Gán voucher lên hóa đơn (nếu có) để lưu
         if (giamGia != null) {
@@ -153,30 +163,29 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         hoaDon.setTongThanhToan(tongThanhToan.max(BigDecimal.ZERO));
 
 
-        // Attach chi tiết và lưu
         hoaDon.setHoaDonChiTiets(hoaDonChiTiets);
         HoaDon savedHoaDon = hoaDonRepo.save(hoaDon);
 
-        // Nếu không đang chờ thanh toán (ví dụ COD, hoặc thanh toán ngay) -> giảm lượt voucher (nếu có)
+        // Nếu không đang chờ thanh toán (ví dụ COD) -> giảm lượt voucher (nếu có)
         if (!isPendingPayment && giamGia != null) {
-            // Tăng an toàn: kiểm tra lại số lượng voucher trước khi giảm (đề phòng race)
             GiamGia gg = giamGiaRepository.findById(giamGia.getId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher khi xác nhận đơn"));
             if (gg.getSoLuong() != null && gg.getSoLuong() > 0) {
                 gg.setSoLuong(gg.getSoLuong() - 1);
                 giamGiaRepository.save(gg);
             } else {
-                // Nếu voucher hết (có thể bị dùng ở 1 order khác), rollback để thông báo
                 throw new RuntimeException("Voucher đã hết lượt sử dụng lúc xác nhận đơn. Vui lòng thử lại.");
             }
         }
 
-        // Xóa giỏ hàng nếu là user đăng nhập
-        if (khachHang != null) {
+        // Xóa giỏ hàng nếu là user đăng nhập (CHỈ cho COD)
+        if (!isPendingPayment && khachHang != null) {
             gioHangClientService.clearCart(khachHang);
         }
 
         return savedHoaDon;
+
+
     }
 
     // =========================
@@ -240,25 +249,34 @@ public class HoaDonServiceImpl implements HoaDonClientService {
 
         String old = hoaDon.getTrangThai() == null ? "" : hoaDon.getTrangThai().trim().toUpperCase();
 
-        // Chỉ cho huỷ khi đơn còn ở 2 trạng thái này
+// Chỉ cho huỷ khi đơn còn ở 2 trạng thái này
         if (!"CHO_XAC_NHAN".equals(old) && !"DANG_CHO_THANH_TOAN".equals(old)) {
             throw new RuntimeException("Đơn hàng đang được xử lý hoặc đã giao, không thể hủy.");
         }
 
-        // ✅ HOÀN KHO CHO MỌI ĐƠN ĐƯỢC HỦY
-        // có 2 cách, dùng list từ entity hoặc gọi repo, mình dùng repo cho chắc:
-        var chiTietList = hoaDonChiTietRepo.findByHoaDon_Id(hoaDonId);
+// Xác định có cần hoàn kho không
+        boolean isVnPay = hoaDon.getThanhToan() != null
+                && hoaDon.getThanhToan().getHinhThucThanhToan() != null
+                && hoaDon.getThanhToan().getHinhThucThanhToan().toLowerCase().contains("vnpay");
 
-        for (HoaDonChiTiet item : chiTietList) {
-            SanPhamChiTiet spct = item.getSanPhamChiTiet();
-            if (spct == null) continue;
+// Đơn VNPay ở trạng thái DANG_CHO_THANH_TOAN => chưa trừ tồn, KHÔNG hoàn kho
+        boolean canRefundStock = !(isVnPay && "DANG_CHO_THANH_TOAN".equals(old));
 
-            Integer tonCu = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
-            Integer soLuongHoan = item.getSoLuong() == null ? 0 : item.getSoLuong();
+        if (canRefundStock) {
+            var chiTietList = hoaDonChiTietRepo.findByHoaDon_Id(hoaDonId);
 
-            spct.setSoLuongTon(tonCu + soLuongHoan);
-            sanPhamChiTietRepo.save(spct);  // rõ ràng, dễ hiểu
+            for (HoaDonChiTiet item : chiTietList) {
+                SanPhamChiTiet spct = item.getSanPhamChiTiet();
+                if (spct == null) continue;
+
+                Integer tonCu = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
+                Integer soLuongHoan = item.getSoLuong() == null ? 0 : item.getSoLuong();
+
+                spct.setSoLuongTon(tonCu + soLuongHoan);
+                sanPhamChiTietRepo.save(spct);
+            }
         }
+
 
         // Cập nhật trạng thái + ghi chú
         hoaDon.setTrangThai("DA_HUY");
@@ -306,6 +324,67 @@ public class HoaDonServiceImpl implements HoaDonClientService {
 
         // TRẢ VỀ ĐƠN ĐÃ LƯU
         return hoaDonRepo.save(hoaDon);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void truTonKhoSauThanhToanThanhCong(Integer hoaDonId) {
+        HoaDon hoaDon = hoaDonRepo.findById(hoaDonId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn."));
+
+        String oldStatus = hoaDon.getTrangThai() == null
+                ? ""
+                : hoaDon.getTrangThai().trim().toUpperCase();
+
+        // Chỉ xử lý cho đơn đang CHỜ THANH TOÁN (VNPay)
+        if (!"DANG_CHO_THANH_TOAN".equals(oldStatus)) {
+            // tránh trừ kho nhiều lần
+            return;
+        }
+
+        // 1. Trừ tồn kho theo chi tiết hóa đơn
+        var chiTietList = hoaDonChiTietRepo.findByHoaDon_Id(hoaDonId);
+        for (HoaDonChiTiet item : chiTietList) {
+            SanPhamChiTiet spct = item.getSanPhamChiTiet();
+            if (spct == null) continue;
+
+            int ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
+            int qty = item.getSoLuong() == null ? 0 : item.getSoLuong();
+
+            if (ton < qty) {
+                throw new RuntimeException("Sản phẩm " + getTenSanPhamSafe(spct) + " không đủ tồn kho.");
+            }
+
+            spct.setSoLuongTon(ton - qty);
+            sanPhamChiTietRepo.save(spct);
+        }
+
+        // 2. Giảm lượt voucher (nếu có)
+        GiamGia giamGia = hoaDon.getGiamGia();
+        if (giamGia != null) {
+            GiamGia gg = giamGiaRepository.findById(giamGia.getId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy voucher khi xác nhận thanh toán."));
+            if (gg.getSoLuong() != null && gg.getSoLuong() > 0) {
+                gg.setSoLuong(gg.getSoLuong() - 1);
+                giamGiaRepository.save(gg);
+            } else {
+                throw new RuntimeException("Voucher đã hết lượt sử dụng lúc thanh toán. Vui lòng thử lại.");
+            }
+        }
+
+        // 3. Xóa giỏ hàng nếu là user đăng nhập
+        NguoiDung khachHang = hoaDon.getKhachHang();
+        if (khachHang != null) {
+            gioHangClientService.clearCart(khachHang);
+        }
+
+        // 4. Cập nhật trạng thái + ngày thanh toán
+        // (tuỳ business: nếu muốn chỉ là CHO_XAC_NHAN thì đổi "HOAN_THANH" -> "CHO_XAC_NHAN")
+        hoaDon.setTrangThai("HOAN_THANH");
+        hoaDon.setNgayThanhToan(LocalDateTime.now());
+
+        hoaDonRepo.save(hoaDon);
     }
 
 }

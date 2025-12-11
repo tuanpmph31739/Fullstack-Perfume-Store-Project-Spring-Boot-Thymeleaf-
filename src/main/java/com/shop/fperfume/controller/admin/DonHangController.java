@@ -53,23 +53,19 @@ public class DonHangController {
         return "admin/don_hang/index";
     }
 
-
     @GetMapping("/view/{id}")
     public String viewDonHang(@PathVariable("id") Integer id,
                               Model model,
                               HttpServletRequest request,
                               RedirectAttributes redirectAttributes) {
         try {
-            // Lấy thông tin đơn hàng (dto)
             DonHangResponse donHang = donHangService.getById(id);
             model.addAttribute("donHang", donHang);
 
-            // Lấy danh sách chi tiết đơn hàng (sản phẩm, số lượng, đơn giá...)
             List<HoaDonChiTiet> chiTietList =
                     hoaDonChiTietRepository.findByHoaDon_Id_WithSanPham(id);
             model.addAttribute("chiTietList", chiTietList);
 
-            // URL quay lại trang trước
             String referer = request.getHeader("Referer");
             model.addAttribute("backUrl", referer != null ? referer : "/admin/don-hang");
 
@@ -80,21 +76,30 @@ public class DonHangController {
             return "redirect:/admin/don-hang";
         }
     }
+
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Integer id,
                                Model model,
                                HttpServletRequest request,
                                RedirectAttributes redirectAttributes) {
         try {
-            // Lấy thông tin đơn hàng (dto hoặc entity)
-            DonHangResponse donHang = donHangService.getById(id);  // Đây là dto chứa thông tin đơn hàng
-            model.addAttribute("donHang", donHang);  // Đảm bảo add vào model
+            // Thông tin đơn hàng (DTO)
+            DonHangResponse donHang = donHangService.getById(id);
+            model.addAttribute("donHang", donHang);
 
-            // Để bấm "Quay lại" vẫn về đúng trang trước
+            // ✅ danh sách sản phẩm trong đơn
+            List<HoaDonChiTiet> chiTietList =
+                    hoaDonChiTietRepository.findByHoaDon_Id_WithSanPham(id);
+            model.addAttribute("chiTietList", chiTietList);
+
+            // ✅ danh sách trạng thái được phép chuyển tới
+            var allowedTrangThais = donHangService.getAllowedNextTrangThais(donHang.getTrangThai());
+            model.addAttribute("allowedTrangThais", allowedTrangThais);
+
             String referer = request.getHeader("Referer");
             model.addAttribute("backUrl", referer != null ? referer : "/admin/don-hang");
             model.addAttribute("currentPath", "/admin/don-hang");
-            return "admin/don_hang/edit";  // Trỏ tới file edit.html
+            return "admin/don_hang/edit";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy đơn hàng!");
             return "redirect:/admin/don-hang";

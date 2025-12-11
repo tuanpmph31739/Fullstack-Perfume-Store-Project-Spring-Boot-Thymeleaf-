@@ -3,9 +3,14 @@ package com.shop.fperfume.controller.client;
 import com.shop.fperfume.config.VNPayConfig;
 import com.shop.fperfume.entity.GiamGia;
 import com.shop.fperfume.entity.HoaDon;
+import com.shop.fperfume.entity.HoaDonChiTiet;
+import com.shop.fperfume.entity.SanPhamChiTiet;
 import com.shop.fperfume.repository.GiamGiaRepository;
+import com.shop.fperfume.repository.HoaDonChiTietRepository;
 import com.shop.fperfume.repository.HoaDonRepository;
+import com.shop.fperfume.repository.SanPhamChiTietRepository;
 import com.shop.fperfume.service.client.GioHangClientService;
+import com.shop.fperfume.service.client.HoaDonClientService;
 import com.shop.fperfume.service.client.VnPayService;
 import com.shop.fperfume.security.CustomUserDetails;
 
@@ -42,6 +47,17 @@ public class PaymentController {
 
     @Autowired
     private GioHangClientService gioHangClientService;
+
+    @Autowired
+    private HoaDonClientService hoaDonClientService;
+
+    @Autowired
+    private HoaDonChiTietRepository hoaDonChiTietRepo;
+
+    @Autowired
+    private SanPhamChiTietRepository sanPhamChiTietRepo;
+
+
 
     @GetMapping("/vnpay/return")
     public String vnpayReturn(HttpServletRequest request, Model model, HttpSession session) {
@@ -96,21 +112,44 @@ public class PaymentController {
 
         if ("00".equals(responseCode)) {
 
-            // CHỈ cập nhật khi đơn đang chờ thanh toán
+            // CHỈ xử lý nếu đơn vẫn đang chờ thanh toán
             if ("DANG_CHO_THANH_TOAN".equals(hoaDon.getTrangThai())) {
 
-                hoaDon.setTrangThai("HOAN_THANH");
+                // ✅ 1. TRỪ KHO Ở ĐÂY CHO VNPAY
+                var chiTietList = hoaDonChiTietRepo.findByHoaDon_Id(hoaDon.getId());
+                for (HoaDonChiTiet item : chiTietList) {
+                    SanPhamChiTiet spct = item.getSanPhamChiTiet();
+                    if (spct == null) continue;
+
+                    int tonCu    = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
+                    int soLuong  = item.getSoLuong() == null ? 0 : item.getSoLuong();
+
+                    // Nếu vì lý do gì đó tồn đã không đủ thì báo lỗi
+                    if (tonCu < soLuong) {
+                        model.addAttribute("errorMessage",
+                                "Sản phẩm "
+                                        + (spct.getSanPham() != null ? spct.getSanPham().getTenNuocHoa() : ("ID " + spct.getId()))
+                                        + " không đủ tồn kho khi thanh toán VNPay.");
+                        return "client/payment_failure";
+                    }
+
+                    spct.setSoLuongTon(tonCu - soLuong);
+                    sanPhamChiTietRepo.save(spct);
+                }
+
+                // ✅ 2. CẬP NHẬT TRẠNG THÁI ĐƠN & NGÀY THANH TOÁN
+                hoaDon.setTrangThai("CHO_XAC_NHAN"); // đã thanh toán, chờ shop xác nhận / chuẩn bị đơn
                 hoaDon.setNgayThanhToan(java.time.LocalDateTime.now());
                 hoaDonRepository.save(hoaDon);
 
-                // 🔥🔥 TRỪ MÃ GIẢM GIÁ
+                // ✅ 3. TRỪ MÃ GIẢM GIÁ (nếu có)
                 GiamGia giamGia = hoaDon.getGiamGia();
                 if (giamGia != null && giamGia.getSoLuong() > 0) {
                     giamGia.setSoLuong(giamGia.getSoLuong() - 1);
                     giamGiaRepository.save(giamGia);
                 }
 
-                // Xóa giỏ hàng
+                // ✅ 4. XÓA GIỎ HÀNG
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.getPrincipal() instanceof CustomUserDetails user) {
                     gioHangClientService.clearCart(user.getUser());
@@ -120,6 +159,7 @@ public class PaymentController {
 
             return "redirect:/order/success/" + hoaDon.getId();
         }
+
 
         model.addAttribute("errorMessage", "Thanh toán thất bại! Mã lỗi: " + responseCode);
         return "client/payment_failure";
