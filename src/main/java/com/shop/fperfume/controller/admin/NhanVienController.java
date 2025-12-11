@@ -38,6 +38,7 @@ public class NhanVienController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
+        model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/index"; // Trỏ về view riêng
     }
 
@@ -46,17 +47,19 @@ public class NhanVienController {
         NguoiDung nd = new NguoiDung();
         nd.setVaiTro("NHANVIEN"); // Mặc định vai trò
         model.addAttribute("nguoiDung", nd);
+        model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/form";
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable Long id, Model model) {
         model.addAttribute("nguoiDung", service.getById(id).orElseThrow());
+        model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/form";
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect) {
+    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect, Model model) {
         nguoiDung.setVaiTro("NHANVIEN"); // Cố định vai trò
 
         // Check email trùng
@@ -68,6 +71,7 @@ public class NhanVienController {
 
         service.save(nguoiDung);
         redirect.addFlashAttribute("success", "Lưu nhân viên thành công!");
+        model.addAttribute("currentPath", "/admin/nhan-vien");
         return "redirect:/admin/nhan-vien";
     }
 

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,4 +36,14 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
                                 @Param("loaiGiam") String loaiGiam,
                                 @Param("trangThai") Boolean trangThai,
                                 Pageable pageable);
+
+    @Query("""
+        SELECT g FROM GiamGia g
+        WHERE (g.trangThai = true)
+          AND (g.ngayBatDau IS NULL OR g.ngayBatDau <= :now)
+          AND (g.ngayKetThuc IS NULL OR g.ngayKetThuc >= :now)
+          AND (g.soLuong IS NULL OR g.soLuong > 0)
+        """)
+    List<GiamGia> findAllActive(@Param("now") LocalDateTime now);
+
 }

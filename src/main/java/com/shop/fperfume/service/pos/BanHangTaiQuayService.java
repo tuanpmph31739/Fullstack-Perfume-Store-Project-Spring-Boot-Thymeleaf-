@@ -315,13 +315,6 @@ public class BanHangTaiQuayService {
 
     }
 
-    /**
-     * Tính và cập nhật lại tổng tiền cho hóa đơn.
-     * - Tính tongTienHang từ chi tiết
-     * - Lấy phiShip
-     * - Nếu hoaDon.getGiamGia() != null => tính tienGiamGia đúng phạm vi bằng helper
-     * - Cập nhật hoaDon.tongThanhToan = tongTienHang + phiShip - tienGiamGia (không âm)
-     */
     private void updateTongTienHoaDon(HoaDon hoaDon) {
         if (hoaDon == null) return;
 
@@ -386,14 +379,6 @@ public class BanHangTaiQuayService {
         }
     }
 
-    /**
-     * Tính số tiền giảm thực tế dựa trên loại giảm và cap GiamToiDa:
-     * - PERCENT: subtotal * (giaTri / 100)
-     * - AMOUNT: giaTri (cố định)
-     * Sau đó:
-     * - nếu giamToiDa != null -> cap = min(cap,giamToiDa)
-     * - trả về min(result, subtotal) (không vượt quá phần áp dụng)
-     */
     private BigDecimal calculateDiscountAmount(GiamGia giamGia, BigDecimal subtotalApDung) {
         if (giamGia == null || subtotalApDung == null) return BigDecimal.ZERO;
 
@@ -426,5 +411,40 @@ public class BanHangTaiQuayService {
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
+    }
+
+    public List<GiamGia> findVoucherPhuHopChoHoaDon(HoaDon hoaDon, List<HoaDonChiTiet> chiTiets) {
+        if (hoaDon == null || chiTiets == null || chiTiets.isEmpty()) {
+            return List.of();
+        }
+
+        // Lấy toàn bộ voucher đang hoạt động
+        LocalDateTime now = LocalDateTime.now();
+        List<GiamGia> allActive = giamGiaRepo.findAllActive(now);
+
+        return allActive.stream()
+                .filter(v -> isVoucherApDungChoGioHang(v, chiTiets))
+                .toList();
+    }
+
+    private boolean isVoucherApDungChoGioHang(GiamGia giamGia, List<HoaDonChiTiet> chiTiets) {
+        // tính tổng tiền áp dụng theo phạm vi
+        BigDecimal tongTienApDung = calculateApplicableSubtotal(giamGia, chiTiets);
+        if (tongTienApDung.compareTo(BigDecimal.ZERO) <= 0) {
+            // nếu áp cho 1 sản phẩm mà giỏ không có sản phẩm đó thì = 0
+            return false;
+        }
+
+        // Kiểm tra điều kiện đơn tối thiểu (nếu có)
+        if (giamGia.getDonHangToiThieu() != null
+                && giamGia.getDonHangToiThieu().compareTo(BigDecimal.ZERO) > 0) {
+            if (tongTienApDung.compareTo(giamGia.getDonHangToiThieu()) < 0) {
+                return false;
+            }
+        }
+
+        // Bạn có thể bổ sung thêm các điều kiện khác ở đây nếu cần
+
+        return true;
     }
 }
