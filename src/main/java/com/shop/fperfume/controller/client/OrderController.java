@@ -48,12 +48,18 @@ public class OrderController {
         checkoutRequest.setIdThanhToan(1L);
 
         if (userDetails != null) {
-            NguoiDung khachHang = userDetails.getUser();
+
+            Long userId = userDetails.getUser().getId();
+            NguoiDung khachHang = nguoiDungRepository.findById(userId)
+                    .orElse(userDetails.getUser());
+
             cart = gioHangClientService.getCartByUser(khachHang);
             checkoutRequest.setTenNguoiNhan(khachHang.getHoTen());
             checkoutRequest.setSdt(khachHang.getSdt());
             checkoutRequest.setDiaChi(khachHang.getDiaChi());
             checkoutRequest.setEmail(khachHang.getEmail());
+
+            model.addAttribute("isLoggedIn", true);
 
         } else {
             @SuppressWarnings("unchecked")
@@ -72,11 +78,10 @@ public class OrderController {
         model.addAttribute("tienGiamGia", cartData.get("tienGiamGia"));
         model.addAttribute("tongThanhToan", cartData.get("tongThanhToan"));
         model.addAttribute("checkoutForm", checkoutRequest);
-        model.addAttribute("isLoggedIn", userDetails != null);
-
 
         return "client/checkout";
     }
+
 
     @PostMapping("/submit")
     public Object submitOrder(
