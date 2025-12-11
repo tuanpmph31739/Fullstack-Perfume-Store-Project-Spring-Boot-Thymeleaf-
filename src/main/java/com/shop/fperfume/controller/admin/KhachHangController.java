@@ -37,6 +37,7 @@ public class KhachHangController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
+        model.addAttribute("currentPath", "/admin/khach-hang");
         // Trả về view riêng cho khách hàng
         return "admin/khach_hang/index";
     }
@@ -44,17 +45,19 @@ public class KhachHangController {
     @GetMapping("/add")
     public String add(Model model) {
         model.addAttribute("nguoiDung", new NguoiDung());
+        model.addAttribute("currentPath", "/admin/khach-hang");
         return "admin/khach_hang/form";
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable Long id, Model model) {
         model.addAttribute("nguoiDung", service.getById(id).orElseThrow());
+        model.addAttribute("currentPath", "/admin/khach-hang");
         return "admin/khach_hang/form";
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect) {
+    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect, Model model) {
         // Cố định vai trò là KHACHHANG
         nguoiDung.setVaiTro("KHACHHANG");
 
@@ -66,6 +69,7 @@ public class KhachHangController {
 
         service.save(nguoiDung);
         redirect.addFlashAttribute("success", "Lưu khách hàng thành công!");
+        model.addAttribute("currentPath", "/admin/khach-hang");
         return "redirect:/admin/khach-hang";
     }
 

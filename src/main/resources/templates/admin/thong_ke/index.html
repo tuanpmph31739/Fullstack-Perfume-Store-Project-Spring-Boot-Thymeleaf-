@@ -12,7 +12,6 @@
         <!-- HEADER -->
         <header th:replace="~{/admin/fragments/header :: header('Thống kê')}"></header>
 
-
         <div class="page-content">
 
             <!-- CSS nhỏ -->
@@ -22,67 +21,103 @@
                     border: none;
                     box-shadow: 0 2px 6px rgba(15,23,42,0.08);
                 }
+
                 .stat-value {
                     font-size: 20px;
                     font-weight: 700;
                 }
+
                 .chart-card {
                     border-radius: 14px;
                     border: none;
                     box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+                }
+
+                .section-title {
+                    font-weight: 600;
+                    font-size: 18px;
                 }
             </style>
 
             <section class="row">
                 <div class="col-12">
 
-                    <!-- Bộ lọc ngày -->
+                    <!-- BỘ LỌC THỐNG KÊ -->
                     <div class="card stat-card mb-3">
                         <div class="card-body">
-                            <form class="row g-2 align-items-end" method="get">
+                            <!-- Tiêu đề -->
+                            <div class="section-title mb-3">Bộ Lọc Thống Kê</div>
+
+                            <form class="row g-2 align-items-end" method="get" th:action="@{/admin/thong-ke}">
+                                <!-- 1. Kênh bán -->
+                                <div class="col-md-3">
+                                    <label class="form-label">Kênh bán</label>
+                                    <select class="form-select form-select-sm" name="kenhBan">
+                                        <option value=""
+                                                th:selected="${kenhBan == null or kenhBan == ''}">
+                                            Tất cả kênh
+                                        </option>
+                                        <option value="WEB"
+                                                th:selected="${kenhBan == 'WEB'}">
+                                            Đơn Website
+                                        </option>
+                                        <option value="TAI_QUAY"
+                                                th:selected="${kenhBan == 'TAI_QUAY'}">
+                                            Đơn bán tại quầy
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- 2. Từ ngày -->
                                 <div class="col-md-3">
                                     <label class="form-label">Từ ngày</label>
                                     <input type="date"
-                                           class="form-control"
+                                           class="form-control form-control-sm"
                                            name="from"
                                            th:value="${fromDate}">
                                 </div>
+
+                                <!-- 3. Đến ngày -->
                                 <div class="col-md-3">
                                     <label class="form-label">Đến ngày</label>
                                     <input type="date"
-                                           class="form-control"
+                                           class="form-control form-control-sm"
                                            name="to"
                                            th:value="${toDate}">
                                 </div>
+
+                                <!-- 4. Nút Lọc + Xóa lọc + mô tả khoảng thời gian -->
                                 <div class="col-md-3">
-                                    <button class="btn btn-primary mt-3" type="submit">
-                                        <i class="bi bi-funnel"></i> Lọc
-                                    </button>
-                                </div>
-                                <div class="col-md-3 text-end d-none d-md-block">
-                                    <span class="text-muted small">
-                                        Khoảng thời gian:
+                                    <div class="text-muted small text-md-end mb-3">
+                                        Khoảng:
                                         <strong th:text="${fromDate}"></strong>
                                         -
                                         <strong th:text="${toDate}"></strong>
-                                    </span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary btn-sm flex-fill" type="submit">
+                                            <i class="bi bi-funnel"></i> Lọc
+                                        </button>
+                                        <a th:href="@{/admin/thong-ke}"
+                                           class="btn btn-outline-secondary btn-sm flex-fill">
+                                            <i class="bi bi-x-lg"></i> Xóa
+                                        </a>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- Thẻ tổng quan -->
+                    <!-- THẺ TỔNG QUAN (GIỐNG HÀNG CARD TRÊN DASHBOARD) -->
                     <div class="row mb-3">
-                        <div class="col-md-4">
-                            <div class="card stat-card">
+                        <div class="col-md-4 mb-2">
+                            <div class="card stat-card h-100">
                                 <div class="card-body">
+                                    <div class="text-muted small mb-1">Tổng doanh thu</div>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="text-muted small">Tổng doanh thu</div>
-                                            <div class="stat-value text-primary"
-                                                 th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
-                                                0 đ
-                                            </div>
+                                        <div class="stat-value text-primary"
+                                             th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
+                                            0 đ
                                         </div>
                                         <div class="text-primary fs-2">
                                             <i class="bi bi-cash-stack"></i>
@@ -92,16 +127,14 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <div class="card stat-card">
+                        <div class="col-md-4 mb-2">
+                            <div class="card stat-card h-100">
                                 <div class="card-body">
+                                    <div class="text-muted small mb-1">Số đơn đã thanh toán</div>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="text-muted small">Số đơn đã thanh toán</div>
-                                            <div class="stat-value"
-                                                 th:text="${tongQuan.tongDonThanhToan}">
-                                                0
-                                            </div>
+                                        <div class="stat-value"
+                                             th:text="${tongQuan.tongDonThanhToan}">
+                                            0
                                         </div>
                                         <div class="text-success fs-2">
                                             <i class="bi bi-bag-check"></i>
@@ -111,16 +144,26 @@
                             </div>
                         </div>
 
-                        <!-- Bạn có thể thêm 1 thẻ nữa: đơn trung bình / ngày, v.v -->
+                        <!-- Nếu sau này có thêm chỉ số (lợi nhuận, doanh thu trung bình) thì clone card này -->
+                        <div class="col-md-4 mb-2">
+                            <div class="card stat-card h-100">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-muted small mb-1">Ghi chú</div>
+                                    <div class="small text-muted">
+                                        Các chỉ số hiển thị dựa trên khoảng thời gian đã chọn.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Biểu đồ & Top sản phẩm -->
-                    <div class="row">
+                    <!-- HÀNG BIỂU ĐỒ: LINE + PIE -->
+                    <div class="row mb-3">
                         <!-- Chart doanh thu -->
                         <div class="col-lg-8 mb-3">
-                            <div class="card chart-card">
-                                <div class="card-header">
-                                    Doanh thu theo ngày
+                            <div class="card chart-card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>Doanh thu theo ngày</span>
                                 </div>
                                 <div class="card-body">
                                     <canvas id="chartDoanhThuNgay" style="max-height: 340px;"></canvas>
@@ -128,32 +171,97 @@
                             </div>
                         </div>
 
-                        <!-- Top sản phẩm -->
+                        <!-- Pie Top sản phẩm -->
                         <div class="col-lg-4 mb-3">
-                            <div class="card chart-card">
+                            <div class="card chart-card h-100">
+                                <div class="card-header">
+                                    Phân bố Top sản phẩm bán chạy
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartTopSP" style="max-height: 260px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HÀNG BẢNG DỮ LIỆU Ở DƯỚI: TỔNG HỢP + TOP SP (NGAY BÊN DƯỚI BIỂU ĐỒ PIE) -->
+                    <div class="row">
+                        <!-- Bảng tổng hợp chỉ số (bên trái) -->
+                        <div class="col-lg-8 mb-3">
+                            <div class="card chart-card h-100">
+                                <div class="card-header">
+                                    Bảng tổng hợp chỉ số
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th>Chỉ tiêu</th>
+                                                <th class="text-end">Giá trị</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>Tổng doanh thu</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(tongQuan.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Số đơn đã thanh toán</td>
+                                                <td class="text-end"
+                                                    th:text="${tongQuan.tongDonThanhToan}">
+                                                    0
+                                                </td>
+                                            </tr>
+                                            <!-- Có thể bổ sung thêm các dòng khác sau này -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top sản phẩm bán chạy (bên phải, ngay dưới pie) -->
+                        <div class="col-lg-4 mb-3">
+                            <div class="card chart-card h-100">
                                 <div class="card-header">
                                     Top sản phẩm bán chạy
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="chartTopSP" style="max-height: 260px;"></canvas>
-
-                                    <hr>
                                     <div class="table-responsive">
                                         <table class="table table-sm align-middle mb-0">
                                             <thead>
                                             <tr>
                                                 <th>Sản phẩm</th>
                                                 <th class="text-end">SL bán</th>
+                                                <th class="text-end">Doanh thu</th>
                                             </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody id="topSpTbody">
                                             <tr th:each="sp : ${listTopSP}">
-                                                <td th:text="${sp.tenSanPham}">Tên nước hoa</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <img th:if="${sp.hinhAnh != null}"
+                                                             th:src="@{'/images/uploads/' + ${sp.hinhAnh}}"
+                                                             alt="Ảnh sản phẩm"
+                                                             class="rounded"
+                                                             style="width:40px; height:40px; object-fit:cover;">
+                                                        <div>
+                                                            <div class="fw-semibold" th:text="${sp.tenSanPham}">Tên nước hoa</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end" th:text="${sp.tongSoLuong}">0</td>
                                                 <td class="text-end"
-                                                    th:text="${sp.tongSoLuong}">0</td>
+                                                    th:text="${#numbers.formatDecimal(sp.tongDoanhThu,0,'COMMA',0,'POINT')} + ' đ'">
+                                                    0 đ
+                                                </td>
                                             </tr>
-                                            <tr th:if="${#lists.isEmpty(listTopSP)}">
-                                                <td colspan="2" class="text-center text-muted">
+                                            <tr th:if="${#lists.isEmpty(listTopSP)}" class="no-data-row">
+                                                <td colspan="3" class="text-center text-muted">
                                                     Chưa có dữ liệu trong khoảng thời gian này.
                                                 </td>
                                             </tr>
@@ -161,10 +269,15 @@
                                         </table>
                                     </div>
 
+                                    <!-- Phân trang Top SP (5 dòng/trang) -->
+                                    <nav class="mt-2" th:if="${not #lists.isEmpty(listTopSP)}">
+                                        <ul class="pagination pagination-sm justify-content-center mb-0" id="topSpPagination"></ul>
+                                    </nav>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                 </div>
             </section>
@@ -185,10 +298,10 @@
 <!-- Script dựng biểu đồ từ model -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    const labelsNgay = [[${labelsNgay}]];
+    const labelsNgay   = [[${labelsNgay}]];
     const dataDoanhThu = [[${dataDoanhThu}]];
-    const labelsTopSP = [[${labelsTopSP}]];
-    const dataTopSP = [[${dataTopSP}]];
+    const labelsTopSP  = [[${labelsTopSP}]];
+    const dataTopSP    = [[${dataTopSP}]];
 
     // LINE CHART - DOANH THU NGÀY
     const ctx1 = document.getElementById('chartDoanhThuNgay');
@@ -207,6 +320,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true
@@ -216,31 +330,141 @@
         });
     }
 
-    // BAR CHART - TOP SẢN PHẨM
+
     const ctx2 = document.getElementById('chartTopSP');
     if (ctx2 && labelsTopSP && labelsTopSP.length > 0) {
+
+        // Chỉ lấy TOP 5 sản phẩm cho biểu đồ tròn
+        const MAX_PIE_ITEMS = 5;
+        const labelsTopSPPie = labelsTopSP.slice(0, MAX_PIE_ITEMS);
+        const dataTopSPPie   = dataTopSP.slice(0, MAX_PIE_ITEMS);
+
+        // Tạo màu HSL khác nhau cho từng sản phẩm trong pie
+        const pieColors = labelsTopSPPie.map((_, idx) => {
+            const hue = (idx * 40) % 360;
+            const sat = 70;
+            const light = 55;
+            return `hsl(${hue}, ${sat}%, ${light}%)`;
+        });
+
         new Chart(ctx2, {
-            type: 'bar',
+            type: 'pie',
             data: {
-                labels: labelsTopSP,
+                labels: labelsTopSPPie,
                 datasets: [{
                     label: 'Số lượng bán',
-                    data: dataTopSP,
-                    borderWidth: 1
+                    data: dataTopSPPie,
+                    borderWidth: 1,
+                    backgroundColor: pieColors,
+                    borderColor: '#ffffff'
                 }]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
-                scales: {
-                    x: {
-                        beginAtZero: true
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
                     }
                 }
             }
         });
     }
-    /*]]>*/
+
+    // PHÂN TRANG TOP SẢN PHẨM (5 DÒNG / PAGE)
+    (function () {
+        const pageSize = 5;
+        const tbody = document.getElementById("topSpTbody");
+        const pager = document.getElementById("topSpPagination");
+
+        if (!tbody || !pager) return;
+
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        if (rows.length === 0) return;
+
+        // Loại bỏ dòng "Chưa có dữ liệu" khỏi phân trang (nếu có)
+        const dataRows = rows.filter(r => !r.classList.contains("no-data-row"));
+
+        // Nếu <= 5 dòng thì không cần phân trang, nên không hiển thị nút
+        if (dataRows.length === 0 || dataRows.length <= pageSize) {
+            return;
+        }
+
+        let currentPage = 1;
+        const totalPages = Math.ceil(dataRows.length / pageSize);
+
+        function renderPage(page) {
+            currentPage = page;
+
+            // Ẩn tất cả row
+            dataRows.forEach(r => r.style.display = "none");
+
+            const start = (page - 1) * pageSize;
+            const end = start + pageSize;
+
+            dataRows.slice(start, end).forEach(r => {
+                r.style.display = "";
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            pager.innerHTML = "";
+
+            // Prev
+            const liPrev = document.createElement("li");
+            liPrev.className = "page-item" + (currentPage === 1 ? " disabled" : "");
+            const aPrev = document.createElement("a");
+            aPrev.className = "page-link";
+            aPrev.href = "#";
+            aPrev.textContent = "«";
+            aPrev.onclick = function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    renderPage(currentPage - 1);
+                }
+            };
+            liPrev.appendChild(aPrev);
+            pager.appendChild(liPrev);
+
+            // Số trang
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement("li");
+                li.className = "page-item" + (i === currentPage ? " active" : "");
+                const a = document.createElement("a");
+                a.className = "page-link";
+                a.href = "#";
+                a.textContent = i;
+                a.onclick = function (e) {
+                    e.preventDefault();
+                    renderPage(i);
+                };
+                li.appendChild(a);
+                pager.appendChild(li);
+            }
+
+            // Next
+            const liNext = document.createElement("li");
+            liNext.className = "page-item" + (currentPage === totalPages ? " disabled" : "");
+            const aNext = document.createElement("a");
+            aNext.className = "page-link";
+            aNext.href = "#";
+            aNext.textContent = "»";
+            aNext.onclick = function (e) {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    renderPage(currentPage + 1);
+                }
+            };
+            liNext.appendChild(aNext);
+            pager.appendChild(liNext);
+        }
+
+        // Khởi tạo trang 1
+        renderPage(1);
+    })();
+
 </script>
 
 </body>

@@ -59,6 +59,8 @@ public class BanHangTaiQuayController {
         model.addAttribute("idHD", idHD);
         model.addAttribute("hoaDon", hoaDonHienTai);
         model.addAttribute("gioHang", gioHang);
+        List<GiamGia> listVoucherPhuHop = banHangService.findVoucherPhuHopChoHoaDon(hoaDonHienTai, gioHang);
+        model.addAttribute("listVoucherPhuHop", listVoucherPhuHop);
 
         // 4. Xử lý tải khách hàng cho modal
         List<NguoiDung> customerResults;

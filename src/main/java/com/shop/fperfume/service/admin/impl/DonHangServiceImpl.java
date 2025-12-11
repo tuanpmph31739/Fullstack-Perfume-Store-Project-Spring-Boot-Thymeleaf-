@@ -126,6 +126,10 @@ public class DonHangServiceImpl implements DonHangService {
         boolean wasCancelled = "DA_HUY".equals(old);
         boolean isCancelled  = "DA_HUY".equals(neo);
 
+        // ✅ thêm cặp flag cho trạng thái HOÀN THÀNH
+        boolean wasCompleted = "HOAN_THANH".equals(old);
+        boolean isCompleted  = "HOAN_THANH".equals(neo);
+
         // 1) ACTIVE -> HỦY  => HOÀN KHO
         if (!wasCancelled && isCancelled && hoaDon.getHoaDonChiTiets() != null) {
             for (HoaDonChiTiet ct : hoaDon.getHoaDonChiTiets()) {
@@ -135,6 +139,11 @@ public class DonHangServiceImpl implements DonHangService {
                     spct.setSoLuongTon(ton + ct.getSoLuong());
                     // sanPhamChiTietRepository.save(spct);
                 }
+            }
+
+            // ✅ nếu từ HOAN_THANH chuyển sang DA_HUY -> bỏ ngày thanh toán
+            if (wasCompleted) {
+                hoaDon.setNgayThanhToan(null);
             }
         }
 
@@ -155,6 +164,21 @@ public class DonHangServiceImpl implements DonHangService {
             }
         }
 
+        // ✅ 3) XỬ LÝ NGÀY THANH TOÁN THEO TRẠNG THÁI HOÀN THÀNH
+
+        // Từ trạng thái không phải HOAN_THANH -> HOAN_THANH
+        if (!wasCompleted && isCompleted) {
+            if (hoaDon.getNgayThanhToan() == null) {
+                hoaDon.setNgayThanhToan(LocalDateTime.now());
+            }
+        }
+
+        // Từ HOAN_THANH -> trạng thái khác (không gồm DA_HUY đã clear ở trên)
+        if (wasCompleted && !isCompleted && !isCancelled) {
+            // Đơn không còn được coi là hoàn tất nữa -> không tính doanh thu
+            hoaDon.setNgayThanhToan(null);
+        }
+
         // Cập nhật thông tin khác
         hoaDon.setTenNguoiNhan(tenNguoiNhan);
         hoaDon.setSdt(sdt);
@@ -164,8 +188,5 @@ public class DonHangServiceImpl implements DonHangService {
 
         donHangRepository.save(hoaDon);
     }
-
-
-
 
 }

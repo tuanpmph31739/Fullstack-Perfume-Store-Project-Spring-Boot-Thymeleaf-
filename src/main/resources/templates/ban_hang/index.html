@@ -102,9 +102,12 @@
 
             <section class="row">
                 <div class="col-12">
-                    <div class="container-fluid pos-wrapper">
+                    <div class="container-fluid pos-wrapper"
+                         id="posRoot"
+                         th:attr="data-order-id=${idHD}">
 
-                        <!-- HÀNG 1: TAB HÓA ĐƠN + TẠO ĐƠN -->
+
+                    <!-- HÀNG 1: TAB HÓA ĐƠN + TẠO ĐƠN -->
                         <div class="row mb-3">
                             <div class="col-12">
                                 <div class="pos-header-box py-2 px-3 d-flex justify-content-between align-items-center">
@@ -116,7 +119,7 @@
                                             <a th:href="@{/admin/ban-hang-tai-quay(idHD=${hd.id})}"
                                                class="order-tab text-decoration-none"
                                                th:classappend="${hd.id == idHD} ? ' active' : ' inactive'">
-                                                <span th:text="'Đơn ' + ${iterStat.index + 1}">Đơn 1</span>
+                                                <span th:text="${hd.ma}">HD-XXXXXX</span>
                                             </a>
                                             <form th:action="@{'/admin/ban-hang-tai-quay/xoa-hoa-don/' + ${hd.id}}"
                                                   method="post"
@@ -127,18 +130,22 @@
                                                 </button>
                                             </form>
                                         </div>
+
                                     </div>
 
 
                                     <!-- Nút thêm hóa đơn -->
                                     <div>
                                         <!-- Khi CHƯA đạt 7 đơn -->
-                                        <form method="post" th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}"
-                                              th:if="${#lists.size(listHoaDon) < 7}">
-                                            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                                        <form method="post"
+                                              th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}"
+                                              th:if="${#lists.size(listHoaDon) < 7}"
+                                              class="ajax-pos-form">
+                                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
                                                 <i class="bi bi-plus-circle"></i> Thêm đơn mới
                                             </button>
                                         </form>
+
 
                                         <!-- Khi ĐÃ đạt 7 đơn -->
                                         <button class="btn btn-secondary d-flex align-items-center gap-1" type="button"
@@ -204,7 +211,6 @@
 
                                                 </div>
 
-                                                <!-- SỐ ĐIỆN THOẠI -->
                                                 <div class="col-md-3">
                                                     <label class="text-small text-muted mb-1">Số điện thoại</label>
                                                     <input type="text"
@@ -213,12 +219,16 @@
                                                            form="formThanhToan"
                                                            class="form-control form-control-sm"
                                                            placeholder="VD: 0901234567"
+                                                           pattern="^0\\d{9}$"
+                                                           maxlength="10"
                                                            th:value="${
                                                                hoaDon != null && hoaDon.khachHang != null
                                                                    ? hoaDon.khachHang.sdt
                                                                    : (sdtTmp != null ? sdtTmp : '')
                                                            }"/>
+                                                    <div id="posSdtError" class="text-danger text-small mt-1"></div>
                                                 </div>
+
 
                                                 <!-- EMAIL -->
                                                 <div class="col-md-3">
@@ -444,6 +454,12 @@
                                                 <tbody>
                                                 <tr th:each="item : ${gioHang}">
                                                     <td>
+                                                        <img th:if="${item.sanPhamChiTiet.getHinhAnh()}"
+                                                             th:src="@{'/images/uploads/' + ${item.sanPhamChiTiet.getHinhAnh()}}"
+                                                             style="max-width:50px">
+                                                        <span th:unless="${item.sanPhamChiTiet.getHinhAnh()}">---</span>
+                                                    </td>
+                                                    <td>
                                                         <div class="fw-semibold"
                                                              th:text="${item.sanPhamChiTiet.sanPham.tenNuocHoa}">
                                                             Tên sản phẩm
@@ -542,18 +558,44 @@
                                                        value="Tiền mặt" readonly>
                                             </div>
 
-                                            <!-- VOUCHER -->
                                             <div class="mb-2">
                                                 <label class="text-small text-muted mb-1">Phiếu giảm giá</label>
                                                 <div class="d-flex gap-2">
+
                                                     <form th:action="@{/admin/ban-hang-tai-quay/apply-voucher}"
                                                           method="post"
-                                                          class="d-flex flex-grow-1 gap-2">
-                                                        <input type="hidden" name="idHD" th:value="${idHD}"/>
-                                                        <input type="text" name="maGiamGia"
+                                                          class="d-flex flex-grow-1 gap-2 sync-customer-form">
+                                                    <input type="hidden" name="idHD" th:value="${idHD}"/>
+
+                                                        <!-- Hidden để sync info khách (nếu muốn gửi kèm) -->
+                                                        <input type="hidden" name="hoTen">
+                                                        <input type="hidden" name="sdt">
+                                                        <input type="hidden" name="email">
+                                                        <input type="hidden" name="diaChi">
+
+                                                        <!-- Ô nhập / chọn mã giảm giá -->
+                                                        <input type="text"
+                                                               name="maGiamGia"
                                                                class="form-control form-control-sm"
-                                                               placeholder="Nhập mã giảm giá..."
+                                                               placeholder="Nhập hoặc chọn mã giảm giá..."
+                                                               list="voucherSuggestions"
                                                                th:value="${hoaDon.giamGia?.ma}"/>
+
+                                                        <!-- Dropdown gợi ý các voucher phù hợp -->
+                                                        <datalist id="voucherSuggestions">
+                                                            <option th:each="vc : ${listVoucherPhuHop}"
+                                                                    th:value="${vc.ma}"
+                                                                    th:text="${vc.ma
+                      + ' - '
+                      + (vc.ten != null ? vc.ten : '')
+                      + (vc.sanPhamChiTiet != null
+                            ? ' [SKU: ' + vc.sanPhamChiTiet.maSKU + ']'
+                            : ' [Toàn cửa hàng]')}">
+                                                            </option>
+                                                        </datalist>
+
+
+
                                                         <button type="submit" class="btn btn-primary btn-sm">
                                                             Áp dụng
                                                         </button>
@@ -723,69 +765,6 @@
         </div>
     </div>
 </div>
-
-<!-- Script: mở lại modal khách hàng nếu vừa tìm kiếm -->
-<script th:if="${customerSearchTriggered == true}">
-    document.addEventListener("DOMContentLoaded", function () {
-        var modal = new bootstrap.Modal(document.getElementById('customerModal'));
-        modal.show();
-    });
-</script>
-
-<!-- Script: lọc sản phẩm theo text -->
-<script>
-    function filterProducts() {
-        var keyword = document.getElementById('productSearchInput').value.toLowerCase();
-        var items = document.querySelectorAll('.product-item');
-
-        items.forEach(function (item) {
-            var text = item.getAttribute('data-keywords') || '';
-            if (!keyword || text.indexOf(keyword) !== -1) {
-                item.classList.remove('d-none');
-            } else {
-                item.classList.add('d-none');
-            }
-        });
-    }
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Tất cả form có class này sẽ mang thêm info khách
-        var forms = document.querySelectorAll("form.sync-customer-form");
-
-        forms.forEach(function (form) {
-            form.addEventListener("submit", function () {
-                var hoTenInput  = document.getElementById("posHoTen");
-                var sdtInput    = document.getElementById("posSdt");
-                var emailInput  = document.getElementById("posEmail");
-                var diaChiInput = document.getElementById("posDiaChi");
-
-                var hoTen  = hoTenInput  ? hoTenInput.value  : "";
-                var sdt    = sdtInput    ? sdtInput.value    : "";
-                var email  = emailInput  ? emailInput.value  : "";
-                var diaChi = diaChiInput ? diaChiInput.value : "";
-
-                var hHoTen  = form.querySelector("input[name='hoTen']");
-                var hSdt    = form.querySelector("input[name='sdt']");
-                var hEmail  = form.querySelector("input[name='email']");
-                var hDiaChi = form.querySelector("input[name='diaChi']");
-
-                if (hHoTen)  hHoTen.value  = hoTen;
-                if (hSdt)    hSdt.value    = sdt;
-                if (hEmail)  hEmail.value  = email;
-                if (hDiaChi) hDiaChi.value = diaChi;
-            });
-        });
-    });
-</script>
-<!-- Script: tự mở tab in hóa đơn sau khi thanh toán -->
-<script th:inline="javascript" th:if="${printId != null}">
-    document.addEventListener("DOMContentLoaded", function () {
-        var url = /*[[@{/admin/hoa-don/print/{id}(id=${printId})}]]*/ '' + '?autoPrint=true';
-        window.open(url, '_blank');   // mở tab mới, tab POS vẫn giữ nguyên
-    });
-</script>
-
-
+<script th:src="@{/assets/assets/compiled/js/pos.js}"></script>
 </body>
 </html>

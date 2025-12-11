@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +31,9 @@ public class ThongKeController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
 
             @RequestParam(name = "to", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+
+            @RequestParam(name = "kenhBan", required = false) String kenhBan
     ) {
         // Mặc định: 7 ngày gần nhất
         if (to == null) {
@@ -40,21 +43,31 @@ public class ThongKeController {
             from = to.minusDays(6);
         }
 
-        // Tổng quan
-        ThongKeTongQuanDTO tongQuan = thongKeService.thongKeTongQuan(from, to);
+        // Normalize kenhBan: "" hoặc null = tất cả
+        String kenh = (kenhBan == null || kenhBan.isBlank()) ? null : kenhBan.trim();
 
-        // Doanh thu theo ngày
-        List<DoanhThuNgayDTO> doanhThuNgay = thongKeService.thongKeDoanhThuTheoNgay(from, to);
+        ThongKeTongQuanDTO tongQuan;
+        List<DoanhThuNgayDTO> doanhThuNgay;
+        List<TopSanPhamDTO> topSanPham;
 
-        // Top sản phẩm
-        List<TopSanPhamDTO> topSanPham = thongKeService.topSanPhamBanChay(from, to, 5);
+        if (kenh == null) {
+            // TẤT CẢ KÊNH
+            tongQuan    = thongKeService.thongKeTongQuan(from, to);
+            doanhThuNgay = thongKeService.thongKeDoanhThuTheoNgay(from, to);
+            topSanPham   = thongKeService.topSanPhamBanChay(from, to, 10);
+        } else {
+            // LỌC THEO KÊNH: WEB / TAI_QUAY
+            tongQuan     = thongKeService.thongKeTongQuanTheoKenh(from, to, kenh);
+            doanhThuNgay = thongKeService.thongKeDoanhThuTheoNgayTheoKenh(from, to, kenh);
+            topSanPham   = thongKeService.topSanPhamBanChayTheoKenh(from, to, kenh, 10);
+        }
 
         // Chuẩn bị data cho Chart.js
         List<String> labelsNgay = doanhThuNgay.stream()
                 .map(dto -> dto.ngay.toString())
                 .collect(Collectors.toList());
 
-        List<java.math.BigDecimal> dataDoanhThu = doanhThuNgay.stream()
+        List<BigDecimal> dataDoanhThu = doanhThuNgay.stream()
                 .map(dto -> dto.doanhThu)
                 .collect(Collectors.toList());
 
@@ -77,7 +90,10 @@ public class ThongKeController {
         model.addAttribute("labelsTopSP", labelsTopSP);
         model.addAttribute("dataTopSP", dataTopSP);
         model.addAttribute("listTopSP", topSanPham);
+
+        model.addAttribute("kenhBan", kenhBan); // để select giữ trạng thái
         model.addAttribute("currentPath", "/admin/thong-ke");
         return "admin/thong_ke/index";
     }
+
 }

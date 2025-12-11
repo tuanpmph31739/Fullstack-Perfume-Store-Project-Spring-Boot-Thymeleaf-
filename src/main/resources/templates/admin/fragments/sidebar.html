@@ -84,22 +84,24 @@
                     </ul>
                 </li>
 
-                <li class="sidebar-item"
-                    sec:authorize="hasAnyRole('ADMIN')"
-                    th:classappend="${#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhan-vien')} ? 'active'">
-                    <a th:href="@{/admin/nhan-vien}" class="sidebar-link">
-                        <i class="bi bi-person-badge-fill"></i>
-                        <span>Quản lý nhân viên</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-item"
-                    sec:authorize="hasAnyRole('ADMIN', 'NHANVIEN')"
-                    th:classappend="${#strings.startsWith(currentPath != null ? currentPath : '', '/admin/khach-hang')} ? 'active'">
-                    <a th:href="@{/admin/khach-hang}" class="sidebar-link">
+                <li class="sidebar-item has-sub"
+                    th:classappend="${
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhan-vien') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/khach-hang')
+                    } ? 'active'">
+                    <a href="#" class="sidebar-link">
                         <i class="bi bi-people-fill"></i>
-                        <span>Quản lý khách hàng</span>
+                        <span>Quản lý người dùng</span>
                     </a>
+
+                    <ul class="submenu">
+                        <li class="submenu-item" sec:authorize="hasAnyRole('ADMIN')" th:classappend="${currentPath == '/admin/nhan-vien'} ? 'active'">
+                            <a th:href="@{/admin/nhan-vien}">Nhân viên</a>
+                        </li>
+                        <li class="submenu-item" sec:authorize="hasAnyRole('ADMIN', 'NHANVIEN')" th:classappend="${currentPath == '/admin/khach-hang'} ? 'active'">
+                            <a th:href="@{/admin/khach-hang}">Khách hàng</a>
+                        </li>
+                    </ul>
                 </li>
 
                 <li class="sidebar-item" th:classappend="${currentPath == '/admin/hoa-don'} ? 'active'">
