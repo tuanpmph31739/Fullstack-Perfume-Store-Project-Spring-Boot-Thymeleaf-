@@ -22,26 +22,33 @@
 
                     <div class="card-body">
 
-                        <!-- ========== FORM LỌC MỚI (TRÊN BẢNG) ========== -->
                         <form th:action="@{/admin/don-hang}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. INPUT SEARCH: mã đơn / người nhận / sđt -->
-                                <div class="col-md-6">
+                                <!-- 1. INPUT SEARCH + nút Xóa lọc cùng hàng -->
+                                <div class="col-md-6 col-lg-5">
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-search"></i>
-                                        </span>
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
                                         <input type="text" name="keyword"
                                                class="form-control form-control-sm"
                                                placeholder="Tìm theo mã đơn, người nhận, SĐT..."
                                                th:value="${keyword}"
                                                id="keywordInput">
+
+                                        <!-- Nút XÓA LỌC ngay cạnh thanh tìm kiếm -->
+                                        <a th:href="@{/admin/don-hang}"
+                                           class="btn btn-outline-secondary btn-sm fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa lọc</span>
+                                        </a>
                                     </div>
                                 </div>
 
-                                <!-- 2. Kênh bán: WEB / TẠI QUẦY (dùng hidden + 2 nút) -->
-                                <div class="col-md-3">
+                                <!-- 2. Kênh bán -->
+                                <div class="col-md-2">
                                     <input type="hidden" name="kenhBan" id="kenhBanInput" th:value="${kenhBan}">
                                     <div class="btn-group btn-group-sm w-100" role="group" id="kenhBanGroup">
                                         <button type="button"
@@ -89,28 +96,26 @@
                                     </select>
                                 </div>
 
-                                <!-- 4. Nút Lọc + Reset -->
-                                <div class="col-md-1 d-flex justify-content-end">
-                                    <div class="d-flex gap-2">
-                                        <button type="submit"
-                                                class="btn btn-primary px-3 py-2 fw-semibold"
-                                                title="Lọc">
-                                            <i class="bi bi-funnel me-1"></i>
-                                            <span>Lọc</span>
-                                        </button>
-
-                                        <a th:href="@{/admin/don-hang}"
-                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
-                                           title="Xóa lọc">
-                                            <i class="bi bi-x-lg me-1"></i>
-                                            <span>Xóa</span>
-                                        </a>
-                                    </div>
+                                <!-- 3b. Sắp xếp ngày tạo -->
+                                <div class="col-md-2">
+                                    <select name="sortNgayTao"
+                                            class="form-select form-select-sm"
+                                            id="sortNgayTao">
+                                        <option value="DESC"
+                                                th:selected="${sortNgayTao == null or sortNgayTao == 'DESC'}">
+                                            Ngày tạo mới nhất
+                                        </option>
+                                        <option value="ASC"
+                                                th:selected="${sortNgayTao == 'ASC'}">
+                                            Ngày tạo cũ nhất
+                                        </option>
+                                    </select>
                                 </div>
 
                             </div>
                         </form>
-                        <!-- ========== HẾT FORM LỌC ========== -->
+
+
 
                         <div class="table-responsive">
                             <table class="table table-striped align-middle">
@@ -118,12 +123,14 @@
                                 <tr>
                                     <th>STT</th>
                                     <th>Mã đơn</th>
+                                    <th>Khách hàng</th>
                                     <th>Người nhận</th>
                                     <th>SĐT</th>
+                                    <th>Kênh bán</th>
+                                    <th>Nhân viên</th>
                                     <th>Thanh toán</th>
                                     <th>Ngày tạo</th>
                                     <th>Trạng thái</th>
-                                    <th>Kênh bán</th>
                                     <th>Hành động</th>
                                 </tr>
                                 </thead>
@@ -134,11 +141,29 @@
                                     <!-- Mã đơn: nếu null/rỗng => '-' -->
                                     <td th:text="${dh.ma != null and !#strings.isEmpty(dh.ma) ? dh.ma : '-'}"></td>
 
+                                    <td>
+                                        <span th:if="${!#strings.isEmpty(dh.tenKhachHang)}"
+                                              th:text="${dh.tenKhachHang}"></span>
+                                        <span th:if="${#strings.isEmpty(dh.tenKhachHang)}">
+                                            <span th:if="${dh.kenhBan == 'TAI_QUAY'}">Khách tại quầy</span>
+                                            <span th:if="${dh.kenhBan != 'TAI_QUAY'}">Khách online không đăng nhập</span>
+                                        </span>
+                                    </td>
+
                                     <!-- Người nhận -->
                                     <td th:text="${dh.tenNguoiNhan != null and !#strings.isEmpty(dh.tenNguoiNhan) ? dh.tenNguoiNhan : '-'}"></td>
 
                                     <!-- SĐT -->
                                     <td th:text="${dh.sdt != null and !#strings.isEmpty(dh.sdt) ? dh.sdt : '-'}"></td>
+
+                                    <!-- Kênh bán -->
+                                    <td th:text="${
+                                          dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy'
+                                        : (dh.kenhBan == 'WEB' ? 'Đơn hàng online' : '-')
+                                     }"></td>
+
+                                    <!-- Nhân viên -->
+                                    <td th:text="${#strings.isEmpty(dh.tenNhanVien) ? '-' : dh.tenNhanVien}"></td>
 
                                     <!-- Thanh toán -->
                                     <td th:text="${dh.phuongThucThanhToan != null and !#strings.isEmpty(dh.phuongThucThanhToan) ? dh.phuongThucThanhToan : '---'}"></td>
@@ -164,12 +189,6 @@
                                             ---
                                         </span>
                                     </td>
-
-                                    <!-- Kênh bán -->
-                                    <td th:text="${
-                                          dh.kenhBan == 'TAI_QUAY' ? 'Đơn hàng tại quầy'
-                                        : (dh.kenhBan == 'WEB' ? 'Đơn hàng online' : '-')
-                                     }"></td>
 
                                     <!-- Hành động -->
                                     <td>
@@ -209,11 +228,12 @@
                                     th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/don-hang(
-                                                page=${page.currentPage - 1},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}">
+                                            page=${page.currentPage - 1},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}">
                                         Previous
                                     </a>
                                 </li>
@@ -223,11 +243,12 @@
                                     th:classappend="${page.currentPage == i} ? 'active'">
                                     <a class="page-link"
                                        th:href="@{/admin/don-hang(
-                                                page=${i},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}"
+                                            page=${i},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}"
                                        th:text="${i}"></a>
                                 </li>
 
@@ -235,12 +256,14 @@
                                     th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/don-hang(
-                                                page=${page.currentPage + 1},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}">
+                                            page=${page.currentPage + 1},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}">
                                         Next
+                                    </a>
                                     </a>
                                 </li>
 
@@ -267,7 +290,7 @@
         const kenhBanInput   = document.getElementById("kenhBanInput");
         const kenhBanGroup   = document.getElementById("kenhBanGroup");
         const trangThaiFilter= document.getElementById("trangThaiFilter");
-
+        const sortNgayTaoSelect = document.getElementById("sortNgayTao");
         const tbody          = document.getElementById("orderTableBody");
         const paginationWrap = document.getElementById("paginationWrapper");
 
@@ -380,6 +403,13 @@
         // 3. Trạng thái thay đổi -> lọc
         if (trangThaiFilter) {
             trangThaiFilter.addEventListener("change", function () {
+                triggerFilterToFirstPage();
+            });
+        }
+
+        // 3b. Sort ngày tạo thay đổi -> lọc
+        if (sortNgayTaoSelect) {
+            sortNgayTaoSelect.addEventListener("change", function () {
                 triggerFilterToFirstPage();
             });
         }

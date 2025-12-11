@@ -29,18 +29,26 @@
 
                     <div class="card-body">
 
-                        <!-- ========== FORM LỌC (BỐ CỤC GIỐNG FORM SPCT) ========== -->
                         <form th:action="@{/admin/nhan-vien}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. INPUT SEARCH -->
+                                <!-- 1. INPUT SEARCH + NÚT XÓA LỌC CÙNG HÀNG -->
                                 <div class="col-md-6">
-                                    <input type="text"
-                                           name="keyword"
-                                           class="form-control form-control-sm"
-                                           placeholder="Tìm tên, SĐT, email..."
-                                           th:value="${keyword}"
-                                           id="keywordInput">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text"
+                                               name="keyword"
+                                               class="form-control form-control-sm"
+                                               placeholder="Tìm tên, SĐT, email..."
+                                               th:value="${keyword}"
+                                               id="keywordInput">
+
+                                        <a th:href="@{/admin/nhan-vien}"
+                                           class="btn btn-outline-secondary btn-sm fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <!-- 2. TRẠNG THÁI -->
@@ -60,34 +68,15 @@
                                     </select>
                                 </div>
 
-                                <!-- 3. NÚT LỌC / XÓA -->
-                                <div class="col-12 col-lg-4 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
-                                    <div class="ms-lg-auto d-flex gap-2">
-                                        <button type="submit"
-                                                class="btn btn-primary px-3 py-2 fw-semibold"
-                                                title="Lọc">
-                                            <i class="bi bi-funnel me-1"></i>
-                                            <span>Lọc</span>
-                                        </button>
-
-                                        <a th:href="@{/admin/nhan-vien}"
-                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
-                                           title="Xóa lọc">
-                                            <i class="bi bi-x-lg me-1"></i>
-                                            <span>Xóa</span>
-                                        </a>
-                                    </div>
-                                </div>
-
                             </div>
                         </form>
-                        <!-- ========== HẾT FORM LỌC ========== -->
+
 
                         <!-- ========== BẢNG NHÂN VIÊN (STYLE GẦN GIỐNG SPCT) ========== -->
                         <div class="table-responsive">
                             <table class="table table-striped table-fixed align-middle">
                                 <thead>
-                                <tr class="text-center">
+                                <tr>
                                     <th>STT</th>
                                     <th>Mã NV</th>
                                     <th>Họ tên</th>
@@ -99,7 +88,7 @@
                                 </thead>
 
                                 <tbody id="nhanVienTableBody">
-                                <tr th:each="n, stat : ${pageData.content}" class="align-middle text-center">
+                                <tr th:each="n, stat : ${pageData.content}">
                                     <td th:text="${(pageData.number * pageData.size) + stat.index + 1}"></td>
                                     <td th:text="${n.ma}"></td>
                                     <td th:text="${n.hoTen}" class="text-start fw-bold"></td>

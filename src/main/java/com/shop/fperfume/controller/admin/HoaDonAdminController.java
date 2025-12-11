@@ -33,9 +33,10 @@ public class HoaDonAdminController {
                         @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
                         @RequestParam(name = "kenhBan", required = false) String kenhBan,
                         @RequestParam(name = "keyword", required = false) String keyword,
-                        @RequestParam(name = "trangThai", required = false) String trangThai) {
+                        @RequestParam(name = "trangThai", required = false) String trangThai,
+                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DESC") String sortNgayTao) {
 
-        // Normalize kenhBan: coi "", "null", "ALL" là không lọc
+        // Normalize kenhBan
         if (kenhBan != null) {
             kenhBan = kenhBan.trim();
             if (kenhBan.isEmpty()
@@ -46,7 +47,7 @@ public class HoaDonAdminController {
         }
 
         PageableObject<DonHangResponse> page =
-                donHangService.pagingHoaDon(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai);
+                donHangService.pagingHoaDon(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai, sortNgayTao);
 
         model.addAttribute("page", page);
         model.addAttribute("page.metaDataAvailable", true);
@@ -55,9 +56,10 @@ public class HoaDonAdminController {
         model.addAttribute("kenhBan", kenhBan);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("sortNgayTao", sortNgayTao);
 
-        model.addAttribute("currentPath", "/admin/hoa-don"); // hoặc /admin/don-hang
-        return "admin/hoa_don/index"; // hoặc admin/don_hang/index
+        model.addAttribute("currentPath", "/admin/hoa-don");
+        return "admin/hoa_don/index";
     }
 
 

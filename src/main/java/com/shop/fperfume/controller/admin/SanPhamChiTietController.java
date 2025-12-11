@@ -38,7 +38,7 @@ public class SanPhamChiTietController {
                         @RequestParam(value = "keyword", required = false) String keyword,
                         @RequestParam(value = "dungTichId", required = false) Integer dungTichId,
                         @RequestParam(value = "nongDoId", required = false) Integer nongDoId,
-                        @RequestParam(value = "trangThai", required = false) Boolean trangThai,
+                        @RequestParam(value = "trangThai", required = false) String trangThai, // <--- đổi kiểu
                         @RequestParam(value = "sort", required = false) String sort) {
 
         if (pageNo == null || pageNo < 1) {
@@ -46,7 +46,15 @@ public class SanPhamChiTietController {
         }
 
         PageableObject<SanPhamChiTietResponse> pageData =
-                sanPhamChiTietService.getPage(pageNo, PAGE_SIZE, keyword, dungTichId, nongDoId, trangThai, sort);
+                sanPhamChiTietService.getPage(
+                        pageNo,
+                        PAGE_SIZE,
+                        keyword,
+                        dungTichId,
+                        nongDoId,
+                        trangThai,   // <--- truyền String xuống service
+                        sort
+                );
 
         model.addAttribute("page", pageData);
         model.addAttribute("page.metaDataAvailable", true);
@@ -56,7 +64,7 @@ public class SanPhamChiTietController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("dungTichId", dungTichId);
         model.addAttribute("nongDoId", nongDoId);
-        model.addAttribute("trangThai", trangThai);
+        model.addAttribute("trangThai", trangThai);  // giờ là String
         model.addAttribute("sort", sort);
 
         loadDropdownData(model);
@@ -64,6 +72,7 @@ public class SanPhamChiTietController {
 
         return "admin/san_pham_chi_tiet/index";
     }
+
 
     @GetMapping("/add")
     public String viewAdd(Model model,

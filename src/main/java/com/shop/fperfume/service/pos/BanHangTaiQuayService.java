@@ -4,6 +4,8 @@ import com.shop.fperfume.entity.*;
 import com.shop.fperfume.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -239,6 +241,19 @@ public class BanHangTaiQuayService {
         return hoaDonRepo.save(hoaDon);
     }
 
+    private NguoiDung getCurrentNhanVien() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()
+                || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("Không tìm thấy người dùng đăng nhập!");
+        }
+
+        String username = auth.getName();
+
+        return nguoiDungRepo.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên: " + username));
+
+    }
     @Transactional
     public HoaDon thanhToanHoaDonTaiQuay(Integer idHoaDon,
                                          String tenNguoiNhan, String sdtGiaoHang,
@@ -251,9 +266,11 @@ public class BanHangTaiQuayService {
         List<HoaDonChiTiet> chiTiets = hoaDonChiTietRepo.findByHoaDon_Id(idHoaDon);
         if (chiTiets.isEmpty()) throw new RuntimeException("Hóa đơn không có sản phẩm nào");
 
-        NguoiDung nhanVien = nguoiDungRepo.findById(2L)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhân Viên (ID 2)."));
-        hoaDon.setNhanVien(nhanVien);
+        NguoiDung nhanVien = hoaDon.getNhanVien();
+        if (nhanVien == null) {          // nếu đơn chưa có NV (phòng khi tạo trước đó chưa set)
+            nhanVien = getCurrentNhanVien();
+            hoaDon.setNhanVien(nhanVien);
+        }
 
         ThanhToan ttMacDinh = thanhToanRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy 'Hình thức thanh toán' (ID 1)."));

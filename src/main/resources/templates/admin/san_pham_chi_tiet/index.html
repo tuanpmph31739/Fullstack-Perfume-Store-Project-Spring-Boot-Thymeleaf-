@@ -25,21 +25,33 @@
 
                     <div class="card-body">
 
-                        <!-- ========== FORM LỌC MỚI (TRÊN BẢNG) ========== -->
                         <form th:action="@{/admin/san-pham-chi-tiet}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. INPUT SEARCH ĐA TRƯỜNG -->
-                                <div class="col-md-6">
-                                    <input type="text" name="keyword"
-                                           class="form-control form-control-sm"
-                                           placeholder="Tìm kiếm sản phẩm theo tên, mã SKU..."
-                                           th:value="${keyword}"
-                                           id="keywordInput">
+                                <!-- 1. INPUT SEARCH ĐA TRƯỜNG + NÚT XÓA LỌC CÙNG HÀNG -->
+                                <div class="col-12 col-md-5">
+                                    <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                                        <input type="text" name="keyword"
+                                               class="form-control form-control-sm"
+                                               placeholder="Tìm kiếm sản phẩm theo tên, mã SKU..."
+                                               th:value="${keyword}"
+                                               id="keywordInput">
+
+                                        <!-- Nút XÓA LỌC ngay cạnh thanh tìm kiếm -->
+                                        <a th:href="@{/admin/san-pham-chi-tiet}"
+                                           class="btn btn-outline-secondary btn-sm fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <!-- 2. Dung tích -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="dungTichId" class="form-select form-select-sm" id="dungTichFilter">
                                         <option value="">Tất cả dung tích</option>
                                         <option th:each="dt : ${listDungTich}"
@@ -51,7 +63,7 @@
                                 </div>
 
                                 <!-- 3. Nồng độ -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="nongDoId" class="form-select form-select-sm" id="nongDoFilter">
                                         <option value="">Tất cả nồng độ</option>
                                         <option th:each="nd : ${listNongDo}"
@@ -63,7 +75,7 @@
                                 </div>
 
                                 <!-- 4. Sắp xếp giá -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="sort" class="form-select form-select-sm" id="sortPrice">
                                         <option value="" th:selected="${sort == null or sort == ''}">Giá mặc định</option>
                                         <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Giá tăng dần</option>
@@ -71,44 +83,27 @@
                                     </select>
                                 </div>
 
-
                                 <!-- 5. Trạng thái -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-1">
                                     <select name="trangThai" class="form-select form-select-sm" id="trangThaiFilter">
-                                        <option value="">Tất cả trạng thái</option>
-                                        <option value="true"
-                                                th:selected="${trangThai != null and trangThai == true}">
-                                            Đang bán
+                                        <option value="" th:selected="${trangThai == null or trangThai == ''}">
+                                            Tất cả tình trạng
                                         </option>
-                                        <option value="false"
-                                                th:selected="${trangThai != null and trangThai == false}">
+                                        <option value="CON_HANG" th:selected="${trangThai == 'CON_HANG'}">
+                                            Còn hàng
+                                        </option>
+                                        <option value="HET_HANG" th:selected="${trangThai == 'HET_HANG'}">
+                                            Hết hàng
+                                        </option>
+                                        <option value="NGUNG_BAN" th:selected="${trangThai == 'NGUNG_BAN'}">
                                             Ngừng bán
                                         </option>
                                     </select>
+
                                 </div>
-
-
-                                <div class="col-12 col-lg-2 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
-                                    <div class="ms-lg-auto d-flex gap-2">
-                                        <button type="submit"
-                                                class="btn btn-primary px-3 py-2 fw-semibold"
-                                                title="Lọc">
-                                            <i class="bi bi-funnel me-1"></i>
-                                            <span>Lọc</span>
-                                        </button>
-
-                                        <a th:href="@{/admin/san-pham-chi-tiet}"
-                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
-                                           title="Xóa lọc">
-                                            <i class="bi bi-x-lg me-1"></i>
-                                            <span>Xóa</span>
-                                        </a>
-                                    </div>
-                                </div>
-
                             </div>
                         </form>
-                        <!-- ========== HẾT FORM LỌC MỚI ========== -->
+
 
                         <div class="table-responsive">
                             <table class="table table-striped table-fixed align-middle">
@@ -146,9 +141,22 @@
                                     <td th:text="${spct.soLuongTon}"></td>
 
                                     <td>
-                                        <span th:if="${spct.trangThai}" class="badge bg-success">Đang bán</span>
-                                        <span th:unless="${spct.trangThai}" class="badge bg-secondary">Ngừng bán</span>
+                                        <!-- Nếu NGỪNG BÁN -->
+                                        <span th:if="${!spct.trangThai}" class="badge bg-secondary">
+        Ngừng bán
+    </span>
+
+                                        <!-- Nếu ĐANG BÁN thì xét tiếp tồn kho -->
+                                        <span th:if="${spct.trangThai}">
+        <span th:if="${spct.soLuongTon > 0}" class="badge bg-success">
+            Còn hàng
+        </span>
+        <span th:if="${spct.soLuongTon <= 0}" class="badge bg-danger">
+            Hết hàng
+        </span>
+    </span>
                                     </td>
+
 
                                     <td>
                                         <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${spct.id})}"

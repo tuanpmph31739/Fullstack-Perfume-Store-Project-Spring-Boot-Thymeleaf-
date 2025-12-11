@@ -30,15 +30,15 @@ public class DonHangController {
                         @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
                         @RequestParam(name = "kenhBan", required = false) String kenhBan,
                         @RequestParam(name = "keyword", required = false) String keyword,
-                        @RequestParam(name = "trangThai", required = false) String trangThai) {
+                        @RequestParam(name = "trangThai", required = false) String trangThai,
+                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DESC") String sortNgayTao) {
 
-        // Mặc định tab "Đơn hàng Website"
         if (kenhBan == null || kenhBan.isBlank()) {
             kenhBan = "WEB";
         }
 
         PageableObject<DonHangResponse> page =
-                donHangService.pagingDonHang(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai);
+                donHangService.pagingDonHang(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai, sortNgayTao);
 
         model.addAttribute("page", page);
         model.addAttribute("page.metaDataAvailable", true);
@@ -47,10 +47,12 @@ public class DonHangController {
         model.addAttribute("kenhBan", kenhBan);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("sortNgayTao", sortNgayTao);
 
         model.addAttribute("currentPath", "/admin/don-hang");
         return "admin/don_hang/index";
     }
+
 
     @GetMapping("/view/{id}")
     public String viewDonHang(@PathVariable("id") Integer id,

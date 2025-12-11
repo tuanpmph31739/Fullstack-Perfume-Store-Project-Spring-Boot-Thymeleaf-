@@ -95,6 +95,7 @@ public class SanPhamChiTietService {
         return getPage(pageNo, pageSize, null, null, null, null, null);
     }
 
+
     /**
      * Phân trang + lọc + sort cho màn ADMIN
      */
@@ -103,17 +104,23 @@ public class SanPhamChiTietService {
                                                           String keyword,
                                                           Integer dungTichId,
                                                           Integer nongDoId,
-                                                          Boolean trangThai,
+                                                          String trangThai,   // <- String
                                                           String sort) {
 
         if (pageNo == null || pageNo < 1) {
             pageNo = 1;
         }
 
-        // Chuẩn hoá keyword/trangThai
+        // Chuẩn hoá keyword
         if (keyword != null) {
             keyword = keyword.trim();
             if (keyword.isEmpty()) keyword = null;
+        }
+
+        // Chuẩn hoá trangThai filter
+        if (trangThai != null) {
+            trangThai = trangThai.trim();
+            if (trangThai.isEmpty()) trangThai = null;
         }
 
         // Xử lý sort
@@ -134,7 +141,7 @@ public class SanPhamChiTietService {
                         keyword,
                         dungTichId,
                         nongDoId,
-                        trangThai,
+                        trangThai,   // <- truyền String xuống repo
                         pageable
                 );
 
