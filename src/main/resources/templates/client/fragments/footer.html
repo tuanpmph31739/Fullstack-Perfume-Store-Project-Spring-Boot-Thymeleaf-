@@ -1,28 +1,107 @@
-<footer th:fragment="footer" class="bg-dark text-white py-5 mt-5" xmlns:th="http://www.w3.org/1999/xhtml">
-    <div class="container text-center">
-        <p>© 2025 FPerfume. All rights reserved.</p>
+<!-- Divider ngăn cách Header - Footer -->
+
+
+
+<footer th:fragment="footer" class="bg-white text-dark pt-5 pb-4" xmlns:th="http://www.w3.org/1999/xhtml">
+
+    <hr
+
+            style="
+    border: 0;
+    border-top: 1px solid rgba(0,0,0,0.90);
+    width: 100%;
+    margin: 0;
+
+">
+
+    <br> <br>
+
+
+    <div class="container">
+
+        <div class="row">
+
+            <!-- Cột 1: Đăng ký nhận ưu đãi -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold">ĐĂNG KÍ ĐỂ NHẬN ƯU ĐÃI</h5>
+
+                <div class="d-flex mt-3">
+                    <input type="email" class="form-control rounded-0"
+                           placeholder="Địa chỉ email của bạn">
+                    <button class="btn text-white rounded-0"
+                            style="background:#9E8C7C;">GỬI</button>
+                </div>
+
+                <p class="mt-3" style="font-size: 14px;">
+                    Cập nhật những ưu đãi mới nhất của F Perfume
+                </p>
+
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-dark fs-4"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-dark fs-4"><i class="bi bi-tiktok"></i></a>
+                    <a href="#" class="text-dark fs-4"><i class="bi bi-instagram"></i></a>
+                </div>
+
+            </div>
+
+            <!-- Cột 2: Về Chúng Tôi -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold">VỀ CHÚNG TÔI</h5>
+                <ul class="list-unstyled mt-3">
+                    <li><a th:href="@{/}" class="text-dark text-decoration-none d-block mb-2">Trang Chủ</a></li>
+                    <li><a th:href="@{/san-pham/all}" class="text-dark text-decoration-none d-block mb-2">Sản phẩm</a></li>
+                    <li><a href="#" class="text-dark text-decoration-none d-block mb-2">Blog</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 3: Dịch vụ khách hàng -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold">DỊCH VỤ KHÁCH HÀNG</h5>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2">Chính sách kiểm hàng</li>
+                    <li class="mb-2">Chính sách vận chuyển và giao nhận</li>
+                    <li class="mb-2">Chính sách xử lý khiếu nại</li>
+                    <li class="mb-2">Chính sách thanh toán</li>
+                    <li class="mb-2">Chính sách bảo hành</li>
+                    <li class="mb-2">Chính sách bảo mật thông tin</li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Hệ thống cửa hàng -->
+            <div class="col-md-3 mb-4">
+                <h5 class="fw-bold">HỆ THỐNG CỬA HÀNG</h5>
+
+                <p class="mt-3"><i class="bi bi-house-door-fill me-2"></i>13 Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội</p>
+                <p><i class="bi bi-telephone-fill me-2"></i>0962 795 760</p>
+                <p><i class="bi bi-envelope-fill me-2"></i>giangnt080203@gmail.com</p>
+
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Toast UI -->
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;">
-        <div id="liveToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="liveToast" class="toast align-items-center border-0"
+             role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body" id="toast-body">Thông báo mẫu.</div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close me-2 m-auto"
+                        data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
 
-
-
+    <!-- Script giữ nguyên -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const header = document.getElementById('siteHeader');
             if (!header) return;
 
-            const SHRINK_OFFSET = 140; // cuộn qua ~140px thì bắt đầu thu header
-
+            const SHRINK_OFFSET = 140;
             function handleScroll() {
                 if (window.scrollY > SHRINK_OFFSET) {
                     header.classList.add('navbar-shrink');
@@ -31,13 +110,13 @@
                 }
             }
 
-            handleScroll();                // chạy lúc vừa load
+            handleScroll();
             window.addEventListener('scroll', handleScroll);
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Lọc thương hiệu theo A-Z trong mega menu
             const megaMenu = document.querySelector('.mega-menu');
             if (!megaMenu) return;
 
@@ -49,33 +128,19 @@
             azButtons.forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
                     e.preventDefault();
+                    const letter = this.dataset.letter;
 
-                    const letter = this.dataset.letter; // "all" hoặc "A","B",...
-
-                    // Toggle class active cho nút A-Z
-                    azButtons.forEach(function (b) {
-                        b.classList.remove('active');
-                    });
+                    azButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
 
-                    // Lọc danh sách thương hiệu
                     brandLinks.forEach(function (link) {
                         const col = link.closest('.col');
                         if (!col) return;
-
                         const name = (link.textContent || '').trim();
-                        if (!name) {
-                            col.style.display = 'none';
-                            return;
-                        }
-
                         const firstChar = name.charAt(0).toUpperCase();
 
-                        if (letter === 'all' || firstChar === letter) {
-                            col.style.display = '';
-                        } else {
-                            col.style.display = 'none';
-                        }
+                        col.style.display =
+                            (letter === 'all' || firstChar === letter) ? '' : 'none';
                     });
                 });
             });
