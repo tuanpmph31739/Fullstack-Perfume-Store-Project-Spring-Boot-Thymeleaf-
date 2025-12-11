@@ -19,5 +19,14 @@ public class CheckoutRequestDTO {
 
     private String ghiChu;
 
-    // (Chúng ta sẽ lấy IdGiamGia từ Giỏ hàng của user, không cần dto)
+    private Boolean luuDiaChiMacDinh;
+
+    public Boolean getLuuDiaChiMacDinh() {
+        return luuDiaChiMacDinh;
+    }
+
+    public void setLuuDiaChiMacDinh(Boolean luuDiaChiMacDinh) {
+        this.luuDiaChiMacDinh = luuDiaChiMacDinh;
+    }
+
 }

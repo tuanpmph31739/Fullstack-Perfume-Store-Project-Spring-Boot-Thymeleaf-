@@ -5,6 +5,7 @@ import com.shop.fperfume.entity.GioHang;
 import com.shop.fperfume.entity.HoaDon;
 import com.shop.fperfume.entity.NguoiDung;
 import com.shop.fperfume.repository.HoaDonRepository;
+import com.shop.fperfume.repository.NguoiDungRepository;
 import com.shop.fperfume.security.CustomUserDetails;
 import com.shop.fperfume.service.client.CartHelperService;
 import com.shop.fperfume.service.client.GioHangClientService;
@@ -36,6 +37,7 @@ public class OrderController {
     @Autowired private CartHelperService cartHelperService;
     @Autowired private VnPayService vnPayService;
     @Autowired private HoaDonRepository hoaDonRepository;
+    @Autowired private NguoiDungRepository nguoiDungRepository;
 
 
     @GetMapping("/checkout")
@@ -70,6 +72,8 @@ public class OrderController {
         model.addAttribute("tienGiamGia", cartData.get("tienGiamGia"));
         model.addAttribute("tongThanhToan", cartData.get("tongThanhToan"));
         model.addAttribute("checkoutForm", checkoutRequest);
+        model.addAttribute("isLoggedIn", userDetails != null);
+
 
         return "client/checkout";
     }
@@ -111,6 +115,30 @@ public class OrderController {
             // 1. TẠO HÓA ĐƠN (CHƯA XÓA GIỎ HÀNG VỘI)
             HoaDon hoaDon = hoaDonClientService.createOrder(cart, khachHang, checkoutInfo);
             String trangThai = hoaDon.getTrangThai();
+
+            // 🟢 Nếu là khách đã đăng nhập, xử lý lưu địa chỉ mặc định
+            if (khachHang != null) {
+                String diaChiMoi = checkoutInfo.getDiaChi();
+                boolean coDiaChiMoi = (diaChiMoi != null && !diaChiMoi.trim().isEmpty());
+
+                if (coDiaChiMoi) {
+                    boolean diaChiTrongDbDangNullHoacRong =
+                            (khachHang.getDiaChi() == null || khachHang.getDiaChi().trim().isEmpty());
+
+                    boolean userTickLuuMacDinh =
+                            Boolean.TRUE.equals(checkoutInfo.getLuuDiaChiMacDinh());
+
+                    // Điều kiện:
+                    // 1. Nếu DiaChi trong DB đang null/rỗng -> auto lưu địa chỉ mới
+                    // HOẶC
+                    // 2. Nếu user tick "Lưu thành địa chỉ mặc định" -> lưu (ghi đè)
+                    if (diaChiTrongDbDangNullHoacRong || userTickLuuMacDinh) {
+                        khachHang.setDiaChi(diaChiMoi.trim());
+                        nguoiDungRepository.save(khachHang);
+                    }
+                }
+            }
+
 
             // 2. XỬ LÝ THEO LOẠI THANH TOÁN
             if (trangThai.equals("CHO_XAC_NHAN")) {
