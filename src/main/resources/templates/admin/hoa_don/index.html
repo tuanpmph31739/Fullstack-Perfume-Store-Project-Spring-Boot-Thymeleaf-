@@ -20,22 +20,28 @@
 
                     <div class="card-body">
 
-                        <!-- ========== FORM LỌC (AJAX) ========== -->
                         <form th:action="@{/admin/hoa-don}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. Tìm kiếm -->
-                                <div class="col-md-6">
+                                <!-- 1. Tìm kiếm + nút Xóa lọc cùng hàng -->
+                                <div class="col-md-6 col-lg-5">
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-search"></i>
-                                        </span>
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
                                         <input type="text"
                                                name="keyword"
                                                class="form-control"
                                                placeholder="Tìm theo mã HĐ, người nhận, SĐT..."
                                                th:value="${keyword}"
                                                id="keywordInput">
+
+                                        <!-- NÚT XÓA LỌC NGAY BÊN CẠNH THANH TÌM KIẾM -->
+                                        <a th:href="@{/admin/hoa-don}"
+                                           class="btn btn-outline-secondary fw-semibold">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa lọc</span>
+                                        </a>
                                     </div>
                                 </div>
 
@@ -91,27 +97,24 @@
                                     </select>
                                 </div>
 
-                                <!-- 4. Nút Lọc / Xóa -->
-                                <div class="col-12 col-lg-2 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
-                                    <div class="d-flex gap-2">
-                                        <button type="submit"
-                                                class="btn btn-primary px-3 py-2 fw-semibold"
-                                                title="Lọc">
-                                            <i class="bi bi-funnel me-1"></i>
-                                            <span>Lọc</span>
-                                        </button>
-                                        <a th:href="@{/admin/hoa-don}"
-                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
-                                           title="Xóa lọc">
-                                            <i class="bi bi-x-lg me-1"></i>
-                                            <span>Xóa</span>
-                                        </a>
-                                    </div>
+                                <!-- 4. Sắp xếp Ngày tạo -->
+                                <div class="col-md-3 col-lg-3">
+                                    <select class="form-select form-select-sm"
+                                            name="sortNgayTao"
+                                            id="sortNgayTao">
+                                        <option value="DESC"
+                                                th:selected="${sortNgayTao == null || sortNgayTao == 'DESC'}">
+                                            Ngày tạo mới nhất
+                                        </option>
+                                        <option value="ASC"
+                                                th:selected="${sortNgayTao == 'ASC'}">
+                                            Ngày tạo cũ nhất
+                                        </option>
+                                    </select>
                                 </div>
 
                             </div>
                         </form>
-                        <!-- ========== HẾT FORM LỌC ========== -->
 
                         <!-- TABLE -->
                         <div class="table-responsive">
@@ -124,11 +127,11 @@
                                     <th>Người nhận</th>
                                     <th>SĐT</th>
                                     <th>Kênh bán</th>
+                                    <th>Nhân viên</th>
                                     <th>Thanh toán</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
                                     <th>Ngày tạo</th>
-                                    <th>Ngày sửa</th>
                                     <th>Hành động</th>
                                 </tr>
                                 </thead>
@@ -163,6 +166,9 @@
                                         hd.kenhBan == null ? '-' :
                                         (hd.kenhBan == 'TAI_QUAY' ? 'Tại quầy' : 'Online')
                                     }"></td>
+
+                                    <!-- Nhân viên -->
+                                    <td th:text="${#strings.isEmpty(hd.tenNhanVien) ? '-' : hd.tenNhanVien}"></td>
 
                                     <!-- Thanh toán -->
                                     <td th:text="${#strings.isEmpty(hd.phuongThucThanhToan) ? '-' : hd.phuongThucThanhToan}"></td>
@@ -208,12 +214,6 @@
                                                   : '-'}">
                                     </td>
 
-                                    <!-- Ngày sửa -->
-                                    <td th:text="${hd.ngaySua != null
-                                                  ? #temporals.format(hd.ngaySua, 'dd/MM/yyyy HH:mm')
-                                                  : '-'}">
-                                    </td>
-
                                     <!-- Hành động -->
                                     <td>
                                         <a th:href="@{/admin/hoa-don/view/{id}(id=${hd.id})}"
@@ -249,11 +249,12 @@
                                     th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/hoa-don(
-                                                page=${page.currentPage - 1},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}">
+                                            page=${page.currentPage - 1},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}">
                                         Previous
                                     </a>
                                 </li>
@@ -263,11 +264,12 @@
                                     th:classappend="${page.currentPage == i} ? 'active'">
                                     <a class="page-link"
                                        th:href="@{/admin/hoa-don(
-                                                page=${i},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}"
+                                            page=${i},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}"
                                        th:text="${i}"></a>
                                 </li>
 
@@ -275,11 +277,12 @@
                                     th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/hoa-don(
-                                                page=${page.currentPage + 1},
-                                                kenhBan=${kenhBan},
-                                                keyword=${keyword},
-                                                trangThai=${trangThai}
-                                             )}">
+                                            page=${page.currentPage + 1},
+                                            kenhBan=${kenhBan},
+                                            keyword=${keyword},
+                                            trangThai=${trangThai},
+                                            sortNgayTao=${sortNgayTao}
+                                        )}">
                                         Next
                                     </a>
                                 </li>
@@ -306,7 +309,7 @@
         const keywordInput    = document.getElementById("keywordInput");
         const kenhBanFilter   = document.getElementById("kenhBanFilter");
         const trangThaiFilter = document.getElementById("trangThaiFilter");
-
+        const sortNgayTaoSelect = document.getElementById("sortNgayTao");
         const tbody           = document.getElementById("hoaDonTableBody");
         const paginationWrap  = document.getElementById("paginationWrapper");
 
@@ -394,7 +397,7 @@
         }
 
         // 2. Auto filter khi đổi kênh bán / trạng thái
-        [kenhBanFilter, trangThaiFilter].forEach(el => {
+        [kenhBanFilter, trangThaiFilter, sortNgayTaoSelect].forEach(el => {
             if (el) {
                 el.addEventListener("change", function () {
                     triggerFilterToFirstPage();

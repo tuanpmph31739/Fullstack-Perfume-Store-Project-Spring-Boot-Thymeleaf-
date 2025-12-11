@@ -187,13 +187,19 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
                   OR LOWER(spct.maSKU)     LIKE LOWER(CONCAT('%', :keyword, '%')))
           AND (:dungTichId IS NULL OR dt.id = :dungTichId)
           AND (:nongDoId   IS NULL OR nd.id = :nongDoId)
-          AND (:trangThai  IS NULL OR spct.trangThai = :trangThai)
+          AND (
+                :trangThai IS NULL OR :trangThai = ''
+             OR (:trangThai = 'NGUNG_BAN' AND spct.trangThai = false)
+             OR (:trangThai = 'CON_HANG'  AND spct.trangThai = true AND spct.soLuongTon > 0)
+             OR (:trangThai = 'HET_HANG'  AND spct.trangThai = true AND spct.soLuongTon <= 0)
+          )
     """)
     Page<SanPhamChiTiet> searchSanPhamChiTiet(@Param("keyword") String keyword,
                                               @Param("dungTichId") Integer dungTichId,
                                               @Param("nongDoId") Integer nongDoId,
-                                              @Param("trangThai") Boolean trangThai,
+                                              @Param("trangThai") String trangThai,
                                               Pageable pageable);
+
 
 
 

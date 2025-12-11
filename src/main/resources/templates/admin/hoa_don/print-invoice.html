@@ -74,19 +74,34 @@
 
 <div class="invoice-wrapper">
     <!-- Header + nút in -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <!-- Cột trái: FPERFUME + tiêu đề -->
+        <div class="text-start">
             <div class="brand-name">FPERFUME</div>
             <div class="text-muted small"
                  th:text="${isTamTinh} ? 'Phiếu tạm tính' : 'Hóa đơn mua hàng'">
                 Hóa đơn mua hàng
             </div>
         </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm btn-print"
-                onclick="window.print()">
-            <i class="bi bi-printer"></i> In
-        </button>
+
+        <!-- Cột giữa: logo, căn giữa -->
+        <div class="flex-grow-1 d-flex justify-content-center">
+            <img th:src="@{/assets/assets/compiled/jpg/logo3.png}"
+                 alt="Logo"
+                 class="logo"
+                 style="width: 70px; transform: translateX(-20px);">
+        </div>
+
+        <!-- Cột phải: nút in -->
+        <div>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm btn-print"
+                    onclick="window.print()">
+                <i class="bi bi-printer"></i> In
+            </button>
+        </div>
     </div>
+
 
     <!-- Mã đơn + ngày -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -143,6 +158,15 @@
                 Khách không đăng nhập – đặt hàng online
             </span>
             </div>
+            <div class="section-title mb-1 mt-2">NHÂN VIÊN</div>
+            <div class="fw-semibold">
+                <span th:if="${donHang.nhanVien != null}"
+                      th:text="${donHang.nhanVien.hoTen}"></span>
+
+                <span th:if="${donHang.nhanVien == null}">
+    -
+</span>
+            </div>
         </div>
 
         <div class="col-md-6 mb-2">
@@ -151,8 +175,9 @@
                 <div>
                     <strong th:text="${donHang.tenNguoiNhan}">Nguyễn Văn A</strong>
                 </div>
-                <div>SĐT: <span th:text="${donHang.sdt}">0123456789</span></div>
-                <div th:text="${donHang.diaChi}">Địa chỉ giao hàng...</div>
+                <div><span class="fw-semibold">SĐT: </span> <span th:text="${donHang.sdt}">0123456789</span></div>
+                <div th:if="${donHang.kenhBan == 'WEB'}"><span class="fw-semibold">Địa chỉ giao hàng: </span><span th:text="${donHang.diaChi}"></span></div>
+                <div th:if="${donHang.kenhBan == 'WEB'}"><span class="fw-semibold">Ghi chú: </span><span th:text="${donHang.ghiChu}"></span></div>
             </div>
         </div>
     </div>

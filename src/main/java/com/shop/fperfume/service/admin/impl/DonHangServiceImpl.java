@@ -31,19 +31,23 @@ public class DonHangServiceImpl implements DonHangService {
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Override
-    public PageableObject<DonHangResponse> pagingDonHang(int pageNo,
-                                                         int pageSize,
-                                                         String kenhBan,
-                                                         String keyword,
-                                                         String trangThai) {
+    public PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
+                                                        int pageSize,
+                                                        String kenhBan,
+                                                        String keyword,
+                                                        String trangThai,
+                                                        String sortNgayTao) {
 
         if (pageNo < 1) pageNo = 1;
 
+        Sort.Direction direction =
+                "ASC".equalsIgnoreCase(sortNgayTao) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
-                Sort.by(Sort.Direction.DESC, "ngayTao"));
+                Sort.by(direction, "ngayTao"));
 
         Page<HoaDon> pageHoaDon =
-                donHangRepository.searchDonHang(kenhBan, keyword, trangThai, pageable);
+                donHangRepository.searchHoaDon(keyword, kenhBan, trangThai, pageable);
 
         Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
 
@@ -187,6 +191,31 @@ public class DonHangServiceImpl implements DonHangService {
         hoaDon.setNgaySua(LocalDateTime.now());
 
         donHangRepository.save(hoaDon);
+    }
+    @Override
+    public PageableObject<DonHangResponse> pagingDonHang(int pageNo,
+                                                         int pageSize,
+                                                         String kenhBan,
+                                                         String keyword,
+                                                         String trangThai,
+                                                         String sortNgayTao) {
+
+        if (pageNo < 1) pageNo = 1;
+
+        Sort.Direction direction = Sort.Direction.DESC;
+        if ("ASC".equalsIgnoreCase(sortNgayTao)) {
+            direction = Sort.Direction.ASC;
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
+                Sort.by(direction, "ngayTao"));
+
+        Page<HoaDon> pageHoaDon =
+                donHangRepository.searchDonHang(kenhBan, keyword, trangThai, pageable);
+
+        Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
+
+        return new PageableObject<>(pageDto);
     }
 
 }

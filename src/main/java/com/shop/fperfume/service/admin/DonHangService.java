@@ -9,7 +9,15 @@ public interface DonHangService {
                                                   int pageSize,
                                                   String kenhBan,
                                                   String keyword,
-                                                  String trangThai);
+                                                  String trangThai,
+                                                  String sortNgayTao);
+
+    PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
+                                                 int pageSize,
+                                                 String kenhBan,
+                                                 String keyword,
+                                                 String trangThai,
+                                                 String sortNgayTao);
 
     PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
                                                  int pageSize,

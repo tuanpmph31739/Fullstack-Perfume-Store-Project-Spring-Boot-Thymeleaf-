@@ -24,22 +24,34 @@
 
                     <div class="card-body">
 
-                        <!-- ========== FORM LỌC MỚI (TRÊN BẢNG) ========== -->
                         <form th:action="@{/admin/san-pham}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. Từ khóa tên dòng sản phẩm -->
-                                <div class="col-md-6">
-                                    <input type="text"
-                                           name="keyword"
-                                           class="form-control form-control-sm"
-                                           placeholder="Tìm theo tên dòng sản phẩm..."
-                                           th:value="${keyword}"
-                                           id="keywordInput">
+                                <!-- 1. Từ khóa tên dòng sản phẩm + nút XÓA LỌC cùng hàng -->
+                                <div class="col-12 col-md-5">
+                                    <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                                        <input type="text"
+                                               name="keyword"
+                                               class="form-control form-control-sm"
+                                               placeholder="Tìm theo tên dòng sản phẩm..."
+                                               th:value="${keyword}"
+                                               id="keywordInput">
+
+                                        <!-- Nút XÓA LỌC ngay cạnh thanh tìm kiếm -->
+                                        <a th:href="@{/admin/san-pham}"
+                                           class="btn btn-outline-secondary btn-sm fw-semibold"
+                                           title="Xóa lọc">
+                                            <i class="bi bi-x-lg me-1"></i>
+                                            <span>Xóa lọc</span>
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <!-- 3. Thương hiệu -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="thuongHieuId"
                                             class="form-select form-select-sm js-brand-select"
                                             id="thuongHieuFilter">
@@ -47,13 +59,13 @@
                                         <option th:each="thh : ${listThuongHieu}"
                                                 th:value="${thh.id}"
                                                 th:text="${thh.tenThuongHieu}"
-                                                th:selected="${thuongHieuId != null and thuongHieuId == thh.id}">
+                                                th:selected="${thuongHieuId != null && thuongHieuId == thh.id}">
                                         </option>
                                     </select>
                                 </div>
 
                                 <!-- 2. Giới tính / Loại nước hoa -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="loaiId"
                                             class="form-select form-select-sm"
                                             id="loaiFilter">
@@ -63,13 +75,13 @@
                                         <option th:each="l : ${listLoaiNuocHoa}"
                                                 th:value="${l.id}"
                                                 th:text="${l.tenLoai}"
-                                                th:selected="${loaiId != null and loaiId == l.id}">
+                                                th:selected="${loaiId != null && loaiId == l.id}">
                                         </option>
                                     </select>
                                 </div>
 
                                 <!-- 4. Nhóm hương -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-2">
                                     <select name="nhomHuongId"
                                             class="form-select form-select-sm"
                                             id="nhomHuongFilter">
@@ -79,13 +91,13 @@
                                         <option th:each="nh : ${listNhomHuong}"
                                                 th:value="${nh.id}"
                                                 th:text="${nh.tenNhomHuong}"
-                                                th:selected="${nhomHuongId != null and nhomHuongId == nh.id}">
+                                                th:selected="${nhomHuongId != null && nhomHuongId == nh.id}">
                                         </option>
                                     </select>
                                 </div>
 
                                 <!-- 5. Mùa -->
-                                <div class="col-md-1">
+                                <div class="col-6 col-md-1">
                                     <select name="muaId"
                                             class="form-select form-select-sm"
                                             id="muaFilter">
@@ -95,32 +107,13 @@
                                         <option th:each="m : ${listMuaThichHop}"
                                                 th:value="${m.id}"
                                                 th:text="${m.tenMua}"
-                                                th:selected="${muaId != null and muaId == m.id}">
+                                                th:selected="${muaId != null && muaId == m.id}">
                                         </option>
                                     </select>
                                 </div>
 
-
-                                <div class="col-12 col-lg-2 d-flex justify-content-lg-end justify-content-start mt-2 mt-lg-0">
-                                    <div class="d-flex gap-2">
-                                        <button type="submit"
-                                                class="btn btn-primary px-3 py-2 fw-semibold"
-                                                title="Lọc">
-                                            <i class="bi bi-funnel me-1"></i>
-                                            <span>Lọc</span>
-                                        </button>
-                                        <a th:href="@{/admin/san-pham}"
-                                           class="btn btn-outline-secondary px-3 py-2 fw-semibold"
-                                           title="Xóa lọc">
-                                            <i class="bi bi-x-lg me-1"></i>
-                                            <span>Xóa</span>
-                                        </a>
-                                    </div>
-                                </div>
-
                             </div>
                         </form>
-                        <!-- ========== HẾT FORM LỌC ========== -->
 
                         <div class="table-responsive">
                             <table class="table table-striped table-fixed align-middle">
