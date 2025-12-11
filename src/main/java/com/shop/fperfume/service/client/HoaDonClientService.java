@@ -27,4 +27,6 @@ public interface HoaDonClientService {
 
 
     HoaDon cancelOrderGuest(Integer hoaDonId, String lyDoHuy);
+    
+    void truTonKhoSauThanhToanThanhCong(Integer hoaDonId);
 }

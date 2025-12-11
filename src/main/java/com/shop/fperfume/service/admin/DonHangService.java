@@ -3,6 +3,8 @@ package com.shop.fperfume.service.admin;
 import com.shop.fperfume.model.response.DonHangResponse;
 import com.shop.fperfume.model.response.PageableObject;
 
+import java.util.List;
+
 public interface DonHangService {
 
     PageableObject<DonHangResponse> pagingDonHang(int pageNo,
@@ -32,4 +34,6 @@ public interface DonHangService {
                        String sdt,
                        String diaChi,
                        String trangThaiMoi);
+
+    List<String> getAllowedNextTrangThais(String currentTrangThai);
 }

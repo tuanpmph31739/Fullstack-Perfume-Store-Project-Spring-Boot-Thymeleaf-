@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PublicOrderController {
 
     private final HoaDonRepository hoaDonRepository;
-    private final HoaDonClientService hoaDonClientService;  // ⭐ thêm
+    private final HoaDonClientService hoaDonClientService;
 
     @GetMapping("/{ma}")
     public String viewPublicOrder(@PathVariable("ma") String ma,
