@@ -4,12 +4,10 @@
 <body>
 <div class="wrapper">
 
-    <!-- Sidebar -->
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
 
     <div id="main">
 
-        <!-- Header -->
         <header th:replace="~{/admin/fragments/header :: header('Chỉnh sửa Giảm giá')}"></header>
 
         <div class="page-content">
@@ -53,7 +51,7 @@
                                 <!-- Loại giảm -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Loại Giảm:</label>
-                                    <select th:field="*{loaiGiam}" class="form-control" required>
+                                    <select th:field="*{loaiGiam}" class="form-control" id="loaiGiamSelect" required>
                                         <option value="">-- Chọn loại giảm --</option>
                                         <option value="PERCENT">Giảm %</option>
                                         <option value="AMOUNT">Giảm tiền</option>
@@ -63,13 +61,20 @@
                                 <!-- Giá trị -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Giá Trị:</label>
-                                    <input type="number" th:field="*{giaTri}" class="form-control" step="0.01" required>
+                                    <div class="input-group">
+                                        <input type="number" th:field="*{giaTri}" class="form-control" id="giaTriInput" step="0.01" required>
+                                        <span class="input-group-text" id="giaTriUnit">đ</span>
+                                    </div>
                                 </div>
 
                                 <!-- Số lượng -->
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Số Lượng:</label>
-                                    <input type="number" th:field="*{soLuong}" class="form-control" min="0">
+                                    <input type="number"
+                                           th:field="*{soLuong}"
+                                           class="form-control"
+                                           min="0"
+                                           required>
                                 </div>
 
                                 <!-- Đơn hàng tối thiểu -->
@@ -120,7 +125,7 @@
                                         <option value="">-- Toàn cửa hàng --</option>
                                         <option th:each="sp : ${sanPhamChiTietList}"
                                                 th:value="${sp.id}"
-                                                th:text="${sp.tenSanPham}">
+                                                th:text="${sp.maSKU}">
                                         </option>
                                     </select>
                                 </div>
@@ -128,7 +133,8 @@
                             </div>
 
                             <div class="text-end">
-                                <button class="btn btn-primary" type="submit" onclick="return confirm('Xác nhận muốn lưu mã giảm giá này?')">
+                                <button class="btn btn-primary" type="submit"
+                                        onclick="return confirm('Xác nhận muốn lưu mã giảm giá này?')">
                                     <i class="bi bi-save"></i> Cập nhật
                                 </button>
 
@@ -150,5 +156,31 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    function updateGiaTriField() {
+        const loai = document.getElementById("loaiGiamSelect").value;
+        const giaTriInput = document.getElementById("giaTriInput");
+        const giaTriUnit = document.getElementById("giaTriUnit");
+
+        if (loai === "PERCENT") {
+            giaTriInput.min = 1;
+            giaTriInput.max = 100;
+            giaTriInput.step = 1;
+            giaTriUnit.innerText = "%";
+        } else {
+            giaTriInput.min = 0;
+            giaTriInput.removeAttribute("max");
+            giaTriInput.step = "0.01";
+            giaTriUnit.innerText = "đ";
+        }
+    }
+
+    document.getElementById("loaiGiamSelect").addEventListener("change", updateGiaTriField);
+
+    // chạy khi load trang (edit)
+    updateGiaTriField();
+</script>
+
 </body>
 </html>
