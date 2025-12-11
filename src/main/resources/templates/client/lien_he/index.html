@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/client/fragments/head :: head}"></head>
+
+<body>
+
+<!-- HEADER -->
+<div th:replace="~{/client/fragments/header :: header}"></div>
+
+<div class="container py-5">
+
+    <!-- TITLE -->
+    <div class="text-center mb-5 pd-wrap">
+        <h1 class="fw-bold">Liên hệ</h1>
+        <p class="text-muted mt-3" style="max-width: 700px; margin: 0 auto;">
+            Nếu bạn có bất kỳ thắc mắc hoặc cần hỗ trợ, hãy liên hệ với chúng tôi qua thông tin dưới đây
+            hoặc gửi phản hồi trực tiếp bằng biểu mẫu bên dưới.
+        </p>
+    </div>
+
+    <!-- CONTACT SECTION -->
+    <div class="row align-items-start mt-4">
+
+        <!-- LEFT: CONTACT FORM + INFO -->
+        <div class="col-md-6">
+
+            <p><strong>Địa chỉ:</strong> 13 Trịnh Văn Bô, Xuân Phương, Nam Từ Liêm, Hà Nội</p>
+            <p><strong>Hotline:</strong> 0962 795 760</p>
+            <p><strong>Email:</strong> giangnt080203@gmail.com</p>
+
+            <div class="mt-4">
+
+                <label class="mt-3">Họ và tên *</label>
+                <input type="text" class="form-control" placeholder="Nhập họ tên của bạn">
+
+                <label class="mt-3">Email *</label>
+                <input type="email" class="form-control" placeholder="Nhập email của bạn">
+
+                <label class="mt-3">Nội dung *</label>
+                <textarea class="form-control" rows="5" placeholder="Nhập nội dung cần trao đổi"></textarea>
+
+                <button class="btn btn-primary mt-4 px-4 py-2">
+                    GỬI LIÊN HỆ
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: GOOGLE MAP -->
+        <div class="col-md-6 mt-4 mt-md-0 text-center">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3539.612222850331!2d105.7445193750317!3d21.03804663061356!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313455e940879933%3A0xcf10b34e9f1a03df!2zVHLGsOG7nW5nIENhbyDEkeG6s25nIEZQVCBQb2x5dGVjaG5pYw!5e1!3m2!1svi!2s!4v1765455281205!5m2!1svi!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<div th:replace="~{/client/fragments/footer :: footer}"></div>
+
+</body>
+</html>
