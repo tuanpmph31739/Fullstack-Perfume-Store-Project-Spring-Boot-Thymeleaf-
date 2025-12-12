@@ -99,33 +99,27 @@
                             th:disabled="${sanPhamChiTiet.soLuongTon <= 0 or sanPhamChiTiet.trangThai == false}">
                         <i class="bi bi-bag-plus"></i>
 
-                        <!-- Nếu ngừng kinh doanh -->
-                        <span th:if="${sanPhamChiTiet.trangThai == false}">
-            Ngừng kinh doanh
-        </span>
-
-                        <!-- Đang bán + còn hàng -->
-                        <span th:if="${sanPhamChiTiet.trangThai != false and sanPhamChiTiet.soLuongTon > 0}">
-            Thêm vào giỏ hàng
-        </span>
-
-                        <!-- Đang bán nhưng hết hàng -->
-                        <span th:if="${sanPhamChiTiet.trangThai != false and sanPhamChiTiet.soLuongTon <= 0}">
-            Hết hàng
-        </span>
+                        <span id="addToCartLabel"
+                              th:text="${
+                                          sanPhamChiTiet.trangThai == false
+                                              ? 'Ngừng kinh doanh'
+                                              : (sanPhamChiTiet.soLuongTon > 0 ? 'Thêm vào giỏ hàng' : 'Hết hàng')
+                                      }">
+                                    Thêm vào giỏ hàng
+                                </span>
                     </button>
+
 
                     <button type="button"
                             id="buyNowButton"
                             class="btn btn-outline-dark btn-lg w-100"
                             th:disabled="${sanPhamChiTiet.soLuongTon <= 0 or sanPhamChiTiet.trangThai == false}">
-        <span th:if="${sanPhamChiTiet.trangThai == false}">
-            Ngừng kinh doanh
-        </span>
-                        <span th:if="${sanPhamChiTiet.trangThai != false}">
-            Mua ngay
-        </span>
+                                <span id="buyNowLabel"
+                                      th:text="${sanPhamChiTiet.trangThai == false ? 'Ngừng kinh doanh' : 'Mua ngay'}">
+                                    Mua ngay
+                                </span>
                     </button>
+
 
                     <div class="hotline d-flex align-items-center gap-2 justify-content-center">
                         <i class="bi bi-telephone"></i><span>HOTLINE</span><b>0397682148</b><span class="text-muted">(9:00 - 22:00)</span>
@@ -349,10 +343,12 @@
         const priceEl      = document.getElementById('product-price');
         const hiddenIdEl   = document.getElementById('selectedSanPhamChiTietId');
         const qtyInputEl   = document.getElementById('quantityInput');
-        const submitBtn    = document.getElementById('addToCartButton');
-        const btnText      = submitBtn.querySelector('span');
-        const stockTextEl  = document.getElementById('stockText');
-        const buyNowBtn    = document.getElementById('buyNowButton');
+        const submitBtn      = document.getElementById('addToCartButton');
+        const addToCartLabel = document.getElementById('addToCartLabel');
+        const stockTextEl    = document.getElementById('stockText');
+        const buyNowBtn      = document.getElementById('buyNowButton');
+        const buyNowLabel    = document.getElementById('buyNowLabel');
+
 
         const mainImg      = document.getElementById('mainImage');
         const thumbImg     = document.getElementById('thumbImage');   // nếu có
@@ -395,24 +391,39 @@
 
                     // Logic nút / số lượng
                     if (!isActive) {
-                        qtyInputEl.value   = 0;
+                        // Biến thể ngừng kinh doanh
+                        qtyInputEl.value    = 0;
                         qtyInputEl.disabled = true;
+
                         submitBtn.disabled  = true;
                         if (buyNowBtn) buyNowBtn.disabled = true;
-                        if (btnText) btnText.innerText = 'Ngừng kinh doanh';
+
+                        if (addToCartLabel) addToCartLabel.innerText = 'Ngừng kinh doanh';
+                        if (buyNowLabel)    buyNowLabel.innerText    = 'Ngừng kinh doanh';
+
                     } else if (stock <= 0) {
-                        qtyInputEl.value   = 0;
+                        // Đang bán nhưng hết hàng
+                        qtyInputEl.value    = 0;
                         qtyInputEl.disabled = true;
+
                         submitBtn.disabled  = true;
                         if (buyNowBtn) buyNowBtn.disabled = true;
-                        if (btnText) btnText.innerText = 'Hết hàng';
+
+                        if (addToCartLabel) addToCartLabel.innerText = 'Hết hàng';
+                        if (buyNowLabel)    buyNowLabel.innerText    = 'Hết hàng';
+
                     } else {
+                        // Đang bán + còn hàng
                         if (parseInt(qtyInputEl.value) < 1) qtyInputEl.value = 1;
                         qtyInputEl.disabled = false;
+
                         submitBtn.disabled  = false;
                         if (buyNowBtn) buyNowBtn.disabled = false;
-                        if (btnText) btnText.innerText = 'Thêm vào giỏ hàng';
+
+                        if (addToCartLabel) addToCartLabel.innerText = 'Thêm vào giỏ hàng';
+                        if (buyNowLabel)    buyNowLabel.innerText    = 'Mua ngay';
                     }
+
                 }
             })
             .catch(err => console.error('Lỗi cập nhật giá:', err));

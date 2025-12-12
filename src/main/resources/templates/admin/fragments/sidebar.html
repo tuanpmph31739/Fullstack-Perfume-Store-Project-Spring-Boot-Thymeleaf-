@@ -1,5 +1,8 @@
-<div id="sidebar" class="sidebar-desktop active" th:fragment="sidebar" xmlns:th="http://www.thymeleaf.org"
-     xmlns:sec="http://www.w3.org/1999/xhtml">
+<div id="sidebar" class="sidebar-desktop active"
+     th:fragment="sidebar"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
     <div class="sidebar-wrapper ps ps--active-y">
         <!-- Header -->
         <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-2">
@@ -13,19 +16,30 @@
             <ul class="menu list-unstyled mb-0">
                 <li class="sidebar-title text-uppercase">Menu</li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/thong-ke'} ? 'active'">
+                <!-- Thống kê: CHỈ ADMIN -->
+                <li class="sidebar-item"
+                    th:classappend="${currentPath == '/admin/thong-ke'} ? 'active'"
+                    sec:authorize="hasRole('ADMIN')">
                     <a class="sidebar-link" th:href="@{/admin/thong-ke}">
                         <i class="bi bi-graph-up-arrow"></i>
                         <span>Thống kê</span>
                     </a>
                 </li>
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/ban-hang-tai-quay'} ? 'active'">
+
+                <!-- Bán hàng tại quầy: ADMIN + NHANVIEN -->
+                <li class="sidebar-item"
+                    th:classappend="${currentPath == '/admin/ban-hang-tai-quay'} ? 'active'"
+                    sec:authorize="hasAnyRole('ADMIN','NHANVIEN')">
                     <a th:href="@{/admin/ban-hang-tai-quay}" class="sidebar-link">
                         <i class="bi bi-pc-display-horizontal"></i>
                         <span>Bán hàng tại quầy</span>
                     </a>
                 </li>
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/don-hang'} ? 'active'">
+
+                <!-- Đơn hàng: ADMIN + NHANVIEN -->
+                <li class="sidebar-item"
+                    th:classappend="${currentPath == '/admin/don-hang'} ? 'active'"
+                    sec:authorize="hasAnyRole('ADMIN','NHANVIEN')">
                     <a th:href="@{/admin/don-hang}" class="sidebar-link">
                         <i class="bi bi-receipt-cutoff"></i>
                         <span>Đơn hàng</span>
@@ -34,19 +48,19 @@
 
                 <hr class="menu-divider">
 
-                <!-- Quản lý sản phẩm -->
+                <!-- Quản lý sản phẩm: CHỈ ADMIN -->
                 <li class="sidebar-item has-sub"
+                    sec:authorize="hasRole('ADMIN')"
                     th:classappend="${
                         #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham') or
                         #strings.startsWith(currentPath != null ? currentPath : '', '/admin/san-pham-chi-tiet') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/thuong-hieu') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/xuat-xu') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/dung-tich') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nong-do') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/loai-nuoc-hoa') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/mua-thich-hop') or
-#strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhom-huong')
-
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/thuong-hieu') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/xuat-xu') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/dung-tich') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/nong-do') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/loai-nuoc-hoa') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/mua-thich-hop') or
+                        #strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhom-huong')
                     } ? 'active'">
                     <a href="#" class="sidebar-link">
                         <i class="bi bi-basket"></i>
@@ -84,7 +98,9 @@
                     </ul>
                 </li>
 
+                <!-- Quản lý người dùng: ADMIN + NHANVIEN (nhưng submenu lọc tiếp) -->
                 <li class="sidebar-item has-sub"
+                    sec:authorize="hasAnyRole('ADMIN','NHANVIEN')"
                     th:classappend="${
                         #strings.startsWith(currentPath != null ? currentPath : '', '/admin/nhan-vien') or
                         #strings.startsWith(currentPath != null ? currentPath : '', '/admin/khach-hang')
@@ -95,23 +111,36 @@
                     </a>
 
                     <ul class="submenu">
-                        <li class="submenu-item" sec:authorize="hasAnyRole('ADMIN')" th:classappend="${currentPath == '/admin/nhan-vien'} ? 'active'">
+                        <!-- Nhân viên: chỉ ADMIN thấy -->
+                        <li class="submenu-item"
+                            sec:authorize="hasRole('ADMIN')"
+                            th:classappend="${currentPath == '/admin/nhan-vien'} ? 'active'">
                             <a th:href="@{/admin/nhan-vien}">Nhân viên</a>
                         </li>
-                        <li class="submenu-item" sec:authorize="hasAnyRole('ADMIN', 'NHANVIEN')" th:classappend="${currentPath == '/admin/khach-hang'} ? 'active'">
+
+                        <!-- Khách hàng: ADMIN + NHANVIEN -->
+                        <li class="submenu-item"
+                            sec:authorize="hasAnyRole('ADMIN','NHANVIEN')"
+                            th:classappend="${currentPath == '/admin/khach-hang'} ? 'active'">
                             <a th:href="@{/admin/khach-hang}">Khách hàng</a>
                         </li>
                     </ul>
                 </li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/hoa-don'} ? 'active'">
+                <!-- Quản lý hóa đơn: CHỈ ADMIN -->
+                <li class="sidebar-item"
+                    sec:authorize="hasAnyRole('ADMIN','NHANVIEN')"
+                    th:classappend="${currentPath == '/admin/hoa-don'} ? 'active'">
                     <a th:href="@{/admin/hoa-don}" class="sidebar-link">
                         <i class="bi bi-receipt"></i>
                         <span>Quản lý hóa đơn</span>
                     </a>
                 </li>
 
-                <li class="sidebar-item" th:classappend="${currentPath == '/admin/giam-gia'} ? 'active'">
+                <!-- Giảm giá: CHỈ ADMIN -->
+                <li class="sidebar-item"
+                    sec:authorize="hasRole('ADMIN')"
+                    th:classappend="${currentPath == '/admin/giam-gia'} ? 'active'">
                     <a th:href="@{/admin/giam-gia}" class="sidebar-link">
                         <i class="bi bi-tags"></i>
                         <span>Chương trình giảm giá</span>

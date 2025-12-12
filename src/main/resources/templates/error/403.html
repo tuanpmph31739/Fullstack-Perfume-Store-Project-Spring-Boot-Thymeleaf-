@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{client/fragments/head :: head}">
+    <title>Không có quyền truy cập</title>
+</head>
+<body>
+
+<!-- HEADER CHUNG -->
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<main class="error-403-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="error-card text-center">
+                    <div class="error-code">403</div>
+                    <h1 class="error-title">Bạn không có quyền truy cập</h1>
+                    <p class="error-text">
+                        Có vẻ như bạn đang cố truy cập vào khu vực chỉ dành cho quản trị viên / nhân viên.<br>
+                        Nếu bạn là khách hàng, hãy tiếp tục mua sắm tại trang chủ nhé.
+                    </p>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                        <a th:href="@{/}" class="btn btn-main">
+                            <i class="bi bi-house-door"></i> Về trang chủ
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary"
+                                onclick="window.history.back()">
+                            <i class="bi bi-arrow-left"></i> Quay lại trang trước
+                        </button>
+                    </div>
+
+                    <p class="small text-muted mt-3 mb-0">
+                        Nếu bạn nghĩ đây là lỗi, hãy liên hệ quản trị viên để được cấp quyền phù hợp.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER CHUNG -->
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+
+<style>
+    .error-403-page {
+        min-height: calc(100vh - 200px);
+        background: #f5f1ec;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+    }
+    .error-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #eee3d6;
+        padding: 32px 28px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.06);
+    }
+    .error-code {
+        font-size: 56px;
+        font-weight: 800;
+        color: #c38f5c;
+        line-height: 1;
+    }
+    .error-title {
+        font-size: 1.4rem;
+        margin-top: 10px;
+        color: #3b3027;
+        font-weight: 600;
+    }
+    .error-text {
+        margin-top: 10px;
+        margin-bottom: 0;
+        color: #7b6a5c;
+        font-size: 0.95rem;
+    }
+    .btn-main {
+        background: #9E8C7C;
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.5rem 1.4rem;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+    .btn-main:hover {
+        background: #857566;
+        color: #fff;
+    }
+</style>
+
+</body>
+</html>

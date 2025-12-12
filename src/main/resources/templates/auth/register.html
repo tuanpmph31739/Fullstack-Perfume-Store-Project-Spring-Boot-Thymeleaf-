@@ -1,39 +1,181 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Đăng ký tài khoản</title>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body { font-family: "Segoe UI", sans-serif; background: linear-gradient(135deg,#81ecec,#74b9ff); height:100vh; display:flex; justify-content:center; align-items:center; }
-        .register-container { background:white; padding:40px 50px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:420px; }
-        h2 { text-align:center; color:#2d3436; margin-bottom:25px; }
-        label { font-weight:500; color:#333; }
-        input { width:100%; padding:12px; margin:8px 0 16px; border:1px solid #ccc; border-radius:8px; font-size:15px; }
-        input:focus { border-color:#00cec9; }
-        button { width:100%; background:#00cec9; color:white; border:none; padding:12px; border-radius:8px; font-size:16px; cursor:pointer; transition:0.3s; }
-        button:hover { background:#81ecec; color:#2d3436; }
-    </style>
-</head>
+<head th:replace="~{client/fragments/head :: head}"></head>
 <body>
-<div class="register-container">
-    <h2>Tạo tài khoản mới</h2>
-    <form id="registerForm" th:action="@{/register}" th:object="${nguoiDung}" method="post" onsubmit="return validateForm()">
-        <label>Họ tên</label>
-        <input type="text" id="hoTen" th:field="*{hoTen}" placeholder="Nhập họ tên">
 
-        <label>Email</label>
-        <input type="email" id="email" th:field="*{email}" placeholder="Nhập email">
+<!-- HEADER CHUNG -->
+<div th:replace="~{client/fragments/header :: header}"></div>
 
-        <label>Mật khẩu</label>
-        <input type="password" id="matKhau" th:field="*{matKhau}" placeholder="Nhập mật khẩu">
+<main class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
 
-        <button type="submit">Đăng ký</button>
-    </form>
-</div>
+                <div class="auth-card">
+                    <h2 class="auth-title mb-1">Tạo tài khoản mới</h2>
+                    <p class="auth-subtitle mb-4">
+                        Đăng ký để nhận ưu đãi và trải nghiệm mua sắm tốt hơn tại <strong>F Perfume</strong>.
+                    </p>
+
+                    <form id="registerForm"
+                          th:action="@{/register}"
+                          th:object="${nguoiDung}"
+                          method="post"
+                          onsubmit="return validateForm()">
+
+                        <div class="mb-3">
+                            <label class="form-label auth-label">Họ tên</label>
+                            <input type="text"
+                                   id="hoTen"
+                                   th:field="*{hoTen}"
+                                   class="form-control auth-input"
+                                   placeholder="Nhập họ tên">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label auth-label">Email</label>
+                            <input type="email"
+                                   id="email"
+                                   th:field="*{email}"
+                                   class="form-control auth-input"
+                                   placeholder="Nhập email">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label auth-label">Mật khẩu</label>
+                            <input type="password"
+                                   id="matKhau"
+                                   th:field="*{matKhau}"
+                                   class="form-control auth-input"
+                                   placeholder="Nhập mật khẩu">
+                        </div>
+
+                        <!-- ✅ Thêm ô xác nhận mật khẩu (không bind vào entity) -->
+                        <div class="mb-3">
+                            <label class="form-label auth-label">Nhập lại mật khẩu</label>
+                            <input type="password"
+                                   id="confirmMatKhau"
+                                   class="form-control auth-input"
+                                   placeholder="Nhập lại mật khẩu">
+                        </div>
+
+                        <button type="submit" class="btn auth-btn mt-2">
+                            Đăng ký
+                        </button>
+                    </form>
+
+                    <p class="mt-4 mb-0 auth-footer-text">
+                        Đã có tài khoản?
+                        <a th:href="@{/login}" class="auth-link">Đăng nhập ngay</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER CHUNG -->
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .auth-page {
+        background: #f5f1ec;
+        min-height: calc(100vh - 200px); /* chừa chỗ header + footer */
+        display: flex;
+        align-items: center;      /* căn giữa theo chiều dọc */
+        justify-content: center;  /* căn giữa theo chiều ngang */
+        padding: 2rem 0;          /* để trên mobile không bị dính sát mép */
+    }
+
+    .auth-page > .container {
+        width: 100%;
+    }
+
+    .auth-card {
+        background:white;
+        padding:40px 32px;
+        border-radius:16px;
+        border:1px solid #eee3d6;
+        box-shadow:0 18px 40px rgba(0,0,0,0.06);
+    }
+
+    .auth-title {
+        text-align:left;
+        color:#3b3027;
+        margin-bottom:4px;
+        font-size:1.5rem;
+        font-weight:600;
+    }
+
+    .auth-subtitle {
+        font-size:0.9rem;
+        color:#7b6a5c;
+    }
+
+    .auth-label {
+        font-weight:500;
+        color:#5c5147;
+        font-size:0.85rem;
+    }
+
+    .auth-input {
+        width:100%;
+        padding:10px 11px;
+        margin-top:4px;
+        border:1px solid #d3c3b2;
+        border-radius:10px;
+        font-size:0.95rem;
+    }
+
+    .auth-input:focus {
+        border-color:#9E8C7C;
+        box-shadow:0 0 0 0.15rem rgba(158,140,124,0.25);
+    }
+
+    .auth-btn {
+        width:100%;
+        background:#9E8C7C;
+        color:white;
+        border:none;
+        padding:11px 16px;
+        border-radius:999px;
+        font-size:0.95rem;
+        font-weight:600;
+        cursor:pointer;
+        transition:0.3s;
+        letter-spacing:0.03em;
+        text-transform:uppercase;
+    }
+
+    .auth-btn:hover {
+        background:#857566;
+        color:#fff;
+    }
+
+    .auth-footer-text {
+        font-size:0.9rem;
+        color:#6b6055;
+        text-align:center;
+    }
+
+    .auth-link {
+        color:#9E8C7C;
+        font-weight:600;
+        text-decoration:none;
+    }
+
+    .auth-link:hover {
+        color:#7f6f63;
+        text-decoration:underline;
+    }
+</style>
 
 <script th:inline="javascript">
-    const error = /*[[${error}]]*/ null;
+    const error   = /*[[${error}]]*/ null;
     const success = /*[[${success}]]*/ null;
 
     if (error) {
@@ -43,9 +185,10 @@
     }
 
     function validateForm() {
-        const hoTen = document.getElementById('hoTen').value.trim();
-        const email = document.getElementById('email').value.trim();
+        const hoTen   = document.getElementById('hoTen').value.trim();
+        const email   = document.getElementById('email').value.trim();
         const matKhau = document.getElementById('matKhau').value.trim();
+        const confirm = document.getElementById('confirmMatKhau').value.trim();
 
         if (hoTen.length < 3) {
             Swal.fire({ icon:'error', title:'Lỗi', text:'Họ tên phải từ 3 ký tự trở lên' });
@@ -63,8 +206,19 @@
             return false;
         }
 
+        if (confirm === "") {
+            Swal.fire({ icon:'error', title:'Lỗi', text:'Vui lòng nhập lại mật khẩu để xác nhận' });
+            return false;
+        }
+
+        if (matKhau !== confirm) {
+            Swal.fire({ icon:'error', title:'Lỗi', text:'Mật khẩu nhập lại không khớp' });
+            return false;
+        }
+
         return true;
     }
 </script>
+
 </body>
 </html>
