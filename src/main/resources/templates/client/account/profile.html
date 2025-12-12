@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{client/fragments/head :: head}"></head>
+<body>
+
+<!-- HEADER CHUNG -->
+<div th:replace="~{client/fragments/header :: header}"></div>
+
+<main class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <!-- rộng hơn 1 tí -->
+            <div class="col-md-8 col-lg-7">
+
+                <div class="auth-card">
+                    <h2 class="auth-title mb-1">Thông tin tài khoản</h2>
+                    <p class="auth-subtitle mb-4">
+                        Cập nhật thông tin cá nhân của bạn tại <strong>F Perfume</strong>.
+                    </p>
+
+                    <!-- THÔNG BÁO LỖI / THÀNH CÔNG (server-side) -->
+                    <div th:if="${errorMessage}" class="alert alert-danger py-2 px-3 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span th:text="${errorMessage}">Có lỗi xảy ra</span>
+                    </div>
+                    <div th:if="${successMessage}" class="alert alert-success py-2 px-3 mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <span th:text="${successMessage}">Cập nhật thành công</span>
+                    </div>
+
+                    <form id="profileForm"
+                          th:action="@{/account/profile}"
+                          method="post"
+                          autocomplete="off">
+
+                        <!-- ========== THÔNG TIN CƠ BẢN ========== -->
+                        <h6 class="text-uppercase small fw-bold text-muted mb-2">
+                            <i class="bi bi-person-badge me-1"></i> Thông tin cá nhân
+                        </h6>
+
+                        <div class="row g-3 mb-3">
+                            <!-- Họ tên -->
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Họ tên</label>
+                                <input type="text"
+                                       id="hoTen"
+                                       name="hoTen"
+                                       class="form-control auth-input"
+                                       placeholder="Nhập họ tên"
+                                       th:value="${user.hoTen}">
+                            </div>
+
+                            <!-- Email (không cho sửa) -->
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Email</label>
+                                <input type="email"
+                                       class="form-control auth-input auth-input-readonly"
+                                       th:value="${user.email}"
+                                       readonly>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-1">
+                            <!-- Số ĐT -->
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Số điện thoại</label>
+                                <input type="text"
+                                       id="sdt"
+                                       name="sdt"
+                                       class="form-control auth-input"
+                                       placeholder="Nhập số điện thoại"
+                                       th:value="${user.sdt}">
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Ngày sinh</label>
+                                <input type="date"
+                                       id="ngaySinh"
+                                       name="ngaySinh"
+                                       class="form-control auth-input"
+                                       th:value="${user.ngaySinh != null ? #temporals.format(user.ngaySinh, 'yyyy-MM-dd') : ''}">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- ========== ĐỔI MẬT KHẨU (TÙY CHỌN) ========== -->
+                        <h6 class="text-uppercase small fw-bold text-muted mb-2">
+                            <i class="bi bi-shield-lock me-1"></i> Thay đổi mật khẩu
+                        </h6>
+                        <p class="small text-muted mb-3">
+                            Để đổi mật khẩu, vui lòng điền đầy đủ 3 ô bên dưới. Nếu không muốn đổi thì để trống.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label auth-label">Mật khẩu hiện tại</label>
+                            <input type="password"
+                                   id="currentPassword"
+                                   name="currentPassword"
+                                   class="form-control auth-input"
+                                   placeholder="Nhập mật khẩu hiện tại (nếu muốn đổi mật khẩu)">
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Mật khẩu mới</label>
+                                <input type="password"
+                                       id="newPassword"
+                                       name="newPassword"
+                                       class="form-control auth-input"
+                                       placeholder="Ít nhất 6 ký tự">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label auth-label">Xác nhận mật khẩu mới</label>
+                                <input type="password"
+                                       id="confirmPassword"
+                                       name="confirmPassword"
+                                       class="form-control auth-input"
+                                       placeholder="Nhập lại mật khẩu mới">
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="btn auth-btn mt-4 w-100">
+                            Lưu thay đổi
+                        </button>
+                    </form>
+
+                    <p class="mt-4 mb-0 auth-footer-text">
+                        <a th:href="@{/}" class="auth-link">← Về trang chủ</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER CHUNG -->
+<div th:replace="~{client/fragments/footer :: footer}"></div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .auth-page {
+        background: #f5f1ec;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+    .auth-page > .container {
+        width: 100%;
+    }
+    .auth-card {
+        background:white;
+        padding:40px 32px;
+        border-radius:16px;
+        border:1px solid #eee3d6;
+        box-shadow:0 18px 40px rgba(0,0,0,0.06);
+    }
+    .auth-title {
+        text-align:left;
+        color:#3b3027;
+        margin-bottom:4px;
+        font-size:1.5rem;
+        font-weight:600;
+    }
+    .auth-subtitle {
+        font-size:0.9rem;
+        color:#7b6a5c;
+    }
+    .auth-label {
+        font-weight:500;
+        color:#5c5147;
+        font-size:0.85rem;
+    }
+    .auth-input {
+        width:100%;
+        padding:10px 11px;
+        margin-top:4px;
+        border:1px solid #d3c3b2;
+        border-radius:10px;
+        font-size:0.95rem;
+    }
+    .auth-input:focus {
+        border-color:#9E8C7C;
+        box-shadow:0 0 0 0.15rem rgba(158,140,124,0.25);
+    }
+    .auth-input-readonly[readonly] {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+    .auth-btn {
+        background:#9E8C7C;
+        color:white;
+        border:none;
+        padding:11px 16px;
+        border-radius:999px;
+        font-size:0.95rem;
+        font-weight:600;
+        cursor:pointer;
+        transition:0.3s;
+        letter-spacing:0.03em;
+        text-transform:uppercase;
+    }
+    .auth-btn:hover {
+        background:#857566;
+        color:#fff;
+    }
+    .auth-footer-text {
+        font-size:0.9rem;
+        color:#6b6055;
+        text-align:center;
+    }
+    .auth-link {
+        color:#9E8C7C;
+        font-weight:600;
+        text-decoration:none;
+    }
+    .auth-link:hover {
+        color:#7f6f63;
+        text-decoration:underline;
+    }
+</style>
+
+<script th:inline="javascript">
+    const errorMessage   = /*[[${errorMessage}]]*/ null;
+    const successMessage = /*[[${successMessage}]]*/ null;
+
+    if (errorMessage) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: errorMessage
+        });
+    }
+
+    if (successMessage) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công',
+            text: successMessage,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+    // Validate nhẹ phía client
+    document.getElementById("profileForm").addEventListener("submit", function (e) {
+        const hoTen = document.getElementById("hoTen").value.trim();
+        const sdt   = document.getElementById("sdt").value.trim();
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword     = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (hoTen.length < 3) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Họ tên phải từ 3 ký tự trở lên.'
+            });
+            return;
+        }
+
+        const phoneRegex = /^0(3|5|7|8|9)[0-9]{8}$/;
+        if (!phoneRegex.test(sdt)) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Số điện thoại không hợp lệ.'
+            });
+            return;
+        }
+
+        const wantChangePassword =
+            currentPassword || newPassword || confirmPassword;
+
+        if (wantChangePassword) {
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Vui lòng nhập đầy đủ mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu.'
+                });
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Mật khẩu mới phải từ 6 ký tự trở lên.'
+                });
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Mật khẩu mới và xác nhận không khớp.'
+                });
+                return;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

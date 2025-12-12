@@ -19,16 +19,9 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String redirectURL = "/";
-
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            String role = authority.getAuthority();
-            if (role.equals("ADMIN") || role.equals("NHANVIEN")) {
-                redirectURL = "/admin/san-pham";
-                break;
-            }
-        }
+        String redirectURL = "/?loginSuccess=true"; // thêm param để show toast
 
         response.sendRedirect(redirectURL);
     }
+
 }
