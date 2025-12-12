@@ -83,18 +83,18 @@ public class DonHangController {
                                HttpServletRequest request,
                                RedirectAttributes redirectAttributes) {
         try {
-            // Thông tin đơn hàng (DTO)
             DonHangResponse donHang = donHangService.getById(id);
             model.addAttribute("donHang", donHang);
 
-            // ✅ danh sách sản phẩm trong đơn
             List<HoaDonChiTiet> chiTietList =
                     hoaDonChiTietRepository.findByHoaDon_Id_WithSanPham(id);
             model.addAttribute("chiTietList", chiTietList);
 
-            // ✅ danh sách trạng thái được phép chuyển tới
-            var allowedTrangThais = donHangService.getAllowedNextTrangThais(donHang.getTrangThai());
+            // truyền cả kenhBan vào
+            java.util.List<String> allowedTrangThais =
+                    donHangService.getAllowedNextTrangThais(donHang.getTrangThai(), donHang.getKenhBan());
             model.addAttribute("allowedTrangThais", allowedTrangThais);
+
 
             String referer = request.getHeader("Referer");
             model.addAttribute("backUrl", referer != null ? referer : "/admin/don-hang");
@@ -105,6 +105,7 @@ public class DonHangController {
             return "redirect:/admin/don-hang";
         }
     }
+
 
     @PostMapping("/edit/{id}")
     public String updateDonHang(@PathVariable("id") Integer id,
@@ -120,7 +121,7 @@ public class DonHangController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật đơn hàng: " + e.getMessage());
         }
-        return "redirect:/admin/don-hang";
+        return "redirect:/admin/don-hang/edit/" + id;
     }
 
 }
