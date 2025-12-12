@@ -35,5 +35,7 @@ public interface DonHangService {
                        String diaChi,
                        String trangThaiMoi);
 
-    List<String> getAllowedNextTrangThais(String currentTrangThai);
+
+    List<String> getAllowedNextTrangThais(String currentTrangThai, String kenhBan);
+
 }

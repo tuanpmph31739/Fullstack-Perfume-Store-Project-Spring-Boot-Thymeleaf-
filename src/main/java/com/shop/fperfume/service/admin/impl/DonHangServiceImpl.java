@@ -30,7 +30,7 @@ public class DonHangServiceImpl implements DonHangService {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    // ================== STATE MACHINE CHO TRẠNG THÁI ĐƠN ==================
+    // ================== STATE MACHINE CƠ BẢN ==================
     private static final java.util.Map<String, java.util.List<String>> ALLOWED_TRANSITIONS
             = new java.util.HashMap<>();
 
@@ -51,7 +51,7 @@ public class DonHangServiceImpl implements DonHangService {
         ALLOWED_TRANSITIONS.put("DANG_GIAO",
                 java.util.List.of("HOAN_THANH", "DA_HUY"));
 
-        // Hoàn thành -> (rất hiếm) cho phép hủy
+        // Hoàn thành -> mặc định cho phép hủy (sẽ custom theo kênh phía dưới)
         ALLOWED_TRANSITIONS.put("HOAN_THANH",
                 java.util.List.of("DA_HUY"));
 
@@ -60,21 +60,41 @@ public class DonHangServiceImpl implements DonHangService {
                 java.util.List.of());
     }
 
-    // ================== HÀM HỖ TRỢ DROPDOWN TRẠNG THÁI ==================
-    @Override
-    public java.util.List<String> getAllowedNextTrangThais(String currentTrangThai) {
-        String current = currentTrangThai == null ? "" : currentTrangThai.trim().toUpperCase();
 
-        java.util.List<String> result = new java.util.ArrayList<>();
-        if (!current.isEmpty()) {
-            // luôn cho phép hiển thị trạng thái hiện tại
-            result.add(current);
+
+    @Override
+    public java.util.List<String> getAllowedNextTrangThais(String currentTrangThai, String kenhBan) {
+        String cur = currentTrangThai == null ? "" : currentTrangThai.trim().toUpperCase();
+        String channel = kenhBan == null ? "" : kenhBan.trim().toUpperCase();
+
+        java.util.List<String> base =
+                ALLOWED_TRANSITIONS.getOrDefault(cur, java.util.List.of());
+
+        if ("WEB".equals(channel)) {
+            // Đơn online đã HOÀN_THÀNH -> không cho huỷ nữa
+            if ("HOAN_THANH".equals(cur)) {
+                return java.util.List.of(); // không đi đâu được nữa
+            }
+            return base;
         }
 
-        result.addAll(ALLOWED_TRANSITIONS.getOrDefault(current, java.util.List.of()));
+        if ("TAI_QUAY".equals(channel)) {
+            // Đơn tại quầy đang chờ thanh toán (mới tạo ở POS)
+            // => chỉ cho phép HUỶ, không cho đi luồng giao hàng online
+            if ("DANG_CHO_THANH_TOAN".equals(cur)) {
+                return java.util.List.of("DA_HUY");
+            }
 
-        // bỏ trùng cho chắc
-        return result.stream().distinct().toList();
+            if ("HOAN_THANH".equals(cur)) {
+                return java.util.List.of("DA_HUY");
+            }
+
+            // Các trạng thái khác (nếu có) dùng rule base
+            return base;
+        }
+
+        // Default cho kênh khác (nếu sau này có)
+        return base;
     }
 
     // ================== PAGING ĐƠN HÀNG (ADMIN) ==================
@@ -157,7 +177,6 @@ public class DonHangServiceImpl implements DonHangService {
         return dto;
     }
 
-    // ================== CẬP NHẬT ĐƠN HÀNG ==================
     @Override
     @Transactional
     public void updateDonHang(Integer idHoaDon,
@@ -171,75 +190,59 @@ public class DonHangServiceImpl implements DonHangService {
 
         String old = hoaDon.getTrangThai() == null ? "" : hoaDon.getTrangThai().trim().toUpperCase();
         String neo = trangThaiMoi == null ? "" : trangThaiMoi.trim().toUpperCase();
+        String kenhBan = hoaDon.getKenhBan() == null ? "" : hoaDon.getKenhBan().trim().toUpperCase();
 
-        // ====== CHẶN CHUYỂN TRẠNG THÁI SAI FLOW ======
-        if (!old.equals(neo)) {
-            java.util.List<String> allowedTargets = ALLOWED_TRANSITIONS.getOrDefault(old, java.util.List.of());
-            if (!allowedTargets.contains(neo)) {
-                throw new RuntimeException(
-                        "Không được phép chuyển trạng thái từ " + old + " sang " + neo);
-            }
+        // ✅ 1. Kiểm tra trạng thái mới có hợp lệ cho kênh này không
+        java.util.List<String> allowedNext = getAllowedNextTrangThais(old, kenhBan);
+        if (!old.equals(neo) && !allowedNext.contains(neo)) {
+            throw new RuntimeException(
+                    "Không thể chuyển trạng thái từ " + old + " sang " + neo + " cho kênh " + kenhBan);
         }
 
         boolean wasCancelled = "DA_HUY".equals(old);
         boolean isCancelled  = "DA_HUY".equals(neo);
 
-        // trạng thái HOÀN THÀNH
         boolean wasCompleted = "HOAN_THANH".equals(old);
         boolean isCompleted  = "HOAN_THANH".equals(neo);
 
-        // trạng thái ĐANG CHỜ THANH TOÁN (VNPay chưa trả về)
         boolean wasPendingPayment = "DANG_CHO_THANH_TOAN".equals(old);
 
-        // 1) ACTIVE -> HỦY  => HOÀN KHO (NHƯNG KHÔNG HOÀN KHO NẾU ĐANG CHỜ THANH TOÁN)
+        // 1) ACTIVE -> HỦY  => HOÀN KHO (nhưng không hoàn nếu DANG_CHO_THANH_TOAN)
         if (!wasCancelled && isCancelled && hoaDon.getHoaDonChiTiets() != null) {
-
-            // Chỉ hoàn kho nếu đơn TRƯỚC ĐÓ đã trừ kho
-            // => Không phải DANG_CHO_THANH_TOAN (vì VNPay chưa trừ)
             if (!wasPendingPayment) {
                 for (HoaDonChiTiet ct : hoaDon.getHoaDonChiTiets()) {
                     if (ct.getSanPhamChiTiet() != null && ct.getSoLuong() != null) {
                         SanPhamChiTiet spct = ct.getSanPhamChiTiet();
                         Integer ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
                         spct.setSoLuongTon(ton + ct.getSoLuong());
-                        // sanPhamChiTietRepository.save(spct); // bật nếu không dùng cascade
                     }
                 }
             }
-
-            // Nếu từ HOAN_THANH -> DA_HUY thì bỏ ngày thanh toán
             if (wasCompleted) {
+                // Đơn bị hủy -> không còn tính doanh thu
                 hoaDon.setNgayThanhToan(null);
             }
         }
-
-        // 2) HỦY -> ACTIVE  => TRỪ KHO LẠI (nếu bạn còn cho phép DA_HUY -> trạng thái khác)
+        // 2) HỦY -> ACTIVE => TRỪ KHO LẠI
         else if (wasCancelled && !isCancelled && hoaDon.getHoaDonChiTiets() != null) {
             for (HoaDonChiTiet ct : hoaDon.getHoaDonChiTiets()) {
                 if (ct.getSanPhamChiTiet() != null && ct.getSoLuong() != null) {
                     SanPhamChiTiet spct = ct.getSanPhamChiTiet();
                     Integer ton = spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon();
-
                     if (ton < ct.getSoLuong()) {
                         throw new RuntimeException("Không đủ tồn kho để kích hoạt lại đơn hàng.");
                     }
-
                     spct.setSoLuongTon(ton - ct.getSoLuong());
-                    // sanPhamChiTietRepository.save(spct);
                 }
             }
         }
 
-        // 3) XỬ LÝ NGÀY THANH TOÁN THEO TRẠNG THÁI HOÀN THÀNH
-
-        // Từ trạng thái không phải HOAN_THANH -> HOAN_THANH
+        // 3) Ngày thanh toán cho trạng thái HOÀN THÀNH
         if (!wasCompleted && isCompleted) {
             if (hoaDon.getNgayThanhToan() == null) {
                 hoaDon.setNgayThanhToan(LocalDateTime.now());
             }
         }
-
-        // Từ HOAN_THANH -> trạng thái khác (không gồm DA_HUY đã clear ở trên)
         if (wasCompleted && !isCompleted && !isCancelled) {
             hoaDon.setNgayThanhToan(null);
         }
