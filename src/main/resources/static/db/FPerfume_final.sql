@@ -229,6 +229,7 @@ CREATE TABLE HoaDon (
 
 						NgaySua DATETIME2 DEFAULT GETDATE()
 );
+ALTER TABLE HoaDon ADD Email NVARCHAR(255) NULL;
 
 PRINT N'Bảng HoaDon đã được tạo (sau ThanhToan).';
 GO

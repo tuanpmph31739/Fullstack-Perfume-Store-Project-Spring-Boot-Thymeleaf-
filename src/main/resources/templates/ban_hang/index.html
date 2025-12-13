@@ -766,5 +766,18 @@
     </div>
 </div>
 <script th:src="@{/assets/assets/compiled/js/pos.js}"></script>
+<script th:inline="javascript">
+    // Lấy id hóa đơn vừa thanh toán từ FlashAttribute
+    const printId = /*[[${printId}]]*/ null;
+
+    if (printId !== null && printId !== 0) {
+        // Build URL in hóa đơn, kèm autoPrint=true để bên print-invoice tự window.print()
+        const printUrl = /*[[@{/admin/hoa-don/print/{id}(id=${printId})}]]*/ '';
+        const finalUrl = printUrl + '?autoPrint=true';
+
+        // Mở tab mới
+        window.open(finalUrl, '_blank');
+    }
+</script>
 </body>
 </html>

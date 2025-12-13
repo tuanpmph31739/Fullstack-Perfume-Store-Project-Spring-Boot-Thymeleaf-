@@ -103,34 +103,237 @@
     </div>
 </div>
 <script th:replace="/admin/fragments/script :: script"></script>
-<script src="/js/admin-address.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script th:inline="javascript">
-    // (Copy đoạn Script JS SweetAlert cũ của bạn vào đây)
-    // LƯU Ý: Sửa đường dẫn fetch thành: /admin/nhan-vien/check-email
     document.addEventListener("DOMContentLoaded", () => {
+
+        // ========== ĐỊa CHỈ NHÂN VIÊN (nv-*) ==========
+        const nvProvince = document.getElementById("nv-province");
+        const nvDistrict = document.getElementById("nv-district");
+        const nvWard     = document.getElementById("nv-ward");
+        const nvStreet   = document.getElementById("nv-street");
+        const nvFullAddr = document.getElementById("nv-fullAddress");
+
+        function splitAddress(addr) {
+            const parts = addr.split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+
+            let province = "", district = "", ward = "", street = "";
+
+            if (parts.length >= 4) {
+                province = parts[parts.length - 1];
+                district = parts[parts.length - 2];
+                ward     = parts[parts.length - 3];
+                street   = parts.slice(0, parts.length - 3).join(", ");
+            } else if (parts.length === 3) {
+                province = parts[2];
+                district = parts[1];
+                street   = parts[0];
+            } else if (parts.length === 2) {
+                province = parts[1];
+                street   = parts[0];
+            } else if (parts.length === 1) {
+                street   = parts[0];
+            }
+            return { province, district, ward, street };
+        }
+
+        function findOptionByName(select, targetName) {
+            if (!select || !targetName) return null;
+            const normTarget = targetName.toLowerCase();
+            let found = null;
+            Array.from(select.options).forEach(opt => {
+                const name = (opt.textContent || "").toLowerCase();
+                if (!name) return;
+                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) {
+                    found = opt;
+                }
+            });
+            return found;
+        }
+
+        function updateNvFullAddress() {
+            if (!nvProvince || !nvDistrict || !nvWard || !nvStreet || !nvFullAddr) return;
+
+            const p = nvProvince.value ? nvProvince.options[nvProvince.selectedIndex].text.trim() : "";
+            const d = nvDistrict.value ? nvDistrict.options[nvDistrict.selectedIndex].text.trim() : "";
+            const w = nvWard.value     ? nvWard.options[nvWard.selectedIndex].text.trim()        : "";
+            const s = nvStreet.value.trim();
+
+            const arr = [];
+            if (s) arr.push(s);
+            if (w) arr.push(w);
+            if (d) arr.push(d);
+            if (p) arr.push(p);
+
+            nvFullAddr.value = arr.join(", ");
+        }
+
+        if (nvProvince && nvDistrict && nvWard && nvStreet && nvFullAddr) {
+            nvDistrict.disabled = true;
+            nvWard.disabled     = true;
+
+            const existingNvAddress = (nvFullAddr.value || "").trim();
+
+            function autoFillNvAddress() {
+                if (!existingNvAddress) return;
+
+                const parts = splitAddress(existingNvAddress);
+                if (!parts.province) return;
+
+                if (parts.street) {
+                    nvStreet.value = parts.street;
+                }
+
+                const provOpt = findOptionByName(nvProvince, parts.province);
+                if (!provOpt) { updateNvFullAddress(); return; }
+
+                nvProvince.value   = provOpt.value;
+                nvDistrict.disabled = false;
+
+                fetch(`https://esgoo.net/api-tinhthanh/2/${provOpt.value}.htm`)
+                    .then(r => r.json())
+                    .then(data => {
+                        nvDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
+                        if (data.error === 0) {
+                            data.data.forEach(item => {
+                                const opt = new Option(item.full_name, item.id);
+                                nvDistrict.add(opt);
+                            });
+                        }
+
+                        if (!parts.district) { updateNvFullAddress(); return; }
+
+                        const distOpt = findOptionByName(nvDistrict, parts.district);
+                        if (!distOpt) { updateNvFullAddress(); return; }
+
+                        nvDistrict.value = distOpt.value;
+                        nvWard.disabled  = false;
+
+                        return fetch(`https://esgoo.net/api-tinhthanh/3/${distOpt.value}.htm`)
+                            .then(r => r.json())
+                            .then(data2 => {
+                                nvWard.innerHTML = '<option value="">Phường / Xã</option>';
+                                if (data2.error === 0) {
+                                    data2.data.forEach(item => {
+                                        const opt = new Option(item.full_name, item.id);
+                                        nvWard.add(opt);
+                                    });
+                                }
+
+                                if (parts.ward) {
+                                    const wardOpt = findOptionByName(nvWard, parts.ward);
+                                    if (wardOpt) nvWard.value = wardOpt.value;
+                                }
+
+                                updateNvFullAddress();
+                            });
+                    })
+                    .catch(err => console.error("Lỗi auto-fill địa chỉ NV:", err));
+            }
+
+            fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error === 0) {
+                        data.data.forEach(item => {
+                            const opt = new Option(item.full_name, item.id);
+                            nvProvince.add(opt);
+                        });
+                    }
+                    autoFillNvAddress();
+                })
+                .catch(err => console.error("Lỗi load tỉnh NV:", err));
+
+            nvProvince.addEventListener("change", function () {
+                nvDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
+                nvWard.innerHTML     = '<option value="">Phường / Xã</option>';
+                nvWard.disabled      = true;
+
+                if (this.value) {
+                    nvDistrict.disabled = false;
+                    fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error === 0) {
+                                data.data.forEach(item => {
+                                    const opt = new Option(item.full_name, item.id);
+                                    nvDistrict.add(opt);
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Lỗi load huyện NV:", err));
+                } else {
+                    nvDistrict.disabled = true;
+                }
+                updateNvFullAddress();
+            });
+
+            nvDistrict.addEventListener("change", function () {
+                nvWard.innerHTML = '<option value="">Phường / Xã</option>';
+                if (this.value) {
+                    nvWard.disabled = false;
+                    fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error === 0) {
+                                data.data.forEach(item => {
+                                    const opt = new Option(item.full_name, item.id);
+                                    nvWard.add(opt);
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Lỗi load xã NV:", err));
+                } else {
+                    nvWard.disabled = true;
+                }
+                updateNvFullAddress();
+            });
+
+            nvWard.addEventListener("change", updateNvFullAddress);
+            nvStreet.addEventListener("input", updateNvFullAddress);
+        }
+
+        // ========== SWEETALERT + CHECK EMAIL NHÂN VIÊN ==========
         const form = document.getElementById("formNguoiDung");
         const successMsg = [[${success}]];
-        const errorMsg = [[${error}]];
+        const errorMsg   = [[${error}]];
 
-        if (successMsg) Swal.fire({icon: 'success', title: 'Thành công!', text: successMsg, timer: 2000, showConfirmButton: false});
-        if (errorMsg) Swal.fire({icon: 'error', title: 'Lỗi!', text: errorMsg});
+        if (successMsg) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: successMsg,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+        if (errorMsg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: errorMsg
+            });
+        }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const id      = document.getElementById("userId").value;
-            const email   = document.getElementById("email").value.trim();
-            const oldEmail= document.getElementById("oldEmail").value.trim();
-            const hoTen   = document.getElementById("hoTen").value.trim();
-            const matKhau = document.getElementById("matKhau").value.trim();
+            const id       = document.getElementById("userId").value;
+            const email    = document.getElementById("email").value.trim();
+            const oldEmail = document.getElementById("oldEmail").value.trim();
+            const hoTen    = document.getElementById("hoTen").value.trim();
+            const matKhau  = document.getElementById("matKhau").value.trim();
 
             if (!hoTen)  return Swal.fire("Lỗi", "Nhập họ tên", "error");
             if (!email)  return Swal.fire("Lỗi", "Nhập email", "error");
             if (!id && !matKhau) return Swal.fire("Lỗi", "Nhập mật khẩu cho nhân viên mới", "error");
 
             if (!id || (id && email !== oldEmail)) {
-                const res = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
-                if (await res.json()) {
+                const res    = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
+                const exists = await res.json();
+                if (exists) {
                     return Swal.fire("Lỗi", "Email đã tồn tại", "error");
                 }
             }
@@ -142,31 +345,14 @@
                 confirmButtonText: "Lưu"
             }).then(r => {
                 if (r.isConfirmed) {
-
-                    // GHÉP ĐỊA CHỈ NHÂN VIÊN
-                    const tinhSelect  = document.getElementById("nv-tinh");
-                    const huyenSelect = document.getElementById("nv-huyen");
-                    const xaSelect    = document.getElementById("nv-xa");
-                    const soNhaInput  = document.getElementById("nv-soNha");
-
-                    const tinhText  = tinhSelect && tinhSelect.value  ? tinhSelect.options[tinhSelect.selectedIndex].text : "";
-                    const huyenText = huyenSelect && huyenSelect.value ? huyenSelect.options[huyenSelect.selectedIndex].text : "";
-                    const xaText    = xaSelect && xaSelect.value    ? xaSelect.options[xaSelect.selectedIndex].text : "";
-                    const soNhaText = soNhaInput ? soNhaInput.value.trim() : "";
-
-                    let fullAddress = "";
-                    if (soNhaText) fullAddress += soNhaText;
-                    if (xaText)    fullAddress += (fullAddress ? ", " : "") + xaText;
-                    if (huyenText) fullAddress += (fullAddress ? ", " : "") + huyenText;
-                    if (tinhText)  fullAddress += (fullAddress ? ", " : "") + tinhText;
-
-                    document.getElementById("nv-diaChiFull").value = fullAddress;
-
+                    // Cập nhật hidden địa chỉ trước khi submit
+                    updateNvFullAddress();
                     form.submit();
                 }
             });
         });
     });
 </script>
+
 </body>
 </html>
