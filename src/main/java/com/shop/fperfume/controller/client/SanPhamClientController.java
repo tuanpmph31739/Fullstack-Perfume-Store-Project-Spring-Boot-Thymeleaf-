@@ -147,9 +147,14 @@ public class SanPhamClientController {
         if (maxPrice != null && maxPrice <= 0) maxPrice = null;
         if (selectedBrands == null) selectedBrands = new ArrayList<>();
 
+        // Lấy giá max động theo loaiDb (gender filter nếu có)
+        long maxPriceBound = sanPhamClientService.getMaxPriceBound(loaiDb);
+        model.addAttribute("maxPriceBound", maxPriceBound);
+
         var pageData = sanPhamClientService.filterProducts(
                 selectedBrands, loaiDb, minPrice, maxPrice, sort, pageIndex, pageSize
         );
+
 
         model.addAttribute("sanPhams", pageData.getContent());
         model.addAttribute("currentPage", pageData.getNumber() + 1);
@@ -221,7 +226,7 @@ public class SanPhamClientController {
     // ------------------ helper dùng chung ------------------
     private String listByGender(String loaiDb, String selectedGenderForUI, String title,
                                 Model model,
-                                HttpServletRequest request,     // <— thêm
+                                HttpServletRequest request,
                                 Integer pageNo, Integer pageSize,
                                 List<Integer> selectedBrands,
                                 Integer minPrice, Integer maxPrice,
@@ -234,6 +239,10 @@ public class SanPhamClientController {
         if (minPrice != null && minPrice <= 0) minPrice = null;
         if (maxPrice != null && maxPrice <= 0) maxPrice = null;
         if (selectedBrands == null) selectedBrands = new ArrayList<>();
+
+        // 🔹 Lấy max giá theo đúng giới (Nam/Nữ/Unisex)
+        long maxPriceBound = sanPhamClientService.getMaxPriceBound(loaiDb);
+        model.addAttribute("maxPriceBound", maxPriceBound);
 
         var pageData = sanPhamClientService.filterProducts(
                 selectedBrands, loaiDb, minPrice, maxPrice, sort, pageIndex, pageSize == null ? 15 : pageSize

@@ -248,4 +248,15 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     List<SanPhamChiTiet> findBySanPhamIdAndTrangThaiTrueAndSoLuongTonGreaterThan(
             Integer sanPhamId, Integer soLuongTon
     );
+
+    @Query("""
+    SELECT COALESCE(MAX(spct.giaBan), 0)
+    FROM SanPhamChiTiet spct
+    JOIN spct.sanPham sp
+    LEFT JOIN sp.loaiNuocHoa ln
+    WHERE (spct.trangThai = true)
+      AND (:loai IS NULL OR ln.tenLoai = :loai)
+""")
+    BigDecimal findMaxGiaByLoai(@Param("loai") String loai);
+
 }

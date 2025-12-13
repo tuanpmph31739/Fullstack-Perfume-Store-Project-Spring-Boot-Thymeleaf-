@@ -39,13 +39,13 @@ public class NhanVienController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
         model.addAttribute("currentPath", "/admin/nhan-vien");
-        return "admin/nhan_vien/index"; // Trỏ về view riêng
+        return "admin/nhan_vien/index";
     }
 
     @GetMapping("/add")
     public String add(Model model) {
         NguoiDung nd = new NguoiDung();
-        nd.setVaiTro("NHANVIEN"); // Mặc định vai trò
+        nd.setVaiTro("NHANVIEN");
         model.addAttribute("nguoiDung", nd);
         model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/form";
@@ -59,19 +59,45 @@ public class NhanVienController {
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect, Model model) {
-        nguoiDung.setVaiTro("NHANVIEN"); // Cố định vai trò
+    public String save(@ModelAttribute("nguoiDung") NguoiDung nguoiDung,
+                       @RequestParam(value = "newPassword", required = false) String newPassword,
+                       RedirectAttributes redirect) {
+
+        // cố định vai trò
+        nguoiDung.setVaiTro("NHANVIEN");
 
         // Check email trùng
         Optional<NguoiDung> existing = repo.findByEmail(nguoiDung.getEmail());
         if (existing.isPresent() && !existing.get().getId().equals(nguoiDung.getId())) {
             redirect.addFlashAttribute("error", "Email đã tồn tại!");
+            // nếu đang edit thì quay lại đúng trang edit
+            if (nguoiDung.getId() != null) {
+                return "redirect:/admin/nhan-vien/edit/" + nguoiDung.getId();
+            }
             return "redirect:/admin/nhan-vien/add";
         }
 
+        // THÊM MỚI: bắt buộc có mật khẩu
+        if (nguoiDung.getId() == null) {
+            if (newPassword == null || newPassword.isBlank()) {
+                redirect.addFlashAttribute("error", "Nhập mật khẩu cho nhân viên mới!");
+                return "redirect:/admin/nhan-vien/add";
+            }
+            // gán pass mới (service.save sẽ encode)
+            nguoiDung.setMatKhau(newPassword.trim());
+        } else {
+            // UPDATE: nếu có nhập mật khẩu mới thì đổi, không nhập thì giữ nguyên
+            if (newPassword != null && !newPassword.isBlank()) {
+                nguoiDung.setMatKhau(newPassword.trim()); // service.save sẽ encode
+            } else {
+                // đảm bảo không vô tình ghi đè pass (trong case object có matKhau rác)
+                nguoiDung.setMatKhau(null);
+            }
+        }
+
         service.save(nguoiDung);
+
         redirect.addFlashAttribute("success", "Lưu nhân viên thành công!");
-        model.addAttribute("currentPath", "/admin/nhan-vien");
         return "redirect:/admin/nhan-vien";
     }
 
@@ -81,7 +107,6 @@ public class NhanVienController {
         return "redirect:/admin/nhan-vien";
     }
 
-    // API check email cho JS gọi
     @GetMapping("/check-email")
     @ResponseBody
     public boolean checkEmail(@RequestParam String email) {

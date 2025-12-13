@@ -73,7 +73,8 @@ public class SecurityConfig {
                                 "/admin/don-hang/**",
                                 "/admin/hoa-don/**",
                                 "/admin/khach-hang/**",
-                                "/admin/ban-hang-tai-quay/**"
+                                "/admin/ban-hang-tai-quay/**",
+                                "/admin/tai-khoan/**"
                         ).hasAnyRole("ADMIN", "NHANVIEN")
 
                         // ============== CHỈ ADMIN ==================

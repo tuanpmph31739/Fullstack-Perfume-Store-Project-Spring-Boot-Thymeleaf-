@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Optional;
+
 @Controller
 @RequestMapping("/admin/khach-hang")
 public class KhachHangController {
@@ -31,45 +33,69 @@ public class KhachHangController {
                         Model model) {
 
         Pageable pageable = PageRequest.of(page, size);
-        // Gọi hàm lấy Khách hàng
         Page<NguoiDung> pageData = service.getAllKhachHang(keyword, trangThai, pageable);
 
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
         model.addAttribute("currentPath", "/admin/khach-hang");
-        // Trả về view riêng cho khách hàng
         return "admin/khach_hang/index";
     }
 
     @GetMapping("/add")
     public String add(Model model) {
-        model.addAttribute("nguoiDung", new NguoiDung());
+        NguoiDung nd = new NguoiDung();
+        nd.setVaiTro("KHACHHANG");
+        model.addAttribute("nguoiDung", nd);
         model.addAttribute("currentPath", "/admin/khach-hang");
         return "admin/khach_hang/form";
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable Long id, Model model) {
-        model.addAttribute("nguoiDung", service.getById(id).orElseThrow());
+        NguoiDung nd = service.getById(id).orElseThrow();
+        model.addAttribute("nguoiDung", nd);
         model.addAttribute("currentPath", "/admin/khach-hang");
         return "admin/khach_hang/form";
     }
 
     @PostMapping("/save")
-    public String save(@ModelAttribute NguoiDung nguoiDung, RedirectAttributes redirect, Model model) {
-        // Cố định vai trò là KHACHHANG
+    public String save(@ModelAttribute("nguoiDung") NguoiDung nguoiDung,
+                       @RequestParam(value = "newPassword", required = false) String newPassword,
+                       RedirectAttributes redirect) {
+
+        // cố định vai trò
         nguoiDung.setVaiTro("KHACHHANG");
 
-        if (nguoiDung.getMa() == null || nguoiDung.getMa().isEmpty()) {
-            nguoiDung.setMa("KH" + System.currentTimeMillis());
+        // Check email trùng
+        Optional<NguoiDung> existing = repo.findByEmail(nguoiDung.getEmail());
+        if (existing.isPresent() && !existing.get().getId().equals(nguoiDung.getId())) {
+            redirect.addFlashAttribute("error", "Email đã tồn tại!");
+            if (nguoiDung.getId() != null) {
+                return "redirect:/admin/khach-hang/edit/" + nguoiDung.getId();
+            }
+            return "redirect:/admin/khach-hang/add";
         }
 
-        // Check trùng email logic...
+        // THÊM MỚI: bắt buộc có mật khẩu
+        if (nguoiDung.getId() == null) {
+            if (newPassword == null || newPassword.isBlank()) {
+                redirect.addFlashAttribute("error", "Vui lòng tạo mật khẩu cho khách hàng mới!");
+                return "redirect:/admin/khach-hang/add";
+            }
+            nguoiDung.setMatKhau(newPassword.trim()); // service.save sẽ encode
+        } else {
+            // UPDATE: nếu nhập pass mới thì đổi, không nhập thì giữ nguyên
+            if (newPassword != null && !newPassword.isBlank()) {
+                nguoiDung.setMatKhau(newPassword.trim()); // service.save sẽ encode
+            } else {
+                nguoiDung.setMatKhau(null); // để service.save tự giữ pass cũ
+            }
+        }
 
         service.save(nguoiDung);
+
         redirect.addFlashAttribute("success", "Lưu khách hàng thành công!");
-        model.addAttribute("currentPath", "/admin/khach-hang");
         return "redirect:/admin/khach-hang";
     }
 
@@ -77,5 +103,12 @@ public class KhachHangController {
     public String delete(@PathVariable Long id) {
         service.delete(id);
         return "redirect:/admin/khach-hang";
+    }
+
+    // API check email cho JS gọi (form của bạn đang gọi endpoint này)
+    @GetMapping("/check-email")
+    @ResponseBody
+    public boolean checkEmail(@RequestParam String email) {
+        return repo.findByEmail(email).isPresent();
     }
 }

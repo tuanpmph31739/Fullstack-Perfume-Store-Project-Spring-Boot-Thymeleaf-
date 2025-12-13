@@ -36,8 +36,13 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Mật khẩu</label>
-                            <input type="password" class="form-control" th:field="*{matKhau}" id="matKhau"
-                                   placeholder="Để trống nếu không muốn đổi">
+                            <input type="password"
+                                   class="form-control"
+                                   name="newPassword"
+                                   id="matKhau"
+                                   placeholder="Để trống nếu không muốn đổi"
+                                   autocomplete="new-password">
+
                         </div>
                     </div>
 

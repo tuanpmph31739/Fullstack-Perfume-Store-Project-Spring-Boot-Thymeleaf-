@@ -48,4 +48,5 @@ public interface NguoiDungRepository extends JpaRepository<NguoiDung, Long> {
             "WHERE n.vaiTro = 'KHACHHANG' " +
             "AND (n.sdt LIKE %:keyword% OR n.hoTen LIKE %:keyword%)")
     List<NguoiDung> searchKhachHangForPos(@Param("keyword") String keyword);
+
 }

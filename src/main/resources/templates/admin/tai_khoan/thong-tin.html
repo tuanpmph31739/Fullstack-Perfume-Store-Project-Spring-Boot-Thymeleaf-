@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{/admin/fragments/head :: head}"></head>
+
+<body>
+<div class="wrapper">
+    <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
+
+    <div id="main">
+        <header th:replace="~{/admin/fragments/header :: header('Thông tin tài khoản')}"></header>
+
+        <div class="page-content">
+            <section class="row justify-content-center">
+                <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+
+                    <div class="card shadow-sm account-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Thông tin tài khoản</h5>
+                        </div>
+
+                        <div class="card-body">
+
+                            <form th:action="@{/admin/tai-khoan/thong-tin}"
+                                  th:object="${nguoiDung}"
+                                  method="post"
+                                  id="taiKhoanForm"
+                                  autocomplete="off">
+
+                                <!-- CSRF -->
+                                <input type="hidden" th:if="${_csrf != null}"
+                                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                                <!-- Email -->
+                                <div class="mb-3">
+                                    <label class="form-label">Email (tên đăng nhập)</label>
+                                    <input type="email" class="form-control" th:field="*{email}" readonly>
+                                </div>
+
+                                <!-- Họ tên + SĐT -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Họ tên</label>
+                                        <input type="text" class="form-control" th:field="*{hoTen}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số điện thoại</label>
+                                        <input type="text" class="form-control" th:field="*{sdt}">
+                                    </div>
+                                </div>
+
+                                <!-- Ngày sinh + Giới tính -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Ngày sinh</label>
+                                        <input type="date"
+                                               class="form-control"
+                                               id="ngaySinh"
+                                               name="ngaySinh"
+                                               th:value="${nguoiDung.ngaySinh != null ? #temporals.format(nguoiDung.ngaySinh,'yyyy-MM-dd') : ''}">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Giới tính</label>
+                                        <!-- gioiTinh là Integer -->
+                                        <select class="form-select" th:field="*{gioiTinh}" id="gioiTinh">
+                                            <option th:value="${null}">-- Chọn giới tính --</option>
+                                            <option value="1">Nam</option>
+                                            <option value="0">Nữ</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- full địa chỉ -->
+                                <input type="hidden" th:field="*{diaChi}" id="diaChiFull"/>
+
+                                <!-- Địa chỉ -->
+                                <div class="mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small">Tỉnh / Thành phố</label>
+                                            <select id="tinhThanh" class="form-select">
+                                                <option value="">-- Chọn tỉnh --</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">Quận / Huyện</label>
+                                            <select id="quanHuyen" class="form-select" disabled>
+                                                <option value="">-- Chọn huyện --</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">Phường / Xã</label>
+                                            <select id="phuongXa" class="form-select" disabled>
+                                                <option value="">-- Chọn xã --</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label small">Số nhà, đường...</label>
+                                            <input type="text" class="form-control"
+                                                   id="soNha"
+                                                   placeholder="VD: 123 Trần Hưng Đạo">
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small mt-2">
+                                        Nếu bạn không muốn đổi địa chỉ, có thể để trống các ô địa chỉ.
+                                    </div>
+                                </div>
+
+                                <hr class="my-4"/>
+
+                                <!-- Đổi mật khẩu -->
+                                <h6 class="mb-2 fw-semibold">Đổi mật khẩu</h6>
+                                <p class="text-muted small mb-3">
+                                    Nếu không muốn đổi mật khẩu, hãy để trống các ô bên dưới.
+                                </p>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Mật khẩu hiện tại</label>
+                                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Mật khẩu mới</label>
+                                        <input type="password" class="form-control" id="newPassword" name="newPassword" autocomplete="off">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        Lưu thay đổi
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .account-card .card-header { padding: 14px 18px; }
+    .account-card .card-body { padding: 18px 18px; }
+    .account-card .form-label { margin-bottom: 6px; font-size: .9rem; }
+    .account-card .form-label.small { font-size: .8rem; }
+    .account-card .form-control,
+    .account-card .form-select { padding: .42rem .6rem; font-size: .9rem; }
+    .account-card hr { opacity: .12; }
+</style>
+
+<!-- Toast sau redirect -->
+<script th:inline="javascript">
+    const successMsg = /*[[${success}]]*/ null;
+    const errMsg = /*[[${passwordError}]]*/ null;
+
+    if (successMsg) {
+        Swal.fire({ icon:'success', title:'Thành công', text: successMsg, timer: 1600, showConfirmButton:false });
+    }
+    if (errMsg) {
+        Swal.fire({ icon:'error', title:'Lỗi', text: errMsg });
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const provinceSelect   = document.getElementById("tinhThanh");
+        const districtSelect   = document.getElementById("quanHuyen");
+        const wardSelect       = document.getElementById("phuongXa");
+        const streetInput      = document.getElementById("soNha");
+        const fullAddressInput = document.getElementById("diaChiFull");
+        const form             = document.getElementById("taiKhoanForm");
+
+        const currentPassword = document.getElementById("currentPassword");
+        const newPassword     = document.getElementById("newPassword");
+        const confirmPassword = document.getElementById("confirmPassword");
+
+        const existingAddressRaw = fullAddressInput?.value ? fullAddressInput.value.trim() : "";
+
+        function splitAddress(addr) {
+            if (!addr) return { province:"", district:"", ward:"", street:"" };
+
+            if (addr.includes(",")) {
+                const parts = addr.split(",").map(p => p.trim()).filter(Boolean);
+                let province="", district="", ward="", street="";
+                if (parts.length >= 4) {
+                    province = parts[parts.length - 1];
+                    district = parts[parts.length - 2];
+                    ward     = parts[parts.length - 3];
+                    street   = parts.slice(0, parts.length - 3).join(", ");
+                } else if (parts.length === 3) {
+                    province = parts[2]; district = parts[1]; street = parts[0];
+                } else if (parts.length === 2) {
+                    province = parts[1]; street = parts[0];
+                } else {
+                    street = parts[0] || "";
+                }
+                return { province, district, ward, street };
+            }
+
+            const parts2 = addr.split(" - ").map(p => p.trim()).filter(Boolean);
+            return {
+                province: parts2[0] || "",
+                district: parts2[1] || "",
+                ward:     parts2[2] || "",
+                street:   parts2.slice(3).join(" - ") || ""
+            };
+        }
+
+        function findOptionByName(select, targetName) {
+            if (!targetName) return null;
+            const normTarget = targetName.toLowerCase();
+            let found = null;
+            Array.from(select.options).forEach(opt => {
+                const name = (opt.getAttribute("data-name") || opt.textContent || "").toLowerCase();
+                if (!name) return;
+                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) found = opt;
+            });
+            return found;
+        }
+
+        function buildFullAddress() {
+            const p = provinceSelect.options[provinceSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const d = districtSelect.options[districtSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const w = wardSelect.options[wardSelect.selectedIndex]?.getAttribute("data-name") || "";
+            const s = streetInput.value.trim();
+
+            const arr = [];
+            if (s) arr.push(s);
+            if (w) arr.push(w);
+            if (d) arr.push(d);
+            if (p) arr.push(p);
+            return arr.join(", ");
+        }
+
+        function updateFullAddress() {
+            fullAddressInput.value = buildFullAddress();
+        }
+
+        // load tỉnh
+        fetch("https://esgoo.net/api-tinhthanh/1/0.htm")
+            .then(r => r.json())
+            .then(data => {
+                provinceSelect.innerHTML = '<option value="">-- Chọn tỉnh --</option>';
+                if (data.error === 0) {
+                    data.data.forEach(item => {
+                        const opt = new Option(item.full_name, item.id);
+                        opt.setAttribute("data-name", item.full_name);
+                        provinceSelect.add(opt);
+                    });
+                }
+                autoFillAddressFromExisting();
+            });
+
+        function autoFillAddressFromExisting() {
+            if (!existingAddressRaw) return;
+
+            const parts = splitAddress(existingAddressRaw);
+            if (parts.street) streetInput.value = parts.street;
+            if (!parts.province) return;
+
+            const provOpt = findOptionByName(provinceSelect, parts.province);
+            if (!provOpt) return;
+
+            provinceSelect.value = provOpt.value;
+
+            districtSelect.disabled = false;
+            fetch(`https://esgoo.net/api-tinhthanh/2/${provOpt.value}.htm`)
+                .then(r => r.json())
+                .then(data => {
+                    districtSelect.innerHTML = '<option value="">-- Chọn huyện --</option>';
+                    wardSelect.innerHTML = '<option value="">-- Chọn xã --</option>';
+                    wardSelect.disabled = true;
+
+                    if (data.error === 0) {
+                        data.data.forEach(item => {
+                            const opt = new Option(item.full_name, item.id);
+                            opt.setAttribute("data-name", item.full_name);
+                            districtSelect.add(opt);
+                        });
+                    }
+
+                    const distOpt = findOptionByName(districtSelect, parts.district);
+                    if (!distOpt) return;
+                    districtSelect.value = distOpt.value;
+
+                    wardSelect.disabled = false;
+                    return fetch(`https://esgoo.net/api-tinhthanh/3/${distOpt.value}.htm`)
+                        .then(r => r.json())
+                        .then(data2 => {
+                            wardSelect.innerHTML = '<option value="">-- Chọn xã --</option>';
+                            if (data2.error === 0) {
+                                data2.data.forEach(item => {
+                                    const opt = new Option(item.full_name, item.id);
+                                    opt.setAttribute("data-name", item.full_name);
+                                    wardSelect.add(opt);
+                                });
+                            }
+
+                            const wardOpt = findOptionByName(wardSelect, parts.ward);
+                            if (wardOpt) wardSelect.value = wardOpt.value;
+
+                            updateFullAddress();
+                        });
+                })
+                .catch(err => console.error("Auto-fill address error:", err));
+        }
+
+        // change events
+        provinceSelect.addEventListener("change", function () {
+            districtSelect.innerHTML = '<option value="">-- Chọn huyện --</option>';
+            wardSelect.innerHTML     = '<option value="">-- Chọn xã --</option>';
+            wardSelect.disabled      = true;
+
+            if (!this.value) {
+                districtSelect.disabled = true;
+                return;
+            }
+
+            districtSelect.disabled = false;
+            fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error === 0) {
+                        data.data.forEach(item => {
+                            const opt = new Option(item.full_name, item.id);
+                            opt.setAttribute("data-name", item.full_name);
+                            districtSelect.add(opt);
+                        });
+                    }
+                });
+        });
+
+        districtSelect.addEventListener("change", function () {
+            wardSelect.innerHTML = '<option value="">-- Chọn xã --</option>';
+            if (!this.value) {
+                wardSelect.disabled = true;
+                return;
+            }
+
+            wardSelect.disabled = false;
+            fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error === 0) {
+                        data.data.forEach(item => {
+                            const opt = new Option(item.full_name, item.id);
+                            opt.setAttribute("data-name", item.full_name);
+                            wardSelect.add(opt);
+                        });
+                    }
+                });
+        });
+
+        // confirm submit + validate giống client
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // ===== validate đổi mật khẩu =====
+            const cur = currentPassword.value.trim();
+            const nw  = newPassword.value.trim();
+            const cf  = confirmPassword.value.trim();
+            const wantChangePassword = cur || nw || cf;
+
+            if (wantChangePassword) {
+                if (!cur || !nw || !cf) {
+                    Swal.fire({ icon:'error', title:'Lỗi', text:'Vui lòng nhập đủ 3 ô mật khẩu.' });
+                    return;
+                }
+                if (nw.length < 6) {
+                    Swal.fire({ icon:'error', title:'Lỗi', text:'Mật khẩu mới phải từ 6 ký tự trở lên.' });
+                    return;
+                }
+                if (nw !== cf) {
+                    Swal.fire({ icon:'error', title:'Lỗi', text:'Mật khẩu mới và xác nhận không khớp.' });
+                    return;
+                }
+            }
+
+            // ===== xử lý địa chỉ (không cho submit làm trống địa chỉ) =====
+            const addressTouched =
+                streetInput.value.trim() || provinceSelect.value || districtSelect.value || wardSelect.value;
+
+            if (addressTouched) {
+                if (!streetInput.value.trim() || !provinceSelect.value || !districtSelect.value || !wardSelect.value) {
+                    Swal.fire({ icon:'error', title:'Lỗi', text:'Nếu cập nhật địa chỉ, vui lòng chọn đủ Tỉnh/Huyện/Xã và nhập số nhà.' });
+                    return;
+                }
+                updateFullAddress();
+            } else {
+                // không đụng địa chỉ -> giữ nguyên DB
+                fullAddressInput.value = existingAddressRaw;
+            }
+
+            Swal.fire({
+                title: 'Xác nhận lưu thay đổi?',
+                text: 'Bạn có chắc muốn cập nhật thông tin tài khoản không?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Lưu',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // submit thật (bypass handler)
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
