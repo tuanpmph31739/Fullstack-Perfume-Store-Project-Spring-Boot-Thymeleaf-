@@ -116,39 +116,246 @@
 </div>
 
 <script th:replace="/admin/fragments/script :: script"></script>
-<script src="/js/admin-address.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", () => {
+
+        // ========== ĐỊA CHỈ KHÁCH HÀNG (kh-*) ==========
+        const khProvince = document.getElementById("kh-province");
+        const khDistrict = document.getElementById("kh-district");
+        const khWard     = document.getElementById("kh-ward");
+        const khStreet   = document.getElementById("kh-street");
+        const khFullAddr = document.getElementById("kh-fullAddress");
+
+        // Tách "Số nhà, Phường X, Quận Y, Tỉnh Z" thành 4 phần
+        function splitAddress(addr) {
+            const parts = addr.split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+
+            let province = "", district = "", ward = "", street = "";
+
+            if (parts.length >= 4) {
+                province = parts[parts.length - 1];
+                district = parts[parts.length - 2];
+                ward     = parts[parts.length - 3];
+                street   = parts.slice(0, parts.length - 3).join(", ");
+            } else if (parts.length === 3) {
+                province = parts[2];
+                district = parts[1];
+                street   = parts[0];
+            } else if (parts.length === 2) {
+                province = parts[1];
+                street   = parts[0];
+            } else if (parts.length === 1) {
+                street   = parts[0];
+            }
+            return { province, district, ward, street };
+        }
+
+        // Tìm option theo tên (gần đúng)
+        function findOptionByName(select, targetName) {
+            if (!select || !targetName) return null;
+            const normTarget = targetName.toLowerCase();
+            let found = null;
+            Array.from(select.options).forEach(opt => {
+                const name = (opt.textContent || "").toLowerCase();
+                if (!name) return;
+                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) {
+                    found = opt;
+                }
+            });
+            return found;
+        }
+
+        // Build lại chuỗi địa chỉ cho KH -> hidden kh-fullAddress
+        function updateKhFullAddress() {
+            if (!khProvince || !khDistrict || !khWard || !khStreet || !khFullAddr) return;
+
+            const p = khProvince.value  ? khProvince.options[khProvince.selectedIndex].text.trim()  : "";
+            const d = khDistrict.value  ? khDistrict.options[khDistrict.selectedIndex].text.trim()  : "";
+            const w = khWard.value      ? khWard.options[khWard.selectedIndex].text.trim()          : "";
+            const s = khStreet.value.trim();
+
+            const arr = [];
+            if (s) arr.push(s);
+            if (w) arr.push(w);
+            if (d) arr.push(d);
+            if (p) arr.push(p);
+
+            khFullAddr.value = arr.join(", ");
+        }
+
+        if (khProvince && khDistrict && khWard && khStreet && khFullAddr) {
+            khDistrict.disabled = true;
+            khWard.disabled     = true;
+
+            const existingKhAddress = (khFullAddr.value || "").trim();
+
+            function autoFillKhAddress() {
+                if (!existingKhAddress) return;
+
+                const parts = splitAddress(existingKhAddress);
+                if (!parts.province) return;
+
+                if (parts.street) {
+                    khStreet.value = parts.street;
+                }
+
+                const provOpt = findOptionByName(khProvince, parts.province);
+                if (!provOpt) { updateKhFullAddress(); return; }
+
+                khProvince.value    = provOpt.value;
+                khDistrict.disabled = false;
+
+                // Load Huyện
+                fetch(`https://esgoo.net/api-tinhthanh/2/${provOpt.value}.htm`)
+                    .then(r => r.json())
+                    .then(data => {
+                        khDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
+                        if (data.error === 0) {
+                            data.data.forEach(item => {
+                                const opt = new Option(item.full_name, item.id);
+                                khDistrict.add(opt);
+                            });
+                        }
+
+                        if (!parts.district) { updateKhFullAddress(); return; }
+
+                        const distOpt = findOptionByName(khDistrict, parts.district);
+                        if (!distOpt) { updateKhFullAddress(); return; }
+
+                        khDistrict.value = distOpt.value;
+                        khWard.disabled  = false;
+
+                        // Load Xã
+                        return fetch(`https://esgoo.net/api-tinhthanh/3/${distOpt.value}.htm`)
+                            .then(r => r.json())
+                            .then(data2 => {
+                                khWard.innerHTML = '<option value="">Phường / Xã</option>';
+                                if (data2.error === 0) {
+                                    data2.data.forEach(item => {
+                                        const opt = new Option(item.full_name, item.id);
+                                        khWard.add(opt);
+                                    });
+                                }
+
+                                if (parts.ward) {
+                                    const wardOpt = findOptionByName(khWard, parts.ward);
+                                    if (wardOpt) khWard.value = wardOpt.value;
+                                }
+
+                                updateKhFullAddress();
+                            });
+                    })
+                    .catch(err => console.error("Lỗi auto-fill địa chỉ KH:", err));
+            }
+
+            // Load Tỉnh lần đầu
+            fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error === 0) {
+                        data.data.forEach(item => {
+                            const opt = new Option(item.full_name, item.id);
+                            khProvince.add(opt);
+                        });
+                    }
+                    autoFillKhAddress();
+                })
+                .catch(err => console.error("Lỗi load tỉnh KH:", err));
+
+            khProvince.addEventListener("change", function () {
+                khDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
+                khWard.innerHTML     = '<option value="">Phường / Xã</option>';
+                khWard.disabled      = true;
+
+                if (this.value) {
+                    khDistrict.disabled = false;
+                    fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error === 0) {
+                                data.data.forEach(item => {
+                                    const opt = new Option(item.full_name, item.id);
+                                    khDistrict.add(opt);
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Lỗi load huyện KH:", err));
+                } else {
+                    khDistrict.disabled = true;
+                }
+                updateKhFullAddress();
+            });
+
+            khDistrict.addEventListener("change", function () {
+                khWard.innerHTML = '<option value="">Phường / Xã</option>';
+                if (this.value) {
+                    khWard.disabled = false;
+                    fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error === 0) {
+                                data.data.forEach(item => {
+                                    const opt = new Option(item.full_name, item.id);
+                                    khWard.add(opt);
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Lỗi load xã KH:", err));
+                } else {
+                    khWard.disabled = true;
+                }
+                updateKhFullAddress();
+            });
+
+            khWard.addEventListener("change", updateKhFullAddress);
+            khStreet.addEventListener("input", updateKhFullAddress);
+        }
+
+        // ========== SWEETALERT + CHECK EMAIL KHÁCH HÀNG ==========
         const form = document.getElementById("formKhachHang");
 
-        // Thông báo từ Server
         const successMsg = [[${success}]];
-        const errorMsg = [[${error}]];
-        if (successMsg) Swal.fire({icon: 'success', title: 'Thành công', text: successMsg, timer: 1500, showConfirmButton: false});
-        if (errorMsg) Swal.fire({icon: 'error', title: 'Lỗi', text: errorMsg});
+        const errorMsg   = [[${error}]];
+        if (successMsg) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: successMsg,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+        if (errorMsg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: errorMsg
+            });
+        }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const id = document.getElementById("userId").value;
-            const hoTen = document.getElementById("hoTen").value.trim();
-            const email = document.getElementById("email").value.trim();
+            const id       = document.getElementById("userId").value;
+            const hoTen    = document.getElementById("hoTen").value.trim();
+            const email    = document.getElementById("email").value.trim();
             const oldEmail = document.getElementById("oldEmail").value.trim();
-            const matKhau = document.getElementById("matKhau").value.trim();
+            const matKhau  = document.getElementById("matKhau").value.trim();
 
-            if (!hoTen) return Swal.fire("Thiếu thông tin", "Vui lòng nhập họ tên!", "warning");
-            if (!email) return Swal.fire("Thiếu thông tin", "Vui lòng nhập email!", "warning");
+            if (!hoTen)  return Swal.fire("Thiếu thông tin", "Vui lòng nhập họ tên!", "warning");
+            if (!email)  return Swal.fire("Thiếu thông tin", "Vui lòng nhập email!", "warning");
 
-            // Nếu thêm mới (id rỗng) thì bắt buộc mật khẩu
             if (!id && !matKhau) {
                 return Swal.fire("Thiếu thông tin", "Vui lòng tạo mật khẩu cho khách hàng mới!", "warning");
             }
 
-            // Check email trùng (khi thêm mới hoặc đổi email)
+            // Check email trùng
             if (!id || (id && email !== oldEmail)) {
-                const res = await fetch(`/admin/khach-hang/check-email?email=${encodeURIComponent(email)}`);
+                const res    = await fetch(`/admin/khach-hang/check-email?email=${encodeURIComponent(email)}`);
                 const exists = await res.json();
                 if (exists) {
                     return Swal.fire("Trùng lặp", "Email này đã có người sử dụng!", "error");
@@ -164,31 +371,14 @@
                 cancelButtonText: "Hủy"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // GHÉP ĐỊA CHỈ TỪ CÁC Ô TỈNH/HUYỆN/XÃ/SỐ NHÀ
-                    const tinhSelect  = document.getElementById("kh-tinh");
-                    const huyenSelect = document.getElementById("kh-huyen");
-                    const xaSelect    = document.getElementById("kh-xa");
-                    const soNhaInput  = document.getElementById("kh-soNha");
-
-                    const tinhText  = tinhSelect && tinhSelect.value  ? tinhSelect.options[tinhSelect.selectedIndex].text : "";
-                    const huyenText = huyenSelect && huyenSelect.value ? huyenSelect.options[huyenSelect.selectedIndex].text : "";
-                    const xaText    = xaSelect && xaSelect.value    ? xaSelect.options[xaSelect.selectedIndex].text : "";
-                    const soNhaText = soNhaInput ? soNhaInput.value.trim() : "";
-
-                    let fullAddress = "";
-                    if (soNhaText) fullAddress += soNhaText;
-                    if (xaText)    fullAddress += (fullAddress ? ", " : "") + xaText;
-                    if (huyenText) fullAddress += (fullAddress ? ", " : "") + huyenText;
-                    if (tinhText)  fullAddress += (fullAddress ? ", " : "") + tinhText;
-
-                    document.getElementById("kh-diaChiFull").value = fullAddress;
-
+                    // Cập nhật hidden địa chỉ trước khi submit
+                    updateKhFullAddress();
                     form.submit();
                 }
             });
         });
-
     });
 </script>
+
 </body>
 </html>
