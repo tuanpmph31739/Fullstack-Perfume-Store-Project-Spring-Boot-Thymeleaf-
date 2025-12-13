@@ -62,8 +62,34 @@
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label class="form-label fw-bold">Địa chỉ</label>
-                            <input type="text" class="form-control" th:field="*{diaChi}">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <select class="form-select" id="kh-province">
+                                        <option value="">Tỉnh / Thành phố</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="kh-district">
+                                        <option value="">Quận / Huyện</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="kh-ward">
+                                        <option value="">Phường / Xã</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <input type="text"
+                                           class="form-control mt-2"
+                                           id="kh-street"
+                                           placeholder="Số nhà, tên đường...">
+                                </div>
+                            </div>
+
+                            <!-- Hidden bind về NguoiDung.diaChi -->
+                            <input type="hidden" th:field="*{diaChi}" id="kh-fullAddress">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Trạng thái</label>
                             <select class="form-select" th:field="*{trangThai}">
@@ -72,6 +98,7 @@
                             </select>
                         </div>
                     </div>
+
 
                     <div class="text-end mt-4">
                         <a href="/admin/khach-hang" class="btn btn-secondary me-2">
@@ -89,6 +116,7 @@
 </div>
 
 <script th:replace="/admin/fragments/script :: script"></script>
+<script src="/js/admin-address.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script th:inline="javascript">
@@ -113,14 +141,18 @@
             if (!hoTen) return Swal.fire("Thiếu thông tin", "Vui lòng nhập họ tên!", "warning");
             if (!email) return Swal.fire("Thiếu thông tin", "Vui lòng nhập email!", "warning");
 
-            // Validate pass: Nếu thêm mới (id rỗng) thì bắt buộc nhập pass
-            if (!id && !matKhau) return Swal.fire("Thiếu thông tin", "Vui lòng tạo mật khẩu cho khách hàng mới!", "warning");
+            // Nếu thêm mới (id rỗng) thì bắt buộc mật khẩu
+            if (!id && !matKhau) {
+                return Swal.fire("Thiếu thông tin", "Vui lòng tạo mật khẩu cho khách hàng mới!", "warning");
+            }
 
-            // Check email trùng (nếu email bị thay đổi hoặc là thêm mới)
+            // Check email trùng (khi thêm mới hoặc đổi email)
             if (!id || (id && email !== oldEmail)) {
                 const res = await fetch(`/admin/khach-hang/check-email?email=${encodeURIComponent(email)}`);
                 const exists = await res.json();
-                if (exists) return Swal.fire("Trùng lặp", "Email này đã có người sử dụng!", "error");
+                if (exists) {
+                    return Swal.fire("Trùng lặp", "Email này đã có người sử dụng!", "error");
+                }
             }
 
             Swal.fire({
@@ -131,9 +163,31 @@
                 confirmButtonText: "Đồng ý",
                 cancelButtonText: "Hủy"
             }).then((result) => {
-                if (result.isConfirmed) form.submit();
+                if (result.isConfirmed) {
+                    // GHÉP ĐỊA CHỈ TỪ CÁC Ô TỈNH/HUYỆN/XÃ/SỐ NHÀ
+                    const tinhSelect  = document.getElementById("kh-tinh");
+                    const huyenSelect = document.getElementById("kh-huyen");
+                    const xaSelect    = document.getElementById("kh-xa");
+                    const soNhaInput  = document.getElementById("kh-soNha");
+
+                    const tinhText  = tinhSelect && tinhSelect.value  ? tinhSelect.options[tinhSelect.selectedIndex].text : "";
+                    const huyenText = huyenSelect && huyenSelect.value ? huyenSelect.options[huyenSelect.selectedIndex].text : "";
+                    const xaText    = xaSelect && xaSelect.value    ? xaSelect.options[xaSelect.selectedIndex].text : "";
+                    const soNhaText = soNhaInput ? soNhaInput.value.trim() : "";
+
+                    let fullAddress = "";
+                    if (soNhaText) fullAddress += soNhaText;
+                    if (xaText)    fullAddress += (fullAddress ? ", " : "") + xaText;
+                    if (huyenText) fullAddress += (fullAddress ? ", " : "") + huyenText;
+                    if (tinhText)  fullAddress += (fullAddress ? ", " : "") + tinhText;
+
+                    document.getElementById("kh-diaChiFull").value = fullAddress;
+
+                    form.submit();
+                }
             });
         });
+
     });
 </script>
 </body>

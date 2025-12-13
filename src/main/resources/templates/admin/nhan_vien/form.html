@@ -55,7 +55,32 @@
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label class="form-label fw-bold">Địa chỉ</label>
-                            <input type="text" class="form-control" th:field="*{diaChi}">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <select class="form-select" id="nv-province">
+                                        <option value="">Tỉnh / Thành phố</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="nv-district">
+                                        <option value="">Quận / Huyện</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="nv-ward">
+                                        <option value="">Phường / Xã</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <input type="text"
+                                           class="form-control mt-2"
+                                           id="nv-street"
+                                           placeholder="Số nhà, tên đường...">
+                                </div>
+                            </div>
+
+                            <!-- Hidden bind về NguoiDung.diaChi -->
+                            <input type="hidden" th:field="*{diaChi}" id="nv-fullAddress">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Trạng thái</label>
@@ -65,6 +90,8 @@
                             </select>
                         </div>
                     </div>
+
+
                     <div class="text-end mt-3">
                         <a href="/admin/nhan-vien" class="btn btn-secondary">Quay lại</a>
                         <button type="submit" class="btn btn-success">Lưu lại</button>
@@ -76,6 +103,7 @@
     </div>
 </div>
 <script th:replace="/admin/fragments/script :: script"></script>
+<script src="/js/admin-address.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:inline="javascript">
     // (Copy đoạn Script JS SweetAlert cũ của bạn vào đây)
@@ -90,23 +118,52 @@
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const id = document.getElementById("userId").value;
-            const email = document.getElementById("email").value.trim();
-            const oldEmail = document.getElementById("oldEmail").value.trim();
-            const hoTen = document.getElementById("hoTen").value.trim();
+            const id      = document.getElementById("userId").value;
+            const email   = document.getElementById("email").value.trim();
+            const oldEmail= document.getElementById("oldEmail").value.trim();
+            const hoTen   = document.getElementById("hoTen").value.trim();
             const matKhau = document.getElementById("matKhau").value.trim();
 
-            if (!hoTen) return Swal.fire("Lỗi", "Nhập họ tên", "error");
-            if (!email) return Swal.fire("Lỗi", "Nhập email", "error");
+            if (!hoTen)  return Swal.fire("Lỗi", "Nhập họ tên", "error");
+            if (!email)  return Swal.fire("Lỗi", "Nhập email", "error");
             if (!id && !matKhau) return Swal.fire("Lỗi", "Nhập mật khẩu cho nhân viên mới", "error");
 
             if (!id || (id && email !== oldEmail)) {
                 const res = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
-                if (await res.json()) return Swal.fire("Lỗi", "Email đã tồn tại", "error");
+                if (await res.json()) {
+                    return Swal.fire("Lỗi", "Email đã tồn tại", "error");
+                }
             }
 
-            Swal.fire({title: "Lưu nhân viên?", icon: "question", showCancelButton: true, confirmButtonText: "Lưu"}).then(r => {
-                if(r.isConfirmed) form.submit();
+            Swal.fire({
+                title: "Lưu nhân viên?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Lưu"
+            }).then(r => {
+                if (r.isConfirmed) {
+
+                    // GHÉP ĐỊA CHỈ NHÂN VIÊN
+                    const tinhSelect  = document.getElementById("nv-tinh");
+                    const huyenSelect = document.getElementById("nv-huyen");
+                    const xaSelect    = document.getElementById("nv-xa");
+                    const soNhaInput  = document.getElementById("nv-soNha");
+
+                    const tinhText  = tinhSelect && tinhSelect.value  ? tinhSelect.options[tinhSelect.selectedIndex].text : "";
+                    const huyenText = huyenSelect && huyenSelect.value ? huyenSelect.options[huyenSelect.selectedIndex].text : "";
+                    const xaText    = xaSelect && xaSelect.value    ? xaSelect.options[xaSelect.selectedIndex].text : "";
+                    const soNhaText = soNhaInput ? soNhaInput.value.trim() : "";
+
+                    let fullAddress = "";
+                    if (soNhaText) fullAddress += soNhaText;
+                    if (xaText)    fullAddress += (fullAddress ? ", " : "") + xaText;
+                    if (huyenText) fullAddress += (fullAddress ? ", " : "") + huyenText;
+                    if (tinhText)  fullAddress += (fullAddress ? ", " : "") + tinhText;
+
+                    document.getElementById("nv-diaChiFull").value = fullAddress;
+
+                    form.submit();
+                }
             });
         });
     });

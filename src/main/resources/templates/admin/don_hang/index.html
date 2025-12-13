@@ -26,11 +26,11 @@
                             <div class="row g-2 align-items-end">
 
                                 <!-- 1. INPUT SEARCH + nút Xóa lọc cùng hàng -->
-                                <div class="col-md-6 col-lg-5">
+                                <div class="col-md-6 col-lg-4">
                                     <div class="input-group input-group-sm">
-                <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
                                         <input type="text" name="keyword"
                                                class="form-control form-control-sm"
                                                placeholder="Tìm theo mã đơn, người nhận, SĐT..."
@@ -81,6 +81,12 @@
                                                 th:selected="${trangThai == 'DANG_CHO_THANH_TOAN'}">
                                             Đang chờ thanh toán
                                         </option>
+
+                                        <option value="DANG_CHUAN_BI"
+                                                th:selected="${trangThai == 'DANG_CHUAN_BI'}">
+                                            Đang chuẩn bị
+                                        </option>
+
                                         <option value="DANG_GIAO"
                                                 th:selected="${trangThai == 'DANG_GIAO'}">
                                             Đang giao
@@ -96,22 +102,51 @@
                                     </select>
                                 </div>
 
-                                <!-- 3b. Sắp xếp ngày tạo -->
+
+                                <!-- 3b. Sắp xếp -->
                                 <div class="col-md-2">
                                     <select name="sortNgayTao"
                                             class="form-select form-select-sm"
                                             id="sortNgayTao">
-                                        <option value="DESC"
-                                                th:selected="${sortNgayTao == null or sortNgayTao == 'DESC'}">
+                                        <option value="DATE_DESC"
+                                                th:selected="${sortNgayTao == null or sortNgayTao == '' or sortNgayTao == 'DATE_DESC' or sortNgayTao == 'DESC'}">
                                             Ngày tạo mới nhất
                                         </option>
-                                        <option value="ASC"
-                                                th:selected="${sortNgayTao == 'ASC'}">
+                                        <option value="DATE_ASC"
+                                                th:selected="${sortNgayTao == 'DATE_ASC' or sortNgayTao == 'ASC'}">
                                             Ngày tạo cũ nhất
+                                        </option>
+                                        <option value="TOTAL_DESC"
+                                                th:selected="${sortNgayTao == 'TOTAL_DESC'}">
+                                            Tổng tiền cao → thấp
+                                        </option>
+                                        <option value="TOTAL_ASC"
+                                                th:selected="${sortNgayTao == 'TOTAL_ASC'}">
+                                            Tổng tiền thấp → cao
                                         </option>
                                     </select>
                                 </div>
 
+
+                                <!-- 4. Phương thức thanh toán -->
+                                <div class="col-md-2">
+                                    <select name="idThanhToan"
+                                            class="form-select form-select-sm"
+                                            id="paymentFilter">
+                                        <option value=""
+                                                th:selected="${idThanhToan == null}">
+                                            Tất cả phương thức
+                                        </option>
+                                        <option value="1"
+                                                th:selected="${idThanhToan != null and idThanhToan == 1}">
+                                            Thanh toán khi nhận hàng (COD)
+                                        </option>
+                                        <option value="3"
+                                                th:selected="${idThanhToan != null and idThanhToan == 3}">
+                                            Thanh toán qua VNPay
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </form>
 
@@ -129,6 +164,7 @@
                                     <th>Kênh bán</th>
                                     <th>Nhân viên</th>
                                     <th>Thanh toán</th>
+                                    <th>Tổng tiền thanh toán</th>
                                     <th>Ngày tạo</th>
                                     <th>Trạng thái</th>
                                     <th>Hành động</th>
@@ -168,21 +204,59 @@
                                     <!-- Thanh toán -->
                                     <td th:text="${dh.phuongThucThanhToan != null and !#strings.isEmpty(dh.phuongThucThanhToan) ? dh.phuongThucThanhToan : '---'}"></td>
 
+                                    <!-- Tổng tiền -->
+                                    <td th:text="${
+                                        dh.tongThanhToan != null
+                                        ? #numbers.formatDecimal(dh.tongThanhToan, 0, 'POINT', 0, 'NONE') + ' ₫'
+                                        : '-'
+                                    }"></td>
+
                                     <!-- Ngày tạo -->
                                     <td th:text="${dh.ngayTao != null ? #temporals.format(dh.ngayTao, 'dd/MM/yyyy HH:mm') : '-'}"></td>
 
                                     <!-- Trạng thái -->
                                     <td>
-                                        <span class="badge bg-success" th:if="${dh.trangThai == 'HOAN_THANH'}">Hoàn thành</span>
-                                        <span class="badge bg-warning text-dark" th:if="${dh.trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</span>
-                                        <span class="badge bg-primary text-white" th:if="${dh.trangThai == 'DANG_CHO_THANH_TOAN'}">Đang chờ thanh toán</span>
-                                        <span class="badge bg-info text-dark" th:if="${dh.trangThai == 'DANG_GIAO'}">Đang giao</span>
-                                        <span class="badge bg-secondary" th:if="${dh.trangThai == 'DA_HUY'}">Đã hủy</span>
+                                        <!-- HOÀN THÀNH -->
+                                        <span class="badge bg-success"
+                                              th:if="${dh.trangThai == 'HOAN_THANH'}">
+                                            Hoàn thành
+                                        </span>
+
+                                        <!-- CHỜ XÁC NHẬN -->
+                                        <span class="badge bg-warning text-dark"
+                                              th:if="${dh.trangThai == 'CHO_XAC_NHAN'}">
+                                            Chờ xác nhận
+                                        </span>
+
+                                        <!-- ĐANG CHỜ THANH TOÁN -->
+                                        <span class="badge bg-primary text-white"
+                                              th:if="${dh.trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                            Đang chờ thanh toán
+                                        </span>
+
+                                        <!-- ✅ ĐANG CHUẨN BỊ -->
+                                        <span class="badge bg-info text-dark"
+                                              th:if="${dh.trangThai == 'DANG_CHUAN_BI'}">
+                                            Đang chuẩn bị
+                                        </span>
+
+                                        <!-- ĐANG GIAO -->
+                                        <span class="badge bg-info text-dark"
+                                              th:if="${dh.trangThai == 'DANG_GIAO'}">
+                                            Đang giao
+                                        </span>
+
+                                        <!-- ĐÃ HỦY -->
+                                        <span class="badge bg-secondary"
+                                              th:if="${dh.trangThai == 'DA_HUY'}">
+                                            Đã hủy
+                                        </span>
 
                                         <!-- Fallback -->
                                         <span th:if="${dh.trangThai != 'HOAN_THANH'
                                                      and dh.trangThai != 'CHO_XAC_NHAN'
                                                      and dh.trangThai != 'DANG_CHO_THANH_TOAN'
+                                                     and dh.trangThai != 'DANG_CHUAN_BI'
                                                      and dh.trangThai != 'DANG_GIAO'
                                                      and dh.trangThai != 'DA_HUY'}"
                                               th:text="${dh.trangThai != null and !#strings.isEmpty(dh.trangThai) ? dh.trangThai : '---'}">
@@ -232,7 +306,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}">
                                         Previous
                                     </a>
@@ -247,7 +322,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}"
                                        th:text="${i}"></a>
                                 </li>
@@ -260,7 +336,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}">
                                         Next
                                     </a>
@@ -291,6 +368,7 @@
         const kenhBanGroup   = document.getElementById("kenhBanGroup");
         const trangThaiFilter= document.getElementById("trangThaiFilter");
         const sortNgayTaoSelect = document.getElementById("sortNgayTao");
+        const paymentFilter = document.getElementById("paymentFilter");
         const tbody          = document.getElementById("orderTableBody");
         const paginationWrap = document.getElementById("paginationWrapper");
 
@@ -410,6 +488,12 @@
         // 3b. Sort ngày tạo thay đổi -> lọc
         if (sortNgayTaoSelect) {
             sortNgayTaoSelect.addEventListener("change", function () {
+                triggerFilterToFirstPage();
+            });
+        }
+
+        if (paymentFilter) {
+            paymentFilter.addEventListener("change", function () {
                 triggerFilterToFirstPage();
             });
         }

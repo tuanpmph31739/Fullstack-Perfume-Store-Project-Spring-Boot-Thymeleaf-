@@ -154,10 +154,15 @@ public class OrderController {
                 } else {
                     session.removeAttribute(SESSION_CART_KEY);
                 }
-                try {
-                    gioHangClientService.GuiMailDonHang(hoaDon, checkoutInfo.getEmail());
-                } catch (Exception e) {
-                    System.err.println("Lỗi gửi mail: " + e.getMessage());
+
+                String emailNhan = hoaDon.getEmail();
+
+                if (emailNhan != null && !emailNhan.isBlank()) {
+                    try {
+                        gioHangClientService.GuiMailDonHang(hoaDon, emailNhan);
+                    } catch (Exception e) {
+                        System.err.println("Lỗi gửi mail COD: " + e.getMessage());
+                    }
                 }
 
                 redirectAttributes.addFlashAttribute("successMessage", "Đặt hàng thành công! Mã đơn: " + hoaDon.getMa());

@@ -213,14 +213,24 @@
                                                 <input type="text"
                                                        name="tenNguoiNhan"
                                                        class="form-control form-control-sm"
-                                                       th:value="${donHang.tenNguoiNhan}">
+                                                       th:value="${donHang.tenNguoiNhan}"
+                                                       th:readonly="${donHang.trangThai == 'HOAN_THANH' or donHang.trangThai == 'DA_HUY'}">
                                             </div>
                                             <div class="mb-3">
                                                 <div class="order-meta-label">Số điện thoại</div>
                                                 <input type="text"
                                                        name="sdt"
                                                        class="form-control form-control-sm"
-                                                       th:value="${donHang.sdt}">
+                                                       th:value="${donHang.sdt}"
+                                                       th:readonly="${donHang.trangThai == 'HOAN_THANH' or donHang.trangThai == 'DA_HUY'}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Email</div>
+                                                <input type="text"
+                                                       name="email"
+                                                       class="form-control form-control-sm"
+                                                       th:value="${donHang.email}"
+                                                       readonly>
                                             </div>
                                         </div>
 
@@ -230,9 +240,17 @@
                                             <textarea name="diaChi"
                                                       rows="2"
                                                       class="form-control form-control-sm"
-                                                      th:text="${donHang.diaChi}"></textarea>
+                                                      th:text="${donHang.diaChi}"
+                                                      th:readonly="${donHang.trangThai == 'HOAN_THANH' or donHang.trangThai == 'DA_HUY'}"></textarea>
                                         </div>
 
+                                        <div class="col-12 mt-1"
+                                             th:if="${donHang.trangThai == 'HOAN_THANH' or donHang.trangThai == 'DA_HUY'}">
+                                            <small class="text-muted">
+                                                <i class="bi bi-lock-fill"></i>
+                                                Đơn đã hoàn thành hoặc đã hủy, không thể chỉnh sửa thông tin người nhận.
+                                            </small>
+                                        </div>
                                         <!-- input ẩn + status chips -->
                                         <input type="hidden"
                                                id="trangThaiInput"

@@ -97,7 +97,50 @@ public class DonHangServiceImpl implements DonHangService {
         return base;
     }
 
-    // ================== PAGING ĐƠN HÀNG (ADMIN) ==================
+
+    @Override
+    public java.util.List<String> getAllowedNextTrangThais(DonHangResponse donHang) {
+        if (donHang == null) {
+            return java.util.List.of();
+        }
+
+        String currentTrangThai = donHang.getTrangThai() == null
+                ? ""
+                : donHang.getTrangThai().trim().toUpperCase();
+
+        String kenhBan = donHang.getKenhBan() == null
+                ? ""
+                : donHang.getKenhBan().trim().toUpperCase();
+
+        Long idThanhToan = donHang.getIdThanhToan();
+        String phuongThuc   = donHang.getPhuongThucThanhToan();
+
+        // Xác định có phải VNPay không
+        boolean isVnPay = false;
+        if (idThanhToan != null) {
+            // theo checkout: 1 = COD, 3 = VNPay
+            isVnPay = (idThanhToan == 3);
+        } else if (phuongThuc != null) {
+            isVnPay = phuongThuc.toUpperCase().contains("VNPAY");
+        }
+
+        // Lấy rule base theo trạng thái + kênh
+        java.util.List<String> base = getAllowedNextTrangThais(currentTrangThai, kenhBan);
+
+        // Không phải WEB / không phải DANG_CHO_THANH_TOAN / không phải VNPay -> dùng rule cũ
+        if (!"WEB".equalsIgnoreCase(kenhBan)
+                || !"DANG_CHO_THANH_TOAN".equalsIgnoreCase(currentTrangThai)
+                || !isVnPay) {
+            return base;
+        }
+
+        // Trường hợp đặc biệt:
+        // Web + VNPay + ĐANG_CHỜ_THANH_TOÁN -> CHỈ được huỷ
+        return java.util.List.of("DA_HUY");
+    }
+
+
+    // ================== PAGING HÓA ĐƠN (ADMIN) ==================
     @Override
     public PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
                                                         int pageSize,
@@ -108,18 +151,23 @@ public class DonHangServiceImpl implements DonHangService {
 
         if (pageNo < 1) pageNo = 1;
 
-        Sort.Direction direction =
-                "ASC".equalsIgnoreCase(sortNgayTao) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        // sortNgayTao có thể là:
+        //  - "ASC"/"DESC" (cũ)
+        //  - "DATE_ASC"/"DATE_DESC"/"TOTAL_ASC"/"TOTAL_DESC" (mới)
+        String sortKey;
+        if ("ASC".equalsIgnoreCase(sortNgayTao)) {
+            sortKey = "DATE_ASC";
+        } else if ("DESC".equalsIgnoreCase(sortNgayTao)
+                || sortNgayTao == null
+                || sortNgayTao.isBlank()) {
+            sortKey = "DATE_DESC";
+        } else {
+            // nếu client đã gửi dạng mới thì dùng luôn
+            sortKey = sortNgayTao;
+        }
 
-        Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
-                Sort.by(direction, "ngayTao"));
-
-        Page<HoaDon> pageHoaDon =
-                donHangRepository.searchHoaDon(keyword, kenhBan, trangThai, pageable);
-
-        Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
-
-        return new PageableObject<>(pageDto);
+        // không lọc theo phương thức thanh toán => idThanhToan = null
+        return pagingHoaDon(pageNo, pageSize, kenhBan, keyword, trangThai, sortKey, null);
     }
 
     @Override
@@ -128,19 +176,59 @@ public class DonHangServiceImpl implements DonHangService {
                                                         String kenhBan,
                                                         String keyword,
                                                         String trangThai) {
+        // mặc định: ngày tạo mới nhất
+        return pagingHoaDon(pageNo, pageSize, kenhBan, keyword, trangThai, "DATE_DESC", null);
+    }
+
+    // ✅ BẢN ĐẦY ĐỦ: sort nâng cao + filter phương thức thanh toán
+    @Override
+    public PageableObject<DonHangResponse> pagingHoaDon(int pageNo,
+                                                        int pageSize,
+                                                        String kenhBan,
+                                                        String keyword,
+                                                        String trangThai,
+                                                        String sortKey,
+                                                        Integer idThanhToan) {
 
         if (pageNo < 1) pageNo = 1;
 
-        Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
-                Sort.by(Sort.Direction.DESC, "ngayTao"));
+        String sort = (sortKey == null) ? "" : sortKey.trim().toUpperCase();
+        Sort sortSpec;
 
+        switch (sort) {
+            case "DATE_ASC":
+            case "ASC":
+                sortSpec = Sort.by(Sort.Direction.ASC, "ngayTao");
+                break;
+
+            case "DATE_DESC":
+            case "DESC":
+            case "":
+                sortSpec = Sort.by(Sort.Direction.DESC, "ngayTao");
+                break;
+
+            case "TOTAL_ASC":
+                sortSpec = Sort.by(Sort.Direction.ASC, "tongThanhToan");
+                break;
+
+            case "TOTAL_DESC":
+                sortSpec = Sort.by(Sort.Direction.DESC, "tongThanhToan");
+                break;
+
+            default:
+                sortSpec = Sort.by(Sort.Direction.DESC, "ngayTao");
+        }
+
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortSpec);
+
+        // ⚠ GỌI REPO CÓ THÊM idThanhToan
         Page<HoaDon> pageHoaDon =
-                donHangRepository.searchHoaDon(keyword, kenhBan, trangThai, pageable);
+                donHangRepository.searchHoaDon(keyword, kenhBan, trangThai, idThanhToan, pageable);
 
         Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
-
         return new PageableObject<>(pageDto);
     }
+
 
     @Override
     public DonHangResponse getById(Integer id) {
@@ -188,26 +276,49 @@ public class DonHangServiceImpl implements DonHangService {
         HoaDon hoaDon = donHangRepository.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với ID: " + idHoaDon));
 
-        String old = hoaDon.getTrangThai() == null ? "" : hoaDon.getTrangThai().trim().toUpperCase();
-        String neo = trangThaiMoi == null ? "" : trangThaiMoi.trim().toUpperCase();
+        String old     = hoaDon.getTrangThai() == null ? "" : hoaDon.getTrangThai().trim().toUpperCase();
+        String neo     = trangThaiMoi == null ? "" : trangThaiMoi.trim().toUpperCase();
         String kenhBan = hoaDon.getKenhBan() == null ? "" : hoaDon.getKenhBan().trim().toUpperCase();
 
-        // ✅ 1. Kiểm tra trạng thái mới có hợp lệ cho kênh này không
+        // ==============================
+        // 1. Kiểm tra trạng thái hợp lệ
+        // ==============================
         java.util.List<String> allowedNext = getAllowedNextTrangThais(old, kenhBan);
         if (!old.equals(neo) && !allowedNext.contains(neo)) {
             throw new RuntimeException(
                     "Không thể chuyển trạng thái từ " + old + " sang " + neo + " cho kênh " + kenhBan);
         }
 
-        boolean wasCancelled = "DA_HUY".equals(old);
-        boolean isCancelled  = "DA_HUY".equals(neo);
-
-        boolean wasCompleted = "HOAN_THANH".equals(old);
-        boolean isCompleted  = "HOAN_THANH".equals(neo);
-
+        boolean wasCancelled      = "DA_HUY".equals(old);
+        boolean isCancelled       = "DA_HUY".equals(neo);
+        boolean wasCompleted      = "HOAN_THANH".equals(old);
+        boolean isCompleted       = "HOAN_THANH".equals(neo);
         boolean wasPendingPayment = "DANG_CHO_THANH_TOAN".equals(old);
 
-        // 1) ACTIVE -> HỦY  => HOÀN KHO (nhưng không hoàn nếu DANG_CHO_THANH_TOAN)
+        // ==============================
+        // 2. Quy định có được sửa TÊN/SDT/ĐỊA CHỈ không?
+        // ==============================
+        boolean canEditBasicInfo = true;
+
+        if ("WEB".equalsIgnoreCase(kenhBan)) {
+            // Đơn online: nếu đã hoàn thành hoặc đã hủy -> KHÔNG cho sửa thông tin người nhận
+            if ("HOAN_THANH".equals(old) || "DA_HUY".equals(old)) {
+                canEditBasicInfo = false;
+            }
+        } else if ("TAI_QUAY".equalsIgnoreCase(kenhBan)) {
+            // Đơn tại quầy:
+            // - ĐÃ HỦY: không cho sửa nữa
+            // - HOÀN THÀNH: cho phép đổi sang ĐÃ HỦY, nhưng không cho sửa tên/sđt/địa chỉ
+            if ("DA_HUY".equals(old) || "HOAN_THANH".equals(old)) {
+                canEditBasicInfo = false;
+            }
+        }
+
+        // ==============================
+        // 3. Xử lý tồn kho khi HỦY / KHÔI PHỤC / HOÀN THÀNH
+        // ==============================
+
+        // TỪ ACTIVE -> ĐÃ HỦY : hoàn kho (trừ trường hợp đang chờ thanh toán VNPay)
         if (!wasCancelled && isCancelled && hoaDon.getHoaDonChiTiets() != null) {
             if (!wasPendingPayment) {
                 for (HoaDonChiTiet ct : hoaDon.getHoaDonChiTiets()) {
@@ -219,11 +330,10 @@ public class DonHangServiceImpl implements DonHangService {
                 }
             }
             if (wasCompleted) {
-                // Đơn bị hủy -> không còn tính doanh thu
                 hoaDon.setNgayThanhToan(null);
             }
         }
-        // 2) HỦY -> ACTIVE => TRỪ KHO LẠI
+        // TỪ ĐÃ HỦY -> ACTIVE : trừ kho lại
         else if (wasCancelled && !isCancelled && hoaDon.getHoaDonChiTiets() != null) {
             for (HoaDonChiTiet ct : hoaDon.getHoaDonChiTiets()) {
                 if (ct.getSanPhamChiTiet() != null && ct.getSoLuong() != null) {
@@ -237,7 +347,7 @@ public class DonHangServiceImpl implements DonHangService {
             }
         }
 
-        // 3) Ngày thanh toán cho trạng thái HOÀN THÀNH
+        // Ngày thanh toán cho trạng thái HOÀN THÀNH
         if (!wasCompleted && isCompleted) {
             if (hoaDon.getNgayThanhToan() == null) {
                 hoaDon.setNgayThanhToan(LocalDateTime.now());
@@ -247,17 +357,25 @@ public class DonHangServiceImpl implements DonHangService {
             hoaDon.setNgayThanhToan(null);
         }
 
-        // Cập nhật thông tin khác
-        hoaDon.setTenNguoiNhan(tenNguoiNhan);
-        hoaDon.setSdt(sdt);
-        hoaDon.setDiaChi(diaChi);
+        // ==============================
+        // 4. Cập nhật thông tin
+        // ==============================
+
+        // Chỉ cho phép sửa tên/sđt/địa chỉ nếu canEditBasicInfo = true
+        if (canEditBasicInfo) {
+            hoaDon.setTenNguoiNhan(tenNguoiNhan);
+            hoaDon.setSdt(sdt);
+            hoaDon.setDiaChi(diaChi);
+        }
+
+        // Trạng thái luôn được cập nhật (vì đã check allowedNext bên trên)
         hoaDon.setTrangThai(trangThaiMoi);
         hoaDon.setNgaySua(LocalDateTime.now());
 
         donHangRepository.save(hoaDon);
     }
 
-    // ================== PAGING ĐƠN HÀNG (LỌC THEO KÊNH) ==================
+    // ================== PAGING ĐƠN HÀNG (LỌC THEO KÊNH + SORT + PAYMENT) ==================
     @Override
     public PageableObject<DonHangResponse> pagingDonHang(int pageNo,
                                                          int pageSize,
@@ -265,19 +383,69 @@ public class DonHangServiceImpl implements DonHangService {
                                                          String keyword,
                                                          String trangThai,
                                                          String sortNgayTao) {
+        // sortNgayTao có thể là:
+        //  - "ASC"/"DESC" (cũ)
+        //  - "DATE_ASC"/"DATE_DESC"/"TOTAL_ASC"/"TOTAL_DESC" (mới)
+        String sortKey;
+        if ("ASC".equalsIgnoreCase(sortNgayTao)) {
+            sortKey = "DATE_ASC";
+        } else if ("DESC".equalsIgnoreCase(sortNgayTao) || sortNgayTao == null || sortNgayTao.isBlank()) {
+            sortKey = "DATE_DESC";
+        } else {
+            sortKey = sortNgayTao; // đã là key mới thì dùng luôn
+        }
+
+        // Mặc định không filter theo phương thức thanh toán
+        return pagingDonHang(pageNo, pageSize, kenhBan, keyword, trangThai, sortKey, null);
+    }
+
+    /**
+     * Bản đầy đủ: có sort nâng cao + filter phương thức thanh toán
+     */
+    @Override
+    public PageableObject<DonHangResponse> pagingDonHang(int pageNo,
+                                                         int pageSize,
+                                                         String kenhBan,
+                                                         String keyword,
+                                                         String trangThai,
+                                                         String sortKey,
+                                                         Integer idThanhToan) {
 
         if (pageNo < 1) pageNo = 1;
 
-        Sort.Direction direction = Sort.Direction.DESC;
-        if ("ASC".equalsIgnoreCase(sortNgayTao)) {
-            direction = Sort.Direction.ASC;
+        // Xử lý sort: DATE_ASC / DATE_DESC / TOTAL_ASC / TOTAL_DESC (+ tương thích ASC/DESC)
+        String sort = (sortKey == null) ? "" : sortKey.trim().toUpperCase();
+        Sort sortSpec;
+
+        switch (sort) {
+            case "DATE_ASC":
+            case "ASC":
+                sortSpec = Sort.by(Sort.Direction.ASC, "ngayTao");
+                break;
+
+            case "DATE_DESC":
+            case "DESC":
+            case "":
+                sortSpec = Sort.by(Sort.Direction.DESC, "ngayTao");
+                break;
+
+            case "TOTAL_ASC":
+                sortSpec = Sort.by(Sort.Direction.ASC, "tongThanhToan");
+                break;
+
+            case "TOTAL_DESC":
+                sortSpec = Sort.by(Sort.Direction.DESC, "tongThanhToan");
+                break;
+
+            default:
+                sortSpec = Sort.by(Sort.Direction.DESC, "ngayTao");
         }
 
-        Pageable pageable = PageRequest.of(pageNo - 1, pageSize,
-                Sort.by(direction, "ngayTao"));
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortSpec);
 
+        // GỌI REPO MỚI: có thêm idThanhToan
         Page<HoaDon> pageHoaDon =
-                donHangRepository.searchDonHang(kenhBan, keyword, trangThai, pageable);
+                donHangRepository.searchDonHang(kenhBan, keyword, trangThai, idThanhToan, pageable);
 
         Page<DonHangResponse> pageDto = pageHoaDon.map(this::mapToResponse);
 

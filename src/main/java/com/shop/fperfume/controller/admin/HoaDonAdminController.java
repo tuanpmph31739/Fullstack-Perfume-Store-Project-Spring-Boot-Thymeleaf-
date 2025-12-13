@@ -34,7 +34,8 @@ public class HoaDonAdminController {
                         @RequestParam(name = "kenhBan", required = false) String kenhBan,
                         @RequestParam(name = "keyword", required = false) String keyword,
                         @RequestParam(name = "trangThai", required = false) String trangThai,
-                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DESC") String sortNgayTao) {
+                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DATE_DESC") String sortNgayTao,
+                        @RequestParam(name = "idThanhToan", required = false) Integer idThanhToan) {
 
         // Normalize kenhBan
         if (kenhBan != null) {
@@ -47,7 +48,8 @@ public class HoaDonAdminController {
         }
 
         PageableObject<DonHangResponse> page =
-                donHangService.pagingHoaDon(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai, sortNgayTao);
+                donHangService.pagingHoaDon(pageNo, PAGE_SIZE,
+                        kenhBan, keyword, trangThai, sortNgayTao, idThanhToan);
 
         model.addAttribute("page", page);
         model.addAttribute("page.metaDataAvailable", true);
@@ -57,10 +59,12 @@ public class HoaDonAdminController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("sortNgayTao", sortNgayTao);
+        model.addAttribute("idThanhToan", idThanhToan); //  để Thymeleaf select đúng option
 
         model.addAttribute("currentPath", "/admin/hoa-don");
         return "admin/hoa_don/index";
     }
+
 
 
     /**

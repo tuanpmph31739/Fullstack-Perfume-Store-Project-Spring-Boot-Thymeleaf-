@@ -127,9 +127,17 @@
                                               th:if="${donHang.trangThai == 'HOAN_THANH'}">
                                             <i class="bi bi-check-circle-fill"></i> Hoàn thành
                                         </span>
+                                        <span class="order-status-pill bg-primary text-white"
+                                              th:if="${donHang.trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                            <i class="bi bi-credit-card"></i> Đang chờ thanh toán
+                                        </span>
                                         <span class="order-status-pill bg-warning text-dark"
                                               th:if="${donHang.trangThai == 'CHO_XAC_NHAN'}">
                                             <i class="bi bi-hourglass-split"></i> Chờ xác nhận
+                                        </span>
+                                        <span class="order-status-pill bg-info text-dark"
+                                              th:if="${donHang.trangThai == 'DANG_CHUAN_BI'}">
+                                            <i class="bi bi-box-seam"></i> Đang chẩn bị
                                         </span>
                                         <span class="order-status-pill bg-info text-dark"
                                               th:if="${donHang.trangThai == 'DANG_GIAO'}">
@@ -141,7 +149,9 @@
                                         </span>
                                         <span class="badge bg-light text-dark"
                                               th:if="${donHang.trangThai != 'HOAN_THANH'
+                                                     and donHang.trangThai != 'DANG_CHO_THANH_TOAN'
                                                      and donHang.trangThai != 'CHO_XAC_NHAN'
+                                                     and donHang.trangThai != 'DANG_CHUAN_BI'
                                                      and donHang.trangThai != 'DANG_GIAO'
                                                      and donHang.trangThai != 'DA_HUY'}"
                                               th:text="${donHang.trangThai}">
@@ -170,6 +180,13 @@
                                                 <div class="order-meta-value"
                                                      th:text="${donHang.phuongThucThanhToan ?: '---'}">
                                                     COD
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="order-meta-label">Ghi chú</div>
+                                                <div class="order-meta-value"
+                                                     th:text="${donHang.ghiChu}">
+                                                    01/01/2025 10:00
                                                 </div>
                                             </div>
                                         </div>
@@ -216,10 +233,10 @@
                                                 </div>
                                             </div>
                                             <div class="mb-3">
-                                                <div class="order-meta-label">Ghi chú</div>
+                                                <div class="order-meta-label">Email</div>
                                                 <div class="order-meta-value"
-                                                     th:text="${donHang.ghiChu}">
-                                                    01/01/2025 10:00
+                                                     th:text="${donHang.email}">
+                                                    mmm@gmail.com
                                                 </div>
                                             </div>
                                         </div>
