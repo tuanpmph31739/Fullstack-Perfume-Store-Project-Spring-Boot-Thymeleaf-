@@ -168,5 +168,21 @@ public class SanPhamClientService {
         return new PageImpl<>(content, pageable, entityPage.getTotalElements());
     }
 
+    public long getMaxPriceBound(String loaiDb) {
+        BigDecimal maxGia = sanPhamChiTietRepository.findMaxGiaByLoai(loaiDb);
+        long maxBound = (maxGia != null ? maxGia.longValue() : 0L);
+
+        long STEP = 500_000L; // cùng bước với slider
+
+        if (maxBound < STEP) {
+            maxBound = STEP;          // ít nhất 500k
+        } else {
+            // bo tròn lên bội số STEP cho đẹp
+            maxBound = ((maxBound + STEP - 1) / STEP) * STEP;
+        }
+
+        return maxBound;
+    }
+
 
 }

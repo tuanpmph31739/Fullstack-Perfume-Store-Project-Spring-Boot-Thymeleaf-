@@ -75,18 +75,28 @@
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Giá nhập</label>
-                                    <input type="number" class="form-control" th:field="*{giaNhap}" required>
+                                    <input type="text"
+                                           class="form-control money-input"
+                                           th:field="*{giaNhap}"
+                                           placeholder="Nhập giá nhập"
+                                           required>
                                     <div class="invalid-feedback d-block"
                                          th:if="${#fields.hasErrors('giaNhap')}"
                                          th:errors="*{giaNhap}"></div>
                                 </div>
+
                                 <div class="col-md-4">
                                     <label class="form-label">Giá bán</label>
-                                    <input type="number" class="form-control" th:field="*{giaBan}" required>
+                                    <input type="text"
+                                           class="form-control money-input"
+                                           th:field="*{giaBan}"
+                                           placeholder="Nhập giá bán"
+                                           required>
                                     <div class="invalid-feedback d-block"
                                          th:if="${#fields.hasErrors('giaBan')}"
                                          th:errors="*{giaBan}"></div>
                                 </div>
+
                                 <div class="col-md-4">
                                     <label class="form-label">Số lượng tồn</label>
                                     <input type="number" class="form-control" th:field="*{soLuongTon}" min="0" required>
@@ -133,5 +143,45 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const moneyInputs = document.querySelectorAll('.money-input');
+
+        function formatValue(value) {
+            // bỏ mọi ký tự không phải số
+            value = value.replace(/\D/g, '');
+            if (!value) return '';
+            // format theo locale Việt Nam -> 1.234.567
+            return Number(value).toLocaleString('vi-VN');
+        }
+
+        moneyInputs.forEach(function (input) {
+            // Khi load form edit, format lại giá cũ
+            if (input.value) {
+                input.value = formatValue(input.value);
+            }
+
+            input.addEventListener('input', function () {
+                const raw = input.value;
+                const formatted = formatValue(raw);
+                input.value = formatted;
+                // Cho con trỏ về cuối
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+        });
+
+        // Trước khi submit form: bỏ dấu chấm, chỉ gửi số “sạch”
+        const form = document.querySelector('form[enctype="multipart/form-data"]');
+        if (form) {
+            form.addEventListener('submit', function () {
+                moneyInputs.forEach(function (input) {
+                    input.value = input.value.replace(/\D/g, '');
+                });
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

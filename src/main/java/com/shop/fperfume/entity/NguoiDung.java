@@ -33,7 +33,7 @@ public class NguoiDung {
     private String matKhau;
 
     @Column(name = "GioiTinh")
-    private Integer gioiTinh; // 0: Nữ, 1: Nam
+    private Integer gioiTinh;
 
     @Column(name = "NgaySinh")
     private LocalDate ngaySinh;

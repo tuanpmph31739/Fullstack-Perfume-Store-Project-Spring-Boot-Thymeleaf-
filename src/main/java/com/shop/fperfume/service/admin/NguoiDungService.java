@@ -48,33 +48,51 @@ public class NguoiDungService {
         return repo.findById(id);
     }
 
-    // 3. Hàm Save thông minh (Xử lý pass và mã tại đây luôn)
     public NguoiDung save(NguoiDung nd) {
+
         // Tạo mã nếu chưa có
         if (nd.getMa() == null || nd.getMa().isEmpty()) {
-            String prefix = nd.getVaiTro().equals("NHANVIEN") ? "NV" : "KH";
+            String prefix = (nd.getVaiTro() != null && nd.getVaiTro().equals("NHANVIEN")) ? "NV" : "KH";
             nd.setMa(prefix + System.currentTimeMillis());
         }
 
-        // Xử lý mật khẩu
+        // THÊM MỚI
         if (nd.getId() == null) {
-            // Thêm mới -> Mã hóa pass
-            nd.setMatKhau(passwordEncoder.encode(nd.getMatKhau()));
-        } else {
-            // Cập nhật
-            NguoiDung oldUser = repo.findById(nd.getId()).orElse(null);
-            if (oldUser != null) {
-                if (nd.getMatKhau() == null || nd.getMatKhau().isEmpty()) {
-                    // Không nhập pass mới -> Giữ pass cũ
-                    nd.setMatKhau(oldUser.getMatKhau());
-                } else {
-                    // Nhập pass mới -> Mã hóa lại
+            if (nd.getMatKhau() != null && !nd.getMatKhau().isBlank()) {
+                // tránh encode lại nếu đâu đó đã encode sẵn
+                if (!isBcryptHash(nd.getMatKhau())) {
                     nd.setMatKhau(passwordEncoder.encode(nd.getMatKhau()));
                 }
             }
+            return repo.save(nd);
         }
+
+        // CẬP NHẬT
+        NguoiDung oldUser = repo.findById(nd.getId()).orElse(null);
+        if (oldUser == null) return repo.save(nd);
+
+        String newPass = nd.getMatKhau();
+        String oldPass = oldUser.getMatKhau();
+
+        if (newPass == null || newPass.isBlank() || newPass.equals(oldPass)) {
+            // không đổi pass / hoặc object đang mang hash cũ => giữ nguyên
+            nd.setMatKhau(oldPass);
+        } else {
+            // đổi pass: nếu pass mới là plain thì encode, nếu đã là bcrypt thì giữ
+            if (!isBcryptHash(newPass)) {
+                nd.setMatKhau(passwordEncoder.encode(newPass));
+            }
+        }
+
         return repo.save(nd);
     }
+
+    private boolean isBcryptHash(String s) {
+        // BCrypt thường có dạng: $2a$ / $2b$ / $2y$...
+        return s != null && s.matches("^\\$2[aby]\\$\\d\\d\\$.+");
+    }
+
+
 
     public void delete(Long id) {
         repo.deleteById(id);
@@ -126,4 +144,9 @@ public class NguoiDungService {
         repo.save(user);
         return true;
     }
+
+    public Optional<NguoiDung> findByEmail(String email) {
+        return repo.findByEmail(email);
+    }
+
 }
