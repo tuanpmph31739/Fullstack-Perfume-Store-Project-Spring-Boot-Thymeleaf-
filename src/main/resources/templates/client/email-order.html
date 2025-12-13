@@ -238,15 +238,24 @@
                     <span>Mã đơn:</span>
                     <span th:text="${hoaDon != null ? hoaDon.ma : 'HD-XXXX'}">HD-XXXX</span>
                 </div>
-                <!-- ĐÃ BỎ #temporals Ở ĐÂY -->
-                <div class="order-meta" th:if="${hoaDon != null and hoaDon.ngayTao != null}">
-                    Ngày đặt:
-                    <span th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm')}">
-                        01/01/2025 10:00
-                    </span>
-                </div>
 
+                <!-- Ngày đặt + Ngày thanh toán (nếu có) -->
+                <div class="order-meta" th:if="${hoaDon != null}">
+                    <div th:if="${hoaDon.ngayTao != null}">
+                        Ngày đặt:
+                        <span th:text="${#temporals.format(hoaDon.ngayTao, 'dd/MM/yyyy HH:mm')}">
+                01/01/2025 10:00
+            </span>
+                    </div>
+                    <div th:if="${hoaDon.ngayThanhToan != null}">
+                        Ngày thanh toán:
+                        <span th:text="${#temporals.format(hoaDon.ngayThanhToan, 'dd/MM/yyyy HH:mm')}">
+                01/01/2025 11:00
+            </span>
+                    </div>
+                </div>
             </div>
+
         </div>
 
 
@@ -266,11 +275,13 @@
                 <div class="d-flex justify-content-between mb-0">
                     <span>Phương thức thanh toán:</span>
                     <span class="col-6 text-end meta-value"
-                         th:text="'Thanh toán khi nhận hàng'">
-                        Thanh toán khi nhận hàng
+                          th:text="${hoaDon.thanhToan != null and hoaDon.thanhToan.id == 3
+                            ? 'Đã thanh toán bằng VNPay'
+                            : 'Thanh toán khi nhận hàng (COD)'}">
+                        Thanh toán khi nhận hàng (COD)
                     </span>
-
                 </div>
+
             </div>
 
             <!-- DANH SÁCH SẢN PHẨM -->
@@ -316,6 +327,12 @@
                         style="padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 14px;"
                         th:text="${#numbers.formatDecimal(item.donGia * item.soLuong, 0, 'POINT', 0, 'NONE')} + ' ₫'">
                         0 ₫
+                    </td>
+                </tr>
+                <tr th:if="${hoaDon.ngayThanhToan != null}">
+                    <td colspan="2"
+                        style="padding-top:4px; text-align:right; font-size:13px; color:#16a34a; font-weight:600;">
+                        ĐÃ THANH TOÁN
                     </td>
                 </tr>
                 </tbody>

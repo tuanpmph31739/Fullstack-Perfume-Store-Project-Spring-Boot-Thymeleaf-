@@ -30,6 +30,7 @@ public class DonHangResponse {
     private String sdt;
     private String trangThai;   // ví dụ: CHO_XAC_NHAN, DANG_GIAO, HOAN_THANH...
     private String kenhBan;     // 'WEB' hoặc 'TAI_QUAY'
+    private String email;
 
     // ====== Tiền ======
     private BigDecimal tongTienHang;

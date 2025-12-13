@@ -31,14 +31,15 @@ public class DonHangController {
                         @RequestParam(name = "kenhBan", required = false) String kenhBan,
                         @RequestParam(name = "keyword", required = false) String keyword,
                         @RequestParam(name = "trangThai", required = false) String trangThai,
-                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DESC") String sortNgayTao) {
+                        @RequestParam(name = "sortNgayTao", required = false, defaultValue = "DATE_DESC") String sortNgayTao,
+                        @RequestParam(name = "idThanhToan", required = false) Integer idThanhToan) {
 
         if (kenhBan == null || kenhBan.isBlank()) {
             kenhBan = "WEB";
         }
 
         PageableObject<DonHangResponse> page =
-                donHangService.pagingDonHang(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai, sortNgayTao);
+                donHangService.pagingDonHang(pageNo, PAGE_SIZE, kenhBan, keyword, trangThai, sortNgayTao, idThanhToan);
 
         model.addAttribute("page", page);
         model.addAttribute("page.metaDataAvailable", true);
@@ -48,10 +49,12 @@ public class DonHangController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("sortNgayTao", sortNgayTao);
+        model.addAttribute("idThanhToan", idThanhToan);
 
         model.addAttribute("currentPath", "/admin/don-hang");
         return "admin/don_hang/index";
     }
+
 
     @GetMapping("/view/{id}")
     public String viewDonHang(@PathVariable("id") Integer id,
@@ -90,11 +93,10 @@ public class DonHangController {
                     hoaDonChiTietRepository.findByHoaDon_Id_WithSanPham(id);
             model.addAttribute("chiTietList", chiTietList);
 
-            // truyền cả kenhBan vào
+            // ✅ dùng rule mới
             java.util.List<String> allowedTrangThais =
-                    donHangService.getAllowedNextTrangThais(donHang.getTrangThai(), donHang.getKenhBan());
+                    donHangService.getAllowedNextTrangThais(donHang);
             model.addAttribute("allowedTrangThais", allowedTrangThais);
-
 
             String referer = request.getHeader("Referer");
             model.addAttribute("backUrl", referer != null ? referer : "/admin/don-hang");

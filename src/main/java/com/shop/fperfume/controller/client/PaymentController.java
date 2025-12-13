@@ -115,7 +115,7 @@ public class PaymentController {
             // CHỈ xử lý nếu đơn vẫn đang chờ thanh toán
             if ("DANG_CHO_THANH_TOAN".equals(hoaDon.getTrangThai())) {
 
-                // ✅ 1. TRỪ KHO Ở ĐÂY CHO VNPAY
+                // 1. TRỪ KHO Ở ĐÂY CHO VNPAY
                 var chiTietList = hoaDonChiTietRepo.findByHoaDon_Id(hoaDon.getId());
                 for (HoaDonChiTiet item : chiTietList) {
                     SanPhamChiTiet spct = item.getSanPhamChiTiet();
@@ -137,25 +137,42 @@ public class PaymentController {
                     sanPhamChiTietRepo.save(spct);
                 }
 
-                // ✅ 2. CẬP NHẬT TRẠNG THÁI ĐƠN & NGÀY THANH TOÁN
+                // 2. CẬP NHẬT TRẠNG THÁI ĐƠN & NGÀY THANH TOÁN
                 hoaDon.setTrangThai("CHO_XAC_NHAN"); // đã thanh toán, chờ shop xác nhận / chuẩn bị đơn
                 hoaDon.setNgayThanhToan(java.time.LocalDateTime.now());
                 hoaDonRepository.save(hoaDon);
 
-                // ✅ 3. TRỪ MÃ GIẢM GIÁ (nếu có)
+                // 3. TRỪ MÃ GIẢM GIÁ (nếu có)
                 GiamGia giamGia = hoaDon.getGiamGia();
                 if (giamGia != null && giamGia.getSoLuong() > 0) {
                     giamGia.setSoLuong(giamGia.getSoLuong() - 1);
                     giamGiaRepository.save(giamGia);
                 }
 
-                // ✅ 4. XÓA GIỎ HÀNG
+                // 4. XÓA GIỎ HÀNG
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.getPrincipal() instanceof CustomUserDetails user) {
                     gioHangClientService.clearCart(user.getUser());
                 }
                 session.removeAttribute("GUEST_CART");
             }
+
+            // 5. GỬI MAIL XÁC NHẬN ĐƠN HÀNG SAU KHI THANH TOÁN VNPAY
+            String emailNhan = hoaDon.getEmail();
+
+            // fallback: nếu vì lý do nào đó Email trên hóa đơn null mà đơn gắn với tài khoản
+            if ((emailNhan == null || emailNhan.isBlank()) && hoaDon.getKhachHang() != null) {
+                emailNhan = hoaDon.getKhachHang().getEmail();
+            }
+
+            if (emailNhan != null && !emailNhan.isBlank()) {
+                try {
+                    gioHangClientService.GuiMailDonHang(hoaDon, emailNhan);
+                } catch (Exception e) {
+                    System.err.println("Lỗi gửi mail VNPay: " + e.getMessage());
+                }
+            }
+
 
             return "redirect:/order/success/" + hoaDon.getId();
         }

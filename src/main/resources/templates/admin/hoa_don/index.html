@@ -24,7 +24,7 @@
                             <div class="row g-2 align-items-end">
 
                                 <!-- 1. Tìm kiếm + nút Xóa lọc cùng hàng -->
-                                <div class="col-md-6 col-lg-5">
+                                <div class="col-md-6 col-lg-4">
                                     <div class="input-group input-group-sm">
                 <span class="input-group-text">
                     <i class="bi bi-search"></i>
@@ -97,22 +97,51 @@
                                     </select>
                                 </div>
 
-                                <!-- 4. Sắp xếp Ngày tạo -->
-                                <div class="col-md-3 col-lg-3">
+                                <div class="col-md-3 col-lg-2">
                                     <select class="form-select form-select-sm"
                                             name="sortNgayTao"
                                             id="sortNgayTao">
-                                        <option value="DESC"
-                                                th:selected="${sortNgayTao == null || sortNgayTao == 'DESC'}">
+                                        <option value="DATE_DESC"
+                                                th:selected="${sortNgayTao == null
+                                              or sortNgayTao == ''
+                                              or sortNgayTao == 'DATE_DESC'
+                                              or sortNgayTao == 'DESC'}">
                                             Ngày tạo mới nhất
                                         </option>
-                                        <option value="ASC"
-                                                th:selected="${sortNgayTao == 'ASC'}">
+                                        <option value="DATE_ASC"
+                                                th:selected="${sortNgayTao == 'DATE_ASC' or sortNgayTao == 'ASC'}">
                                             Ngày tạo cũ nhất
+                                        </option>
+                                        <option value="TOTAL_DESC"
+                                                th:selected="${sortNgayTao == 'TOTAL_DESC'}">
+                                            Tổng tiền cao → thấp
+                                        </option>
+                                        <option value="TOTAL_ASC"
+                                                th:selected="${sortNgayTao == 'TOTAL_ASC'}">
+                                            Tổng tiền thấp → cao
                                         </option>
                                     </select>
                                 </div>
 
+                                <!-- 5. Lọc theo phương thức thanh toán -->
+                                <div class="col-md-2">
+                                    <select name="idThanhToan"
+                                            class="form-select form-select-sm"
+                                            id="thanhToanFilter">
+                                        <option value=""
+                                                th:selected="${idThanhToan == null}">
+                                            Tất cả phương thức
+                                        </option>
+                                        <option value="1"
+                                                th:selected="${idThanhToan != null and idThanhToan == 1}">
+                                            Thanh toán khi nhận hàng (COD)
+                                        </option>
+                                        <option value="3"
+                                                th:selected="${idThanhToan != null and idThanhToan == 3}">
+                                            Thanh toán qua VNPay
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </form>
 
@@ -130,8 +159,8 @@
                                     <th>Nhân viên</th>
                                     <th>Thanh toán</th>
                                     <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
                                     <th>Ngày tạo</th>
+                                    <th>Trạng thái</th>
                                     <th>Hành động</th>
                                 </tr>
                                 </thead>
@@ -180,6 +209,12 @@
                                         : '-'
                                     }"></td>
 
+                                    <!-- Ngày tạo -->
+                                    <td th:text="${hd.ngayTao != null
+                                                  ? #temporals.format(hd.ngayTao, 'dd/MM/yyyy HH:mm')
+                                                  : '-'}">
+                                    </td>
+
                                     <!-- Trạng thái -->
                                     <td>
                                         <span class="badge bg-success" th:if="${hd.trangThai == 'HOAN_THANH'}">
@@ -191,10 +226,13 @@
                                         <span class="badge bg-info text-dark" th:if="${hd.trangThai == 'DANG_GIAO'}">
                                             Đang giao
                                         </span>
-                                        <span class="badge bg-info text-dark" th:if="${hd.trangThai == 'DANG_CHO_THANH_TOAN'}">
+                                        <span class="badge bg-primary text-white" th:if="${hd.trangThai == 'DANG_CHO_THANH_TOAN'}">
                                             Chờ thanh toán
                                         </span>
-                                        <span class="badge bg-danger" th:if="${hd.trangThai == 'DA_HUY'}">
+                                        <span class="badge bg-info text-dark" th:if="${hd.trangThai == 'DANG_CHUAN_BI'}">
+                                            Đang chuẩn bị
+                                        </span>
+                                        <span class="badge bg-secondary" th:if="${hd.trangThai == 'DA_HUY'}">
                                             Đã hủy
                                         </span>
 
@@ -203,15 +241,10 @@
                                                      or (hd.trangThai != 'HOAN_THANH'
                                                          and hd.trangThai != 'CHO_XAC_NHAN'
                                                          and hd.trangThai != 'DANG_CHO_THANH_TOAN'
+                                                         and hd.trangThai != 'DANG_CHUAN_BI'
                                                          and hd.trangThai != 'DANG_GIAO'
                                                          and hd.trangThai != 'DA_HUY')}"
                                               th:text="${hd.trangThai != null ? hd.trangThai : '-'}"></span>
-                                    </td>
-
-                                    <!-- Ngày tạo -->
-                                    <td th:text="${hd.ngayTao != null
-                                                  ? #temporals.format(hd.ngayTao, 'dd/MM/yyyy HH:mm')
-                                                  : '-'}">
                                     </td>
 
                                     <!-- Hành động -->
@@ -253,7 +286,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}">
                                         Previous
                                     </a>
@@ -268,7 +302,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}"
                                        th:text="${i}"></a>
                                 </li>
@@ -281,7 +316,8 @@
                                             kenhBan=${kenhBan},
                                             keyword=${keyword},
                                             trangThai=${trangThai},
-                                            sortNgayTao=${sortNgayTao}
+                                            sortNgayTao=${sortNgayTao},
+                                            idThanhToan=${idThanhToan}
                                         )}">
                                         Next
                                     </a>
@@ -310,8 +346,10 @@
         const kenhBanFilter   = document.getElementById("kenhBanFilter");
         const trangThaiFilter = document.getElementById("trangThaiFilter");
         const sortNgayTaoSelect = document.getElementById("sortNgayTao");
-        const tbody           = document.getElementById("hoaDonTableBody");
-        const paginationWrap  = document.getElementById("paginationWrapper");
+        const thanhToanFilter   = document.getElementById("thanhToanFilter");
+        const tbody             = document.getElementById("hoaDonTableBody");
+        const paginationWrap    = document.getElementById("paginationWrapper");
+
 
         if (!tbody) return;
 
@@ -396,8 +434,8 @@
             });
         }
 
-        // 2. Auto filter khi đổi kênh bán / trạng thái
-        [kenhBanFilter, trangThaiFilter, sortNgayTaoSelect].forEach(el => {
+        // 2. Auto filter khi đổi kênh bán / trạng thái / sort / phương thức thanh toán
+        [kenhBanFilter, trangThaiFilter, sortNgayTaoSelect, thanhToanFilter].forEach(el => {
             if (el) {
                 el.addEventListener("change", function () {
                     triggerFilterToFirstPage();

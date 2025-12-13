@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/cart/**",
                                 "/checkout/**",
                                 "/order/**",
-                                "/user/orders/**"
+                                "/user/orders/**",
+
+                                "/payment/vnpay/return"
                         ).permitAll()
 
                         // ============ ADMIN + NHÂN VIÊN ============

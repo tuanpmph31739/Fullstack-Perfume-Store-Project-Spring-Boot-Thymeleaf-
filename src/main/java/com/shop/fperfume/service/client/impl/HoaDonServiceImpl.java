@@ -75,6 +75,22 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         hoaDon.setKenhBan("WEB");
         hoaDon.setMa("HD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
+        // LƯU EMAIL VÀO HÓA ĐƠN
+        String email = null;
+
+        // Ưu tiên email khách nhập ở form checkout
+        if (checkoutInfo.getEmail() != null && !checkoutInfo.getEmail().isBlank()) {
+            email = checkoutInfo.getEmail().trim();
+        }
+        // Nếu form không có email mà khách đã đăng nhập → fallback lấy email tài khoản
+        else if (khachHang != null
+                && khachHang.getEmail() != null
+                && !khachHang.getEmail().isBlank()) {
+            email = khachHang.getEmail().trim();
+        }
+
+        hoaDon.setEmail(email);
+
         boolean isPendingPayment = phuongThucThanhToan.getHinhThucThanhToan() != null
                 && phuongThucThanhToan.getHinhThucThanhToan().toLowerCase().contains("vnpay");
 

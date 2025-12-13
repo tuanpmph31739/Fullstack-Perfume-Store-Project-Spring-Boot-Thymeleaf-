@@ -73,6 +73,9 @@ public class HoaDon {
     @Column(name = "MaGiaoDichThanhToan")
     private String maGiaoDichThanhToan;
 
+    @Column(name = "Email")
+    private String email;
+
     // --- Mối quan hệ (Many-to-One) ---
 
     @ManyToOne(fetch = FetchType.LAZY)
