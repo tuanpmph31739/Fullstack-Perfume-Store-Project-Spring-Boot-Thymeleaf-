@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{admin/fragments/head :: head}"></head>
+
 <body>
 <div class="wrapper">
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
@@ -9,113 +10,234 @@
         <header th:replace="~{/admin/fragments/header :: header('Chi tiết Dòng sản phẩm')}"></header>
 
         <div class="page-content">
-            <section class="row">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0">Thông tin chung</h5>
+            <!-- ============ THÔNG TIN CHUNG ============ -->
+            <section class="row g-3">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <h5 class="m-0 fw-bold">Thông tin chung</h5>
+                                <div class="text-muted small mt-1">
+                                    Xem nhanh thông tin dòng sản phẩm và các biến thể SKU
+                                </div>
+                            </div>
 
-                        <!-- Nhóm 2 nút bên phải -->
-                        <div class="d-flex gap-2">
-                            <a th:href="@{/admin/san-pham/edit/{id}(id=${sanPham.id})}"
-                               class="btn btn-warning btn-sm">
-                                <i class="bi bi-pencil"></i> Sửa thông tin chung
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/admin/san-pham/edit/{id}(id=${sanPham.id})}"
+                                   class="btn btn-warning btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi bi-pencil"></i>
+                                    <span>Sửa thông tin chung</span>
+                                </a>
 
-                            <a th:href="@{/admin/san-pham}"
-                               class="btn btn-secondary btn-sm">
-                                ← Quay lại
-                            </a>
+                                <a th:href="@{/admin/san-pham}"
+                                   class="btn btn-secondary btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi bi-arrow-left"></i>
+                                    <span>Quay lại</span>
+                                </a>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <strong>Tên nước hoa:</strong>
-                                <span th:text="${sanPham.tenNuocHoa}">Bleu de Chanel</span>
+                        <div class="card-body">
+                            <!-- Header “profile” -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <h4 class="m-0 fw-bold" th:text="${sanPham.tenNuocHoa}">Bleu de Chanel</h4>
+
+                                        <span class="badge rounded-pill bg-soft-primary text-primary border"
+                                              th:text="${sanPham.tenThuongHieu}">
+                                            Chanel
+                                        </span>
+
+                                        <span class="badge rounded-pill bg-light text-dark border"
+                                              th:text="${sanPham.tenLoai}">
+                                            Nam
+                                        </span>
+
+                                        <span class="badge rounded-pill bg-light text-dark border"
+                                              th:text="${sanPham.tenXuatXu ?: '---'}">
+                                            Pháp
+                                        </span>
+                                    </div>
+
+                                    <div class="text-muted mt-2 small">
+                                        <i class="bi bi-tags me-1"></i>
+                                        <span th:text="${sanPham.tenNhomHuong ?: '---'}">Hương Gỗ</span>
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-calendar2-week me-1"></i>
+                                        <span th:text="${sanPham.tenMua ?: '---'}">Mùa Lạnh</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Thương hiệu:</strong>
-                                <span th:text="${sanPham.tenThuongHieu}">Chanel</span>
+
+                            <hr class="my-3">
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="p-3 rounded-3 bg-light border">
+                                        <div class="fw-semibold mb-1">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Mô tả
+                                        </div>
+                                        <div class="text-muted"
+                                             th:text="${sanPham.moTa ?: 'Không có mô tả.'}">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Giới tính:</strong>
-                                <span th:text="${sanPham.tenLoai}">Nam</span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Xuất xứ:</strong>
-                                <span th:text="${sanPham.tenXuatXu ?: '---'}">Pháp</span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Nhóm hương:</strong>
-                                <span th:text="${sanPham.tenNhomHuong ?: '---'}">Hương Gỗ</span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Mùa thích hợp:</strong>
-                                <span th:text="${sanPham.tenMua ?: '---'}">Mùa Lạnh</span>
-                            </div>
-                            <div class="col-12">
-                                <strong>Mô tả:</strong>
-                                <span th:text="${sanPham.moTa ?: 'Không có mô tả.'}"></span>
-                            </div>
+
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <section class="row">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="m-0">Danh sách Biến thể (SKUs)</h5>
-                        <a th:href="@{/admin/san-pham-chi-tiet/add(sanPhamId=${sanPham.id})}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle"></i> Thêm biến thể mới
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>Ảnh</th>
-                                <th>SKU</th>
-                                <th>Dung tích</th>
-                                <th>Nồng độ</th>
-                                <th>Giá bán</th>
-                                <th>Tồn kho</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="ct : ${listChiTiet}">
-                                <td>
-                                    <img th:if="${ct.hinhAnh != null}"
-                                         th:src="@{'/images/uploads/' + ${ct.hinhAnh}}"
-                                         alt="Ảnh" style="max-width: 50px; max-height: 50px;">
-                                </td>
-                                <td th:text="${ct.maSKU}">CHA_BLEU_100_EDP</td>
-                                <td th:text="${ct.soMl != null ? ct.soMl + ' ml' : '---'}">100 ml</td>
-                                <td th:text="${ct.tenNongDo ?: '---'}">Eau de Parfum</td>
-                                <td th:text="${#numbers.formatDecimal(ct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">3.500.000 ₫</td>
-                                <td th:text="${ct.soLuongTon}">50</td>
-                                <td>
-                                    <span th:if="${ct.trangThai}" class="badge bg-success">Đang bán</span>
-                                    <span th:unless="${ct.trangThai}" class="badge bg-secondary">Ngừng bán</span>
-                                </td>
-                                <td>
-                                    <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${ct.id})}" class="btn btn-warning btn-sm" title="Sửa biến thể">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${ct.id})}" class="btn btn-danger btn-sm" title="Xóa biến thể"
-                                       onclick="return confirm('Bạn có chắc muốn xóa biến thể này?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${listChiTiet == null or #lists.isEmpty(listChiTiet)}">
-                                <td colspan="8" class="text-center">Sản phẩm này chưa có biến thể nào.</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                <!-- ============ DANH SÁCH BIẾN THỂ ============ -->
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <h5 class="m-0 fw-bold">Danh sách Biến thể (SKUs)</h5>
+                                <div class="text-muted small mt-1">
+                                    Quản lý SKU: xem, sửa, bật/tắt kinh doanh, ẩn/hiện ở client
+                                </div>
+                            </div>
+
+                            <a th:href="@{/admin/san-pham-chi-tiet/add(sanPhamId=${sanPham.id})}"
+                               class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Thêm biến thể mới</span>
+                            </a>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th style="width:72px;">Ảnh</th>
+                                        <th>SKU</th>
+                                        <th style="width:110px;">Dung tích</th>
+                                        <th style="width:150px;">Nồng độ</th>
+                                        <th style="width:130px;" class="text-end">Giá bán</th>
+                                        <th style="width:110px;" class="text-end">Tồn kho</th>
+                                        <th style="width:220px;">Trạng thái</th>
+                                        <th style="width:220px;" class="text-center">Hành động</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody id="variantTbody"
+                                           data-toggle-kinhdoanh="/admin/san-pham-chi-tiet/toggle-kinh-doanh/"
+                                           data-toggle-hienthi="/admin/san-pham-chi-tiet/toggle-hien-thi/">
+
+                                    <tr th:each="ct : ${listChiTiet}">
+                                        <!-- Ảnh -->
+                                        <td>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <img th:if="${ct.hinhAnh != null}"
+                                                     th:src="@{'/images/uploads/' + ${ct.hinhAnh}}"
+                                                     alt="Ảnh"
+                                                     style="width:52px;height:52px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;">
+                                                <div th:unless="${ct.hinhAnh != null}"
+                                                     class="d-flex align-items-center justify-content-center bg-light border"
+                                                     style="width:52px;height:52px;border-radius:10px;">
+                                                    <i class="bi bi-image text-muted"></i>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- SKU -->
+                                        <td>
+                                            <div class="fw-semibold" th:text="${ct.maSKU}">CHA_BLEU_100_EDP</div>
+                                            <div class="text-muted small">
+                                                ID:
+                                                <span th:text="${ct.id}">1</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Dung tích -->
+                                        <td th:text="${ct.soMl != null ? ct.soMl + ' ml' : '---'}">100 ml</td>
+
+                                        <!-- Nồng độ -->
+                                        <td th:text="${ct.tenNongDo ?: '---'}">Eau de Parfum</td>
+
+                                        <!-- Giá -->
+                                        <td class="text-end"
+                                            th:text="${#numbers.formatDecimal(ct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                            3.500.000 ₫
+                                        </td>
+
+                                        <!-- Tồn -->
+                                        <td class="text-end" th:text="${ct.soLuongTon}">50</td>
+
+                                        <!-- Trạng thái: kinh doanh + client -->
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <!-- Kinh doanh -->
+                                                <span class="badge"
+                                                      th:classappend="${ct.trangThai} ? ' bg-success' : ' bg-secondary'"
+                                                      data-role="badge-kinhdoanh"
+                                                      th:text="${ct.trangThai} ? 'Đang bán' : 'Ngừng bán'">
+                                                </span>
+
+                                                <!-- Hiển thị client -->
+                                                <span class="badge"
+                                                      th:classappend="${ct.hienThi} ? ' bg-primary' : ' bg-dark'"
+                                                      data-role="badge-hienthi"
+                                                      th:text="${ct.hienThi} ? 'Hiện ở client' : 'Ẩn ở client'">
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Hành động -->
+                                        <td class="text-center">
+                                            <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-center">
+
+                                                <!-- Xem chi tiết -->
+                                                <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${ct.id})}"
+                                                   class="btn btn-outline-info btn-sm"
+                                                   title="Xem chi tiết">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+
+                                                <!-- Chỉnh sửa -->
+                                                <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${ct.id})}"
+                                                   class="btn btn-outline-warning btn-sm"
+                                                   title="Chỉnh sửa">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+
+                                                <!-- Bật/Tắt kinh doanh -->
+                                                <button type="button"
+                                                        class="btn btn-sm toggle-kinhdoanh-btn"
+                                                        th:attr="data-id=${ct.id}, data-current=${ct.trangThai}"
+                                                        th:classappend="${ct.trangThai} ? ' btn-outline-secondary' : ' btn-outline-success'"
+                                                        th:title="${ct.trangThai} ? 'Ngừng kinh doanh' : 'Bật kinh doanh'">
+                                                    <i class="bi"
+                                                       th:classappend="${ct.trangThai} ? ' bi-pause-circle' : ' bi-play-circle'"></i>
+                                                </button>
+
+                                                <!-- Ẩn/Hiện client -->
+                                                <button type="button"
+                                                        class="btn btn-sm toggle-hienthi-btn"
+                                                        th:attr="data-id=${ct.id}, data-current=${ct.hienThi}"
+                                                        th:classappend="${ct.hienThi} ? ' btn-outline-dark' : ' btn-outline-primary'"
+                                                        th:title="${ct.hienThi} ? 'Ẩn khỏi client' : 'Hiện lại ở client'">
+                                                    <i class="bi"
+                                                       th:classappend="${ct.hienThi} ? ' bi-eye-slash' : ' bi-eye'"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr th:if="${listChiTiet == null or #lists.isEmpty(listChiTiet)}">
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox me-1"></i>
+                                            Sản phẩm này chưa có biến thể nào.
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -126,5 +248,164 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tbody = document.getElementById("variantTbody");
+        if (!tbody) return;
+
+        const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        function buildHeaders() {
+            const headers = { "X-Requested-With": "XMLHttpRequest" };
+            if (csrfToken) headers[csrfHeader] = csrfToken;
+            return headers;
+        }
+
+        function setBadge(el, on, onClass, offClass, onText, offText) {
+            if (!el) return;
+            el.classList.remove(onClass, offClass);
+            el.classList.add(on ? onClass : offClass);
+            el.textContent = on ? onText : offText;
+        }
+
+        function setToggleBtn(btn, on, cfg) {
+            // cfg: {onBtnClass, offBtnClass, onIcon, offIcon, onTitle, offTitle}
+            btn.classList.remove(cfg.onBtnClass, cfg.offBtnClass);
+            btn.classList.add(on ? cfg.onBtnClass : cfg.offBtnClass);
+            btn.setAttribute("title", on ? cfg.onTitle : cfg.offTitle);
+
+            const icon = btn.querySelector("i.bi");
+            if (icon) {
+                icon.classList.remove(cfg.onIcon, cfg.offIcon);
+                icon.classList.add(on ? cfg.onIcon : cfg.offIcon);
+            }
+            btn.dataset.current = String(on);
+        }
+
+        async function postToggle(url) {
+            const r = await fetch(url, {
+                method: "POST",
+                headers: buildHeaders(),
+                credentials: "same-origin"
+            });
+
+            if (r.redirected) {
+                window.location.href = r.url;
+                return { success: false, message: "redirect" };
+            }
+
+            const ct = r.headers.get("content-type") || "";
+            const data = ct.includes("application/json") ? await r.json() : null;
+            if (!r.ok) {
+                return { success: false, message: (data && data.message) ? data.message : ("HTTP " + r.status) };
+            }
+            return data || { success: true };
+        }
+
+        tbody.addEventListener("click", async function (e) {
+            const kdBtn = e.target.closest("button.toggle-kinhdoanh-btn");
+            const htBtn = e.target.closest("button.toggle-hienthi-btn");
+            if (!kdBtn && !htBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const tr = (kdBtn || htBtn).closest("tr");
+            const badgeKD = tr?.querySelector('[data-role="badge-kinhdoanh"]');
+            const badgeHT = tr?.querySelector('[data-role="badge-hienthi"]');
+
+            if (kdBtn) {
+                const id = kdBtn.dataset.id;
+                const current = kdBtn.dataset.current === "true";
+                const next = !current;
+
+                const result = await Swal.fire({
+                    title: next ? "Bật kinh doanh biến thể?" : "Ngừng kinh doanh biến thể?",
+                    text: next ? "Biến thể sẽ chuyển sang trạng thái đang bán." : "Biến thể sẽ chuyển sang ngừng bán.",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: next ? "Bật" : "Ngừng",
+                    cancelButtonText: "Hủy"
+                });
+                if (!result.isConfirmed) return;
+
+                const base = tbody.getAttribute("data-toggle-kinhdoanh") || "/admin/san-pham-chi-tiet/toggle-kinh-doanh/";
+                const data = await postToggle(base + id);
+
+                if (!data || data.success !== true) {
+                    await Swal.fire("Thất bại", data?.message || "Không thể thực hiện thao tác.", "error");
+                    return;
+                }
+
+                // update UI ngay
+                setBadge(badgeKD, next, "bg-success", "bg-secondary", "Đang bán", "Ngừng bán");
+                setToggleBtn(kdBtn, next, {
+                    onBtnClass: "btn-outline-secondary",
+                    offBtnClass: "btn-outline-success",
+                    onIcon: "bi-pause-circle",
+                    offIcon: "bi-play-circle",
+                    onTitle: "Ngừng kinh doanh",
+                    offTitle: "Bật kinh doanh"
+                });
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    timer: 1600,
+                    showConfirmButton: false,
+                    icon: "success",
+                    title: "Đã cập nhật trạng thái kinh doanh"
+                });
+            }
+
+            if (htBtn) {
+                const id = htBtn.dataset.id;
+                const current = htBtn.dataset.current === "true";
+                const next = !current;
+
+                const result = await Swal.fire({
+                    title: next ? "Hiển thị biến thể ở client?" : "Ẩn biến thể khỏi client?",
+                    text: next ? "Biến thể sẽ hiển thị lại ở client." : "Biến thể sẽ bị ẩn khỏi client.",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: next ? "Hiện" : "Ẩn",
+                    cancelButtonText: "Hủy"
+                });
+                if (!result.isConfirmed) return;
+
+                const base = tbody.getAttribute("data-toggle-hienthi") || "/admin/san-pham-chi-tiet/toggle-hien-thi/";
+                const data = await postToggle(base + id);
+
+                if (!data || data.success !== true) {
+                    await Swal.fire("Thất bại", data?.message || "Không thể thực hiện thao tác.", "error");
+                    return;
+                }
+
+                // update UI ngay
+                setBadge(badgeHT, next, "bg-primary", "bg-dark", "Hiện ở client", "Ẩn ở client");
+                setToggleBtn(htBtn, next, {
+                    onBtnClass: "btn-outline-dark",
+                    offBtnClass: "btn-outline-primary",
+                    onIcon: "bi-eye-slash",
+                    offIcon: "bi-eye",
+                    onTitle: "Ẩn khỏi client",
+                    offTitle: "Hiện lại ở client"
+                });
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    timer: 1600,
+                    showConfirmButton: false,
+                    icon: "success",
+                    title: "Đã cập nhật hiển thị ở client"
+                });
+            }
+        });
+    });
+</script>
+
 </body>
 </html>

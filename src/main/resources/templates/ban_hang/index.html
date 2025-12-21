@@ -123,7 +123,8 @@
                                             </a>
                                             <form th:action="@{'/admin/ban-hang-tai-quay/xoa-hoa-don/' + ${hd.id}}"
                                                   method="post"
-                                                  onsubmit="return confirm('Bạn chắc chắn muốn hủy hóa đơn này?')">
+                                                  class="delete-invoice-form"
+                                                  th:attr="data-ma=${hd.ma}">
                                                 <button type="submit"
                                                         class="btn btn-link text-danger p-0 ms-1 close-btn">
                                                     <i class="bi bi-x-circle-fill"></i>
@@ -766,6 +767,7 @@
     </div>
 </div>
 <script th:src="@{/assets/assets/compiled/js/pos.js}"></script>
+
 <script th:inline="javascript">
     // Lấy id hóa đơn vừa thanh toán từ FlashAttribute
     const printId = /*[[${printId}]]*/ null;
@@ -779,5 +781,46 @@
         window.open(finalUrl, '_blank');
     }
 </script>
+
+<script>
+    (function () {
+        function initDeleteInvoiceSweetAlert() {
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (!form.classList || !form.classList.contains('delete-invoice-form')) return;
+
+                e.preventDefault();
+
+                const ma = form.getAttribute('data-ma') || 'hóa đơn này';
+
+                if (typeof Swal === 'undefined') {
+                    console.error('SweetAlert2 chưa được load (Swal is undefined).');
+                    // fallback: vẫn cho submit để khỏi “kẹt”
+                    if (confirm(`Bạn chắc chắn muốn huỷ ${ma}?`)) form.submit();
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Xác nhận huỷ đơn?',
+                    text: `Bạn chắc chắn muốn huỷ ${ma}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Huỷ đơn',
+                    cancelButtonText: 'Không',
+                    confirmButtonColor: '#dc3545'
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit(); // submit thật (không trigger submit event)
+                });
+            }, true);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDeleteInvoiceSweetAlert);
+        } else {
+            initDeleteInvoiceSweetAlert();
+        }
+    })();
+</script>
+
 </body>
 </html>

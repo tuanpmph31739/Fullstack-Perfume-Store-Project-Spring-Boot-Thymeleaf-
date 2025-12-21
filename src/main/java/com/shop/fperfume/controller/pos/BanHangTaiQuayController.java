@@ -104,7 +104,7 @@ public class BanHangTaiQuayController {
                             RedirectAttributes redirectAttributes) {
         try {
             hoaDonService.delete(idHD);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy hóa đơn.");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn hàng.");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

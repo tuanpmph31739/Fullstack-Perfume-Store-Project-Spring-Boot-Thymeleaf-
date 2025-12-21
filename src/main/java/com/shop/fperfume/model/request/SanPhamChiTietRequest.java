@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 
 @AllArgsConstructor
@@ -37,8 +38,12 @@ public class SanPhamChiTietRequest {
 
     private MultipartFile hinhAnh;
 
+    // ✅ trạng thái kinh doanh
     @NotNull(message = "Trạng thái không được để trống")
     private Boolean trangThai;
+
+    // ✅ hiển thị client (có thể không đưa vào form, nhưng DTO nên có)
+    private Boolean hienThi;
 
     @NotNull(message = "Vui lòng chọn sản phẩm")
     private Integer idSanPham;

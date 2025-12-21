@@ -6,17 +6,12 @@ import com.shop.fperfume.model.response.PageableObject;
 import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.repository.SanPhamChiTietRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class SanPhamClientService {
@@ -24,64 +19,58 @@ public class SanPhamClientService {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
-    // ✅ Lấy danh sách biến thể theo thương hiệu (đi từ SanPhamChiTiet -> SanPham -> ThuongHieu.slug)
+    // ✅ Brand slug: chỉ lấy spct HIỂN THỊ
     public List<SanPhamChiTietResponse> getSanPhamByThuongHieu(String slug) {
-        return sanPhamChiTietRepository.findBySanPham_ThuongHieu_Slug(slug)
+        return sanPhamChiTietRepository.findBySanPham_ThuongHieu_SlugAndHienThiTrue(slug)
                 .stream()
                 .map(SanPhamChiTietResponse::new)
                 .toList();
     }
 
-
-    // ✅ Chi tiết sản phẩm
+    // ✅ Chi tiết: chỉ lấy spct HIỂN THỊ
     public SanPhamChiTietResponse getById(Integer id) {
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
-        return new SanPhamChiTietResponse(sanPhamChiTiet);
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdFetchingRelationshipsVisible(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm (hoặc đã bị ẩn) với ID: " + id));
+        return new SanPhamChiTietResponse(spct);
     }
 
-    // ✅ Lấy giá theo dung tích
+    // ✅ Lấy giá theo dung tích: repo đã lọc hienThi=true
     public Optional<SanPhamChiTiet> getBySanPhamAndSoMl(Integer idSanPham, Integer soMl) {
         return sanPhamChiTietRepository.findFirstBySanPhamIdAndDungTich_SoMl(idSanPham, soMl);
     }
 
-    // ✅ Danh sách tùy chọn dung tích
+    // ✅ Options dung tích: chỉ HIỂN THỊ
     public List<DungTichOptionResponse> getDungTichOptions(Integer idSanPham) {
-        return sanPhamChiTietRepository.findBySanPham_IdOrderByDungTich_SoMlAsc(idSanPham)
+        return sanPhamChiTietRepository.findBySanPham_IdAndHienThiTrueOrderByDungTich_SoMlAsc(idSanPham)
                 .stream()
                 .map(ct -> new DungTichOptionResponse(ct.getId(), ct.getDungTich().getSoMl(), ct.getGiaBan()))
                 .toList();
     }
 
-    // ✅ Lấy tất cả sản phẩm (1 biến thể đại diện / sản phẩm)
+    // ✅ Page all: repo đã lọc hienThi=true
     public Page<SanPhamChiTietResponse> pageAll(int pageIndex, int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
         Page<SanPhamChiTiet> page = sanPhamChiTietRepository.findAllSanPhamChiTiet(pageable);
         return page.map(SanPhamChiTietResponse::new);
     }
 
-    // ✅ Tạo đối tượng phân trang
     public PageableObject<SanPhamChiTietResponse> paging(Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         Page<SanPhamChiTiet> page = sanPhamChiTietRepository.findAllSanPhamChiTiet(pageable);
-        Page<SanPhamChiTietResponse> responses = page.map(SanPhamChiTietResponse::new);
-        return new PageableObject<>(responses);
+        return new PageableObject<>(page.map(SanPhamChiTietResponse::new));
     }
 
-    // ✅ Lấy sản phẩm theo loại (Nam/Nữ/Unisex) - mỗi sp 1 biến thể rẻ nhất
     public List<SanPhamChiTietResponse> getSanPhamDaiDienTheoLoai(String tenLoai) {
-        // offset = 0, limit = 12 (hiển thị 12 sản phẩm)
         var list = sanPhamChiTietRepository.findDaiDienByLoaiNuocHoa(tenLoai, 0, 12);
         return list.stream().map(SanPhamChiTietResponse::new).toList();
     }
 
-    // ✅ Lọc sản phẩm có brand / loại / giá — chỉ 1 biến thể rẻ nhất / sản phẩm
     public Page<SanPhamChiTietResponse> filterProducts(
             List<Integer> brandIds,
-            String loaiNuocHoa,  // "Nam" | "Nữ" | "Unisex" | null
+            String loaiNuocHoa,
             Integer minPrice,
             Integer maxPrice,
-            String sort,          // price_asc|price_desc|newest|bestseller|null
+            String sort,
             int pageIndex,
             int pageSize
     ) {
@@ -89,20 +78,13 @@ public class SanPhamClientService {
         BigDecimal maxP = (maxPrice == null || maxPrice <= 0) ? null : new BigDecimal(maxPrice);
         int brandsSize = (brandIds == null || brandIds.isEmpty()) ? 0 : brandIds.size();
 
-        // Pageable chỉ để phân trang, không cần sort ở đây nữa
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        // Chuẩn hoá sort cho query
         String sortKey;
-        if ("price_asc".equalsIgnoreCase(sort)) {
-            sortKey = "price_asc";
-        } else if ("price_desc".equalsIgnoreCase(sort)) {
-            sortKey = "price_desc";
-        } else if ("newest".equalsIgnoreCase(sort)) {
-            sortKey = "newest";
-        } else {
-            sortKey = ""; // mặc định, sẽ rơi về ORDER BY PId
-        }
+        if ("price_asc".equalsIgnoreCase(sort)) sortKey = "price_asc";
+        else if ("price_desc".equalsIgnoreCase(sort)) sortKey = "price_desc";
+        else if ("newest".equalsIgnoreCase(sort)) sortKey = "newest";
+        else sortKey = "";
 
         Page<SanPhamChiTiet> page = sanPhamChiTietRepository.searchAdvancedOneVariant(
                 brandIds, brandsSize, loaiNuocHoa, minP, maxP, sortKey, pageable
@@ -111,59 +93,32 @@ public class SanPhamClientService {
         return page.map(SanPhamChiTietResponse::new);
     }
 
-
-    public List<SanPhamChiTietResponse> getRelatedProducts(
-            Integer idSpct,
-            Long idThuongHieu,
-            Long idNhomHuong,
-            Long idLoaiNuocHoa
-    ) {
-        // Nếu thiếu nhóm hương hoặc loại nước hoa thì vẫn có thể lọc theo thương hiệu,
-        // nhưng nếu cả 3 cùng null thì thôi
-        if (idThuongHieu == null && (idNhomHuong == null || idLoaiNuocHoa == null)) {
-            return List.of();
-        }
+    public List<SanPhamChiTietResponse> getRelatedProducts(Integer idSpct, Long idThuongHieu, Long idNhomHuong, Long idLoaiNuocHoa) {
+        if (idThuongHieu == null && (idNhomHuong == null || idLoaiNuocHoa == null)) return List.of();
 
         Pageable pageable = PageRequest.of(0, 8);
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findRelatedProducts(idSpct, idThuongHieu, idNhomHuong, idNhomHuong, pageable);
 
-        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findRelatedProducts(
-                idSpct,
-                idThuongHieu,
-                idNhomHuong,
-                idLoaiNuocHoa,
-                pageable
-        );
-
-        return list.stream()
-                .map(SanPhamChiTietResponse::new)
-                .toList();
+        return list.stream().map(SanPhamChiTietResponse::new).toList();
     }
 
     public List<SanPhamChiTietResponse> searchSuggest(String keyword, int limit) {
-        if (keyword == null || keyword.trim().length() < 2) {
-            return List.of();
-        }
+        if (keyword == null || keyword.trim().length() < 2) return List.of();
         Pageable pageable = PageRequest.of(0, limit);
-        List<SanPhamChiTiet> list = sanPhamChiTietRepository.searchSuggest(keyword.trim(), pageable);
-        return list.stream()
-                .map(SanPhamChiTietResponse::new) // bạn đang có constructor từ entity rồi
-                .toList();
+        return sanPhamChiTietRepository.searchSuggest(keyword.trim(), pageable)
+                .stream().map(SanPhamChiTietResponse::new).toList();
     }
 
-
     public Page<SanPhamChiTietResponse> searchProducts(String keyword, int page, int size) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return Page.empty();
-        }
+        if (keyword == null || keyword.trim().isEmpty()) return Page.empty();
+
         String kw = keyword.trim();
         Pageable pageable = PageRequest.of(Math.max(page, 0), size);
 
-        Page<SanPhamChiTiet> entityPage =
-                sanPhamChiTietRepository.searchByKeyword(kw, pageable);
+        Page<SanPhamChiTiet> entityPage = sanPhamChiTietRepository.searchByKeyword(kw, pageable);
 
-        List<SanPhamChiTietResponse> content = entityPage.getContent().stream()
-                .map(SanPhamChiTietResponse::new)
-                .toList();
+        List<SanPhamChiTietResponse> content = entityPage.getContent()
+                .stream().map(SanPhamChiTietResponse::new).toList();
 
         return new PageImpl<>(content, pageable, entityPage.getTotalElements());
     }
@@ -172,17 +127,26 @@ public class SanPhamClientService {
         BigDecimal maxGia = sanPhamChiTietRepository.findMaxGiaByLoai(loaiDb);
         long maxBound = (maxGia != null ? maxGia.longValue() : 0L);
 
-        long STEP = 500_000L; // cùng bước với slider
-
-        if (maxBound < STEP) {
-            maxBound = STEP;          // ít nhất 500k
-        } else {
-            // bo tròn lên bội số STEP cho đẹp
-            maxBound = ((maxBound + STEP - 1) / STEP) * STEP;
-        }
+        long STEP = 500_000L;
+        if (maxBound < STEP) maxBound = STEP;
+        else maxBound = ((maxBound + STEP - 1) / STEP) * STEP;
 
         return maxBound;
     }
 
+    public long getMaxPriceBoundByBrandSlug(String brandSlug, String loaiDb) {
+        BigDecimal maxGia = sanPhamChiTietRepository.findMaxGiaByThuongHieuSlug(brandSlug, loaiDb);
+        long maxBound = (maxGia != null ? maxGia.longValue() : 0L);
+
+        long STEP = 500_000L;
+
+        if (maxBound < STEP) {
+            maxBound = STEP;
+        } else {
+            maxBound = ((maxBound + STEP - 1) / STEP) * STEP; // làm tròn lên bội STEP
+        }
+
+        return maxBound;
+    }
 
 }

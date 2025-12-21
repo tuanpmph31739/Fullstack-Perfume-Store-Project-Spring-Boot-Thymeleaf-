@@ -35,7 +35,12 @@
         <div class="col-lg-4">
             <div class="pd-gallery">
                 <div class="pd-main-img">
-                    <img id="mainImage" th:src="@{'/images/uploads/' + ${sanPhamChiTiet.hinhAnh}}" alt="Ảnh sản phẩm" />
+                    <img id="mainImage"
+                         th:src="${sanPhamChiTiet.hinhAnh != null}
+              ? @{/images/uploads/{f}(f=${sanPhamChiTiet.hinhAnh})}
+              : @{/images/no-image.png}"
+                         alt="Ảnh sản phẩm" />
+
                 </div>
                 <div class="pd-thumbs" id="thumbs">
                     <button type="button" class="active">

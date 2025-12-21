@@ -17,6 +17,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin/san-pham-chi-tiet")
 public class SanPhamChiTietController {
@@ -38,12 +41,10 @@ public class SanPhamChiTietController {
                         @RequestParam(value = "keyword", required = false) String keyword,
                         @RequestParam(value = "dungTichId", required = false) Integer dungTichId,
                         @RequestParam(value = "nongDoId", required = false) Integer nongDoId,
-                        @RequestParam(value = "trangThai", required = false) String trangThai, // <--- đổi kiểu
+                        @RequestParam(value = "trangThai", required = false) String trangThai,
                         @RequestParam(value = "sort", required = false) String sort) {
 
-        if (pageNo == null || pageNo < 1) {
-            pageNo = 1;
-        }
+        if (pageNo == null || pageNo < 1) pageNo = 1;
 
         PageableObject<SanPhamChiTietResponse> pageData =
                 sanPhamChiTietService.getPage(
@@ -52,7 +53,7 @@ public class SanPhamChiTietController {
                         keyword,
                         dungTichId,
                         nongDoId,
-                        trangThai,   // <--- truyền String xuống service
+                        trangThai,
                         sort
                 );
 
@@ -60,23 +61,23 @@ public class SanPhamChiTietController {
         model.addAttribute("page.metaDataAvailable", true);
         model.addAttribute("page.size", PAGE_SIZE);
 
-        // Giữ lại filter
         model.addAttribute("keyword", keyword);
         model.addAttribute("dungTichId", dungTichId);
         model.addAttribute("nongDoId", nongDoId);
-        model.addAttribute("trangThai", trangThai);  // giờ là String
+        model.addAttribute("trangThai", trangThai);
         model.addAttribute("sort", sort);
 
         loadDropdownData(model);
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
+        // ✅ hỗ trợ fetch ajax: trả về fragment nếu bạn muốn (optional)
+        // if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) return "admin/san_pham_chi_tiet/index :: tableSection";
+
         return "admin/san_pham_chi_tiet/index";
     }
 
-
     @GetMapping("/add")
-    public String viewAdd(Model model,
-                          HttpServletRequest request) {
+    public String viewAdd(Model model, HttpServletRequest request) {
         model.addAttribute("sanPhamChiTietRequest", new SanPhamChiTietRequest());
         loadDropdownData(model);
 
@@ -108,10 +109,8 @@ public class SanPhamChiTietController {
             model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
             return "admin/san_pham_chi_tiet/add";
         }
-        if (backUrl != null && !backUrl.isBlank()) {
-            return "redirect:" + backUrl;
-        }
 
+        if (backUrl != null && !backUrl.isBlank()) return "redirect:" + backUrl;
         return "redirect:/admin/san-pham-chi-tiet";
     }
 
@@ -122,7 +121,6 @@ public class SanPhamChiTietController {
                            HttpServletRequest request) {
         try {
             SanPhamChiTietResponse responseDto = sanPhamChiTietService.getById(id);
-
             SanPhamChiTietRequest requestDto = MapperUtils.map(responseDto, SanPhamChiTietRequest.class);
 
             model.addAttribute("sanPhamChiTietRequest", requestDto);
@@ -134,7 +132,6 @@ public class SanPhamChiTietController {
 
             loadDropdownData(model);
             return "admin/san_pham_chi_tiet/edit";
-
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy chi tiết sản phẩm!");
             return "redirect:/admin/san-pham-chi-tiet";
@@ -178,16 +175,12 @@ public class SanPhamChiTietController {
             return "admin/san_pham_chi_tiet/edit";
         }
 
-        if (backUrl != null && !backUrl.isBlank()) {
-            return "redirect:" + backUrl;
-        }
+        if (backUrl != null && !backUrl.isBlank()) return "redirect:" + backUrl;
         return "redirect:/admin/san-pham-chi-tiet";
     }
 
     @GetMapping("/view/{id}")
-    public String view(@PathVariable Integer id,
-                       Model model,
-                       HttpServletRequest request) {
+    public String view(@PathVariable Integer id, Model model, HttpServletRequest request) {
         model.addAttribute("sanPhamChiTietResponse", sanPhamChiTietService.getById(id));
         model.addAttribute("currentPath", "/admin/san-pham-chi-tiet");
 
@@ -213,10 +206,43 @@ public class SanPhamChiTietController {
         return "redirect:" + (referer != null ? referer : "/admin/san-pham-chi-tiet");
     }
 
+    // ==========================================
+    // ✅ AJAX: TOGGLE KINH DOANH (trangThai)
+    // ==========================================
+    @PostMapping("/toggle-kinh-doanh/{id}")
+    @ResponseBody
+    public Map<String, Object> toggleKinhDoanh(@PathVariable("id") Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            sanPhamChiTietService.toggleKinhDoanh(id);
+            res.put("success", true);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return res;
+    }
+
+    // ==========================================
+    // ✅ AJAX: TOGGLE HIEN THI (hienThi)
+    // ==========================================
+    @PostMapping("/toggle-hien-thi/{id}")
+    @ResponseBody
+    public Map<String, Object> toggleHienThi(@PathVariable("id") Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            sanPhamChiTietService.toggleHienThi(id);
+            res.put("success", true);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return res;
+    }
+
     private void loadDropdownData(Model model) {
         model.addAttribute("listSanPham", sanPhamService.getAllSanPham());
         model.addAttribute("listDungTich", dungTichService.getDungTich());
         model.addAttribute("listNongDo", nongDoService.getAllNongDo());
     }
-
 }
