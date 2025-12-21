@@ -135,7 +135,7 @@
             <section class="row">
                 <div class="col-12">
 
-                    <form th:action="@{'/admin/don-hang/edit/' + ${donHang.id}}"
+                    <form id="orderEditForm" th:action="@{'/admin/don-hang/edit/' + ${donHang.id}}"
                           method="post"
                           class="row g-3">
 
@@ -358,9 +358,7 @@
                                             <a th:href="${backUrl}" class="btn btn-outline-secondary btn-sm">
                                                 Hủy
                                             </a>
-                                            <button type="submit"
-                                                    class="btn btn-primary btn-sm"
-                                                    onclick="return confirm('Xác nhận lưu thay đổi đơn hàng?');">
+                                            <button type="submit" class="btn btn-primary btn-sm">
                                                 Lưu thay đổi
                                             </button>
                                         </div>
@@ -512,6 +510,7 @@
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const chips        = document.querySelectorAll('#statusChips .status-chip');
@@ -555,6 +554,73 @@
     });
 </script>
 
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('orderEditForm');
+        if (!form) return;
+
+        const originalStatus = document.getElementById('originalTrangThai')?.value || '';
+        const currentStatus  = document.getElementById('trangThaiInput')?.value || originalStatus;
+
+        // map label giống UI của bạn
+        const labelMap = {
+            DANG_CHO_THANH_TOAN: 'ĐANG CHỜ THANH TOÁN',
+            CHO_XAC_NHAN: 'CHỜ XÁC NHẬN',
+            DANG_CHUAN_BI: 'ĐANG CHUẨN BỊ',
+            DANG_GIAO: 'ĐANG GIAO',
+            HOAN_THANH: 'HOÀN THÀNH',
+            DA_HUY: 'ĐÃ HỦY'
+        };
+
+        function statusLabel(s) { return labelMap[s] || s || '---'; }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (typeof Swal === 'undefined') {
+                // fallback nếu quên import SweetAlert2
+                if (confirm('Xác nhận lưu thay đổi đơn hàng?')) form.submit();
+                return;
+            }
+
+            const fromLabel = statusLabel(originalStatus);
+            const toLabel   = statusLabel(currentStatus);
+
+            const isChangedStatus = originalStatus && currentStatus && originalStatus !== currentStatus;
+
+            // cảnh báo mạnh nếu chuyển sang ĐÃ HỦY
+            const isCancel = currentStatus === 'DA_HUY';
+
+            const title = isCancel ? 'Xác nhận HỦY đơn?' : 'Xác nhận lưu thay đổi?';
+            const text = isChangedStatus
+                ? `Trạng thái: ${fromLabel} → ${toLabel}. Bạn chắc chắn muốn lưu?`
+                : 'Bạn chắc chắn muốn lưu thay đổi đơn hàng?';
+
+            Swal.fire({
+                title,
+                text,
+                icon: isCancel ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonText: isCancel ? 'Hủy đơn' : 'Lưu',
+                cancelButtonText: 'Không',
+                confirmButtonColor: isCancel ? '#dc3545' : '#2563eb'
+            }).then((result) => {
+                if (result.isConfirmed) form.submit();
+            });
+        });
+
+        // (Tuỳ chọn) Hiện toast theo flash message (success/error)
+        const successMessage = /*[[${successMessage}]]*/ null;
+        const errorMessage   = /*[[${errorMessage}]]*/ null;
+
+        if (successMessage) {
+            Swal.fire({ toast:true, position:'top-end', icon:'success', title: successMessage, showConfirmButton:false, timer:2500, timerProgressBar:true });
+        }
+        if (errorMessage) {
+            Swal.fire({ toast:true, position:'top-end', icon:'error', title: errorMessage, showConfirmButton:false, timer:3000, timerProgressBar:true });
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -39,8 +39,8 @@ CREATE TABLE NguoiDung (
                            VaiTro NVARCHAR(20) NOT NULL DEFAULT N'KHACHHANG',
                            TrangThai BIT NOT NULL DEFAULT 1,
                            CONSTRAINT CHK_VaiTro CHECK (VaiTro IN (N'ADMIN', N'NHANVIEN', N'KHACHHANG')),
-						   VerificationCode NVARCHAR(255) NULL,
-						   Enabled BIT DEFAULT 0
+                           VerificationCode NVARCHAR(255) NULL,
+                           Enabled BIT DEFAULT 0
 );
 PRINT N'Bảng NguoiDung đã được tạo.';
 GO
@@ -121,8 +121,8 @@ CREATE TABLE SanPham (
                          IdMuaThichHop BIGINT FOREIGN KEY REFERENCES MuaThichHop(Id),
                          IdNhomHuong BIGINT FOREIGN KEY REFERENCES NhomHuong(Id),
                          MoTa NVARCHAR(MAX),
-						 NgayTao DATETIME2 DEFAULT GETDATE(), 
-						 NgaySua DATETIME2 DEFAULT GETDATE()
+                         NgayTao DATETIME2 DEFAULT GETDATE(),
+                         NgaySua DATETIME2 DEFAULT GETDATE()
 );
 PRINT N'Bảng SanPham đã được tạo.';
 GO
@@ -138,9 +138,13 @@ CREATE TABLE SanPhamChiTiet (
                                 GiaBan DECIMAL(20, 0),
                                 HinhAnh NVARCHAR(255) NULL,
                                 TrangThai BIT DEFAULT 1,
-								NgayTao DATETIME2 DEFAULT GETDATE(), 
-								NgaySua DATETIME2 DEFAULT GETDATE()
+                                NgayTao DATETIME2 DEFAULT GETDATE(),
+                                NgaySua DATETIME2 DEFAULT GETDATE()
 );
+
+ALTER TABLE SanPhamChiTiet
+    ADD HienThi BIT NOT NULL CONSTRAINT DF_SanPhamChiTiet_HienThi DEFAULT 1;
+
 PRINT N'Bảng SanPhamChiTiet đã được tạo.';
 GO
 
@@ -219,15 +223,15 @@ CREATE TABLE HoaDon (
                         IdThanhToan BIGINT NULL FOREIGN KEY REFERENCES ThanhToan(Id),
                         NgayGiaoHang DATETIME2 NULL,
 
-						KenhBan NVARCHAR(20) NOT NULL DEFAULT 'WEB',
-						CONSTRAINT CHK_HoaDon_KenhBan CHECK (KenhBan IN ('WEB', 'TAI_QUAY')),
+                        KenhBan NVARCHAR(20) NOT NULL DEFAULT 'WEB',
+                        CONSTRAINT CHK_HoaDon_KenhBan CHECK (KenhBan IN ('WEB', 'TAI_QUAY')),
 
-						SoTienKhachDua DECIMAL(20,0) NULL,
-						SoTienTraLai DECIMAL(20,0) NULL,
+                        SoTienKhachDua DECIMAL(20,0) NULL,
+                        SoTienTraLai DECIMAL(20,0) NULL,
 
-						MaGiaoDichThanhToan NVARCHAR(100) NULL,
+                        MaGiaoDichThanhToan NVARCHAR(100) NULL,
 
-						NgaySua DATETIME2 DEFAULT GETDATE()
+                        NgaySua DATETIME2 DEFAULT GETDATE()
 );
 ALTER TABLE HoaDon ADD Email NVARCHAR(255) NULL;
 
@@ -245,12 +249,12 @@ CREATE TABLE HoaDonChiTiet (
                                ThanhTien AS (SoLuong * DonGia) PERSISTED,
                                GhiChu NVARCHAR(255) NULL,
                                TrangThai INT DEFAULT 1,
-							   NgayTao DATETIME2 DEFAULT GETDATE(), 
-							   NgaySua DATETIME2 DEFAULT GETDATE()
+                               NgayTao DATETIME2 DEFAULT GETDATE(),
+                               NgaySua DATETIME2 DEFAULT GETDATE()
 );
 
 ALTER TABLE HoaDon
-ADD GhiChu NVARCHAR(MAX) NULL;
+    ADD GhiChu NVARCHAR(MAX) NULL;
 GO
 PRINT N'Bảng HoaDonChiTiet đã được tạo.';
 GO
@@ -802,6 +806,9 @@ VALUES
  'ROJA_ENIGMA_100_EDP', 8, 6800000, 9500000, '705d3a9f-e534-41c9-be0b-d65b6339dc8a_Roja Enigma Parfum Cologne.png', 1);
 GO
 PRINT N'Đã chèn SanPhamChiTiet mẫu.';
+
+UPDATE SanPhamChiTiet SET HienThi = 1 WHERE HienThi IS NULL;
+
 GO
 
 -- Chèn Giảm Giá

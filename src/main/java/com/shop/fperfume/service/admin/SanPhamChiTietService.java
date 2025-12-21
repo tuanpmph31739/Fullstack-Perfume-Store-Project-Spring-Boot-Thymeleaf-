@@ -11,20 +11,13 @@ import com.shop.fperfume.repository.SanPhamRepository;
 import com.shop.fperfume.util.MapperUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -50,30 +43,25 @@ public class SanPhamChiTietService {
 
     // --- Phương thức xử lý file ---
     private String saveFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            return null;
-        }
+        if (file == null || file.isEmpty()) return null;
         try {
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
+            if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
+
             String originalFilename = file.getOriginalFilename();
-            String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
+            String uniqueFilename = UUID.randomUUID() + "_" + originalFilename;
             Path destinationFile = this.uploadDir.resolve(uniqueFilename);
+
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
             return uniqueFilename;
         } catch (IOException e) {
-            System.err.println("Lỗi lưu file: " + e.getMessage());
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
         }
     }
 
     private void deleteFile(String filename) {
-        if (filename == null || filename.isEmpty()) {
-            return;
-        }
+        if (filename == null || filename.isEmpty()) return;
         try {
             Path filePath = uploadDir.resolve(filename);
             Files.deleteIfExists(filePath);
@@ -82,8 +70,7 @@ public class SanPhamChiTietService {
         }
     }
 
-
-    public List<SanPhamChiTietResponse> getAllSanPhamChiTiet(){
+    public List<SanPhamChiTietResponse> getAllSanPhamChiTiet() {
         return sanPhamChiTietRepository.findAllFetchingRelationships()
                 .stream()
                 .map(SanPhamChiTietResponse::new)
@@ -95,42 +82,36 @@ public class SanPhamChiTietService {
         return getPage(pageNo, pageSize, null, null, null, null, null);
     }
 
-
     /**
      * Phân trang + lọc + sort cho màn ADMIN
+     * Admin thấy cả sản phẩm bị ẨN (hienThi=false)
      */
     public PageableObject<SanPhamChiTietResponse> getPage(Integer pageNo,
                                                           Integer pageSize,
                                                           String keyword,
                                                           Integer dungTichId,
                                                           Integer nongDoId,
-                                                          String trangThai,   // <- String
+                                                          String trangThai,
                                                           String sort) {
 
-        if (pageNo == null || pageNo < 1) {
-            pageNo = 1;
-        }
+        if (pageNo == null || pageNo < 1) pageNo = 1;
 
-        // Chuẩn hoá keyword
         if (keyword != null) {
             keyword = keyword.trim();
             if (keyword.isEmpty()) keyword = null;
         }
 
-        // Chuẩn hoá trangThai filter
         if (trangThai != null) {
             trangThai = trangThai.trim();
             if (trangThai.isEmpty()) trangThai = null;
         }
 
-        // Xử lý sort
         Sort sortSpec;
         if ("priceAsc".equalsIgnoreCase(sort)) {
             sortSpec = Sort.by(Sort.Direction.ASC, "giaBan");
         } else if ("priceDesc".equalsIgnoreCase(sort)) {
             sortSpec = Sort.by(Sort.Direction.DESC, "giaBan");
         } else {
-            // Mặc định: mới nhất trước (id giảm dần)
             sortSpec = Sort.by(Sort.Direction.DESC, "id");
         }
 
@@ -141,60 +122,68 @@ public class SanPhamChiTietService {
                         keyword,
                         dungTichId,
                         nongDoId,
-                        trangThai,   // <- truyền String xuống repo
+                        trangThai,
                         pageable
                 );
 
-        Page<SanPhamChiTietResponse> pageResponse = pageEntity.map(SanPhamChiTietResponse::new);
-
-        return new PageableObject<>(pageResponse);
+        return new PageableObject<>(pageEntity.map(SanPhamChiTietResponse::new));
     }
 
     @Transactional
-    public void addSanPhamChiTiet(SanPhamChiTietRequest sanPhamChiTietRequest) {
-
-        Optional<SanPhamChiTiet> existingSku = sanPhamChiTietRepository.findByMaSKU(sanPhamChiTietRequest.getMaSKU().trim());
+    public void addSanPhamChiTiet(SanPhamChiTietRequest req) {
+        Optional<SanPhamChiTiet> existingSku =
+                sanPhamChiTietRepository.findByMaSKU(req.getMaSKU().trim());
 
         if (existingSku.isPresent()) {
-            throw new RuntimeException("Mã SKU '" + sanPhamChiTietRequest.getMaSKU() + "' đã tồn tại!");
+            throw new RuntimeException("Mã SKU '" + req.getMaSKU() + "' đã tồn tại!");
         }
 
-        String tenFileAnh = saveFile(sanPhamChiTietRequest.getHinhAnh());
-        sanPhamChiTietRequest.setHinhAnh(null);
+        String tenFileAnh = saveFile(req.getHinhAnh());
+        req.setHinhAnh(null);
 
-        SanPhamChiTiet sanPhamChiTiet = MapperUtils.map(sanPhamChiTietRequest, SanPhamChiTiet.class);
-        sanPhamChiTiet.setHinhAnh(tenFileAnh);
+        SanPhamChiTiet spct = MapperUtils.map(req, SanPhamChiTiet.class);
+        spct.setHinhAnh(tenFileAnh);
 
-        SanPham sanPham = sanPhamRepository.findById(sanPhamChiTietRequest.getIdSanPham())
-                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham()));
-        DungTich dungTich = dungTichRepository.findById(sanPhamChiTietRequest.getIdDungTich())
-                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich()));
-        NongDo nongDo = nongDoRepository.findById(sanPhamChiTietRequest.getIdNongDo())
-                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo()));
+        SanPham sanPham = sanPhamRepository.findById(req.getIdSanPham())
+                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + req.getIdSanPham()));
+        DungTich dungTich = dungTichRepository.findById(req.getIdDungTich())
+                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + req.getIdDungTich()));
+        NongDo nongDo = nongDoRepository.findById(req.getIdNongDo())
+                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + req.getIdNongDo()));
 
-        sanPhamChiTiet.setSanPham(sanPham);
-        sanPhamChiTiet.setDungTich(dungTich);
-        sanPhamChiTiet.setNongDo(nongDo);
-        sanPhamChiTiet.setNgayTao(LocalDateTime.now());
-        sanPhamChiTiet.setNgaySua(LocalDateTime.now());
+        spct.setSanPham(sanPham);
+        spct.setDungTich(dungTich);
+        spct.setNongDo(nongDo);
 
-        sanPhamChiTietRepository.save(sanPhamChiTiet);
+        // ✅ MẶC ĐỊNH: HIỂN THỊ TRÊN CLIENT
+        // (ngừng kinh doanh vẫn hiển thị nếu hienThi = true)
+        if (spct.getHienThi() == null) spct.setHienThi(true);
+
+        spct.setNgayTao(LocalDateTime.now());
+        spct.setNgaySua(LocalDateTime.now());
+
+        sanPhamChiTietRepository.save(spct);
     }
 
     @Transactional
-    public void updateSanPhamChiTiet(Integer id, SanPhamChiTietRequest sanPhamChiTietRequest) {
-        Optional<SanPhamChiTiet> existingSku = sanPhamChiTietRepository.findByMaSKU(sanPhamChiTietRequest.getMaSKU().trim());
+    public void updateSanPhamChiTiet(Integer id, SanPhamChiTietRequest req) {
+        Optional<SanPhamChiTiet> existingSku =
+                sanPhamChiTietRepository.findByMaSKU(req.getMaSKU().trim());
+
         if (existingSku.isPresent() && !existingSku.get().getId().equals(id)) {
-            throw new RuntimeException("Mã SKU '" + sanPhamChiTietRequest.getMaSKU() + "' đã tồn tại!");
+            throw new RuntimeException("Mã SKU '" + req.getMaSKU() + "' đã tồn tại!");
         }
 
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id)
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
 
-        String tenFileAnhCu = sanPhamChiTiet.getHinhAnh();
+        // ✅ giữ trạng thái hiện/ẩn hiện tại (vì form edit thường không gửi hienThi)
+        Boolean oldHienThi = spct.getHienThi();
+
+        String tenFileAnhCu = spct.getHinhAnh();
         String tenFileAnhMoi = tenFileAnhCu;
 
-        MultipartFile fileMoi = sanPhamChiTietRequest.getHinhAnh();
+        MultipartFile fileMoi = req.getHinhAnh();
         if (fileMoi != null && !fileMoi.isEmpty()) {
             tenFileAnhMoi = saveFile(fileMoi);
             if (tenFileAnhMoi != null && tenFileAnhCu != null && !tenFileAnhCu.equals(tenFileAnhMoi)) {
@@ -202,50 +191,75 @@ public class SanPhamChiTietService {
             }
         }
 
-        sanPhamChiTietRequest.setHinhAnh(null);
-        MapperUtils.mapToExisting(sanPhamChiTietRequest, sanPhamChiTiet);
-        sanPhamChiTiet.setHinhAnh(tenFileAnhMoi);
+        req.setHinhAnh(null);
+        MapperUtils.mapToExisting(req, spct);
+        spct.setHinhAnh(tenFileAnhMoi);
 
-        sanPhamChiTiet.setSanPham(sanPhamRepository.findById(sanPhamChiTietRequest.getIdSanPham())
-                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + sanPhamChiTietRequest.getIdSanPham())));
-        sanPhamChiTiet.setDungTich(dungTichRepository.findById(sanPhamChiTietRequest.getIdDungTich())
-                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + sanPhamChiTietRequest.getIdDungTich())));
-        sanPhamChiTiet.setNongDo(nongDoRepository.findById(sanPhamChiTietRequest.getIdNongDo())
-                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + sanPhamChiTietRequest.getIdNongDo())));
+        spct.setSanPham(sanPhamRepository.findById(req.getIdSanPham())
+                .orElseThrow(() -> new RuntimeException("SanPham không tìm thấy với ID: " + req.getIdSanPham())));
+        spct.setDungTich(dungTichRepository.findById(req.getIdDungTich())
+                .orElseThrow(() -> new RuntimeException("DungTich không tìm thấy với ID: " + req.getIdDungTich())));
+        spct.setNongDo(nongDoRepository.findById(req.getIdNongDo())
+                .orElseThrow(() -> new RuntimeException("NongDo không tìm thấy với ID: " + req.getIdNongDo())));
 
-        sanPhamChiTiet.setMaSKU(sanPhamChiTietRequest.getMaSKU());
-        sanPhamChiTiet.setSoLuongTon(sanPhamChiTietRequest.getSoLuongTon());
-        sanPhamChiTiet.setGiaNhap(sanPhamChiTietRequest.getGiaNhap());
-        sanPhamChiTiet.setGiaBan(sanPhamChiTietRequest.getGiaBan());
-        sanPhamChiTiet.setTrangThai(sanPhamChiTietRequest.getTrangThai());
-        sanPhamChiTiet.setNgaySua(LocalDateTime.now());
+        spct.setMaSKU(req.getMaSKU());
+        spct.setSoLuongTon(req.getSoLuongTon());
+        spct.setGiaNhap(req.getGiaNhap());
+        spct.setGiaBan(req.getGiaBan());
+        spct.setTrangThai(req.getTrangThai());
 
-        sanPhamChiTietRepository.save(sanPhamChiTiet);
+        // ✅ RESTORE hienThi (không cho form edit vô tình làm null/đổi)
+        spct.setHienThi(oldHienThi == null ? true : oldHienThi);
+
+        spct.setNgaySua(LocalDateTime.now());
+        sanPhamChiTietRepository.save(spct);
     }
 
     @Transactional
-    public void deleteSanPhamChiTiet(Integer id){
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findById(id)
+    public void deleteSanPhamChiTiet(Integer id) {
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
 
-        String tenFileAnh = sanPhamChiTiet.getHinhAnh();
+        String tenFileAnh = spct.getHinhAnh();
         sanPhamChiTietRepository.deleteById(id);
         deleteFile(tenFileAnh);
     }
 
     public SanPhamChiTietResponse getById(Integer id) {
-        SanPhamChiTiet sanPhamChiTiet = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findByIdFetchingRelationships(id)
                 .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
-        return new SanPhamChiTietResponse(sanPhamChiTiet);
+        return new SanPhamChiTietResponse(spct);
     }
 
     public List<SanPhamChiTietResponse> getAllChiTietBySanPhamId(Integer sanPhamId) {
-        // 1. Gọi phương thức repository đã tạo (đã bao gồm JOIN FETCH)
-        List<SanPhamChiTiet> listChiTietEntities = sanPhamChiTietRepository.findBySanPhamIdFetchingRelationships(sanPhamId);
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findBySanPhamIdFetchingRelationships(sanPhamId);
+        return list.stream().map(SanPhamChiTietResponse::new).collect(Collectors.toList());
+    }
 
-        // 2. Map (chuyển đổi) từ List<Entity> sang List<ResponseDTO>
-        return listChiTietEntities.stream()
-                .map(SanPhamChiTietResponse::new) // Dùng constructor của SanPhamChiTietResponse
-                .collect(Collectors.toList()); // Hoặc .toList() nếu dùng Java 16+
+    // =========================
+    // ✅ TOGGLE (ADMIN AJAX)
+    // =========================
+    @Transactional
+    public void toggleKinhDoanh(Integer id) {
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
+
+        boolean current = Boolean.TRUE.equals(spct.getTrangThai());
+        spct.setTrangThai(!current);
+        spct.setNgaySua(LocalDateTime.now());
+
+        sanPhamChiTietRepository.save(spct);
+    }
+
+    @Transactional
+    public void toggleHienThi(Integer id) {
+        SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("SanPhamChiTiet không tìm thấy với ID: " + id));
+
+        boolean current = Boolean.TRUE.equals(spct.getHienThi());
+        spct.setHienThi(!current);
+        spct.setNgaySua(LocalDateTime.now());
+
+        sanPhamChiTietRepository.save(spct);
     }
 }

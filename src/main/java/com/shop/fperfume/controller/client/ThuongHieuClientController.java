@@ -6,7 +6,6 @@ import com.shop.fperfume.service.client.SanPhamClientService;
 import com.shop.fperfume.service.client.ThuongHieuClientService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +25,12 @@ public class ThuongHieuClientController {
 
     @Autowired
     private SanPhamClientService sanPhamClientService;
+
+    // ✅ Sidebar cần list brand để tick checkbox
+    @ModelAttribute("brands")
+    public List<ThuongHieuResponse> loadBrands() {
+        return thuongHieuClientService.getAllThuongHieu();
+    }
 
     @GetMapping("/thuong-hieu/all")
     public String viewAllBrands(Model model) {
@@ -65,19 +70,22 @@ public class ThuongHieuClientController {
             @RequestParam(name = "max", required = false) Integer maxPrice,
             @RequestParam(name = "sort", required = false) String sort
     ) {
-        // 1. Lấy brand theo slug
-        ThuongHieuResponse brand = thuongHieuClientService.getBySlug(slug);
-        if (brand == null) {
+
+        // 1) Lấy brand theo slug (getBySlug đang orElseThrow)
+        ThuongHieuResponse brand;
+        try {
+            brand = thuongHieuClientService.getBySlug(slug);
+        } catch (RuntimeException e) {
             return "redirect:/thuong-hieu/all";
         }
 
         // selfPath cho view (dùng trong form sort & pagination)
         model.addAttribute("selfPath", request.getRequestURI());
 
-        // 2. Chuẩn hóa phân trang
-        int pageIndex = Math.max(pageNo - 1, 0);
+        // 2) Chuẩn hóa phân trang
+        int pageIndex = Math.max((pageNo == null ? 1 : pageNo) - 1, 0);
 
-        // 3. Chuẩn hóa gender (UI: nam/nu/unisex -> DB: Nam/Nữ/Unisex)
+        // 3) Chuẩn hóa gender (UI: nam/nu/unisex -> DB: Nam/Nữ/Unisex)
         String loaiDb = null;
         if (selectedGender != null && !selectedGender.isBlank()) {
             switch (selectedGender.toLowerCase()) {
@@ -87,18 +95,22 @@ public class ThuongHieuClientController {
             }
         }
 
-        // 4. Chuẩn hóa giá
+        // 4) Chuẩn hóa giá
         if (minPrice != null && minPrice <= 0) minPrice = null;
         if (maxPrice != null && maxPrice <= 0) maxPrice = null;
 
-        // 5. Xử lý brand filter:
+        // ✅ Max slider theo đúng thương hiệu đang xem (và theo giới tính nếu có)
+        long maxPriceBound = sanPhamClientService.getMaxPriceBoundByBrandSlug(slug, loaiDb);
+        model.addAttribute("maxPriceBound", maxPriceBound);
+
+        // 5) Xử lý brand filter:
         //    - Nếu người dùng chưa chọn brand trong sidebar => mặc định brand hiện tại
         if (selectedBrands == null || selectedBrands.isEmpty()) {
             selectedBrands = new ArrayList<>();
             selectedBrands.add(brand.getId().intValue());
         }
 
-        // 6. Gọi service filterProducts (giống listAllProducts)
+        // 6) Gọi service filterProducts (giống listAllProducts)
         var pageData = sanPhamClientService.filterProducts(
                 selectedBrands,      // luôn chứa ít nhất brand hiện tại
                 loaiDb,
@@ -106,10 +118,10 @@ public class ThuongHieuClientController {
                 maxPrice,
                 sort,
                 pageIndex,
-                pageSize
+                pageSize == null ? 15 : pageSize
         );
 
-        // 7. Đổ dữ liệu cho view
+        // 7) Đổ dữ liệu cho view
         List<SanPhamChiTietResponse> sanPhams = pageData.getContent();
 
         model.addAttribute("brand", brand);
@@ -138,7 +150,4 @@ public class ThuongHieuClientController {
         // View giao diện brand-detail dùng sidebar & grid giống product-list
         return "client/thuong_hieu/thuong-hieu-chi-tiet";
     }
-
-
-
 }

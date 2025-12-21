@@ -35,8 +35,13 @@ public class SanPhamChiTiet {
     @Column(name = "HinhAnh")
     private String hinhAnh;
 
+    // ✅ trạng thái kinh doanh: true=đang kinh doanh, false=ngừng kinh doanh
     @Column(name = "TrangThai")
     private Boolean trangThai;
+
+    // ✅ trạng thái hiển thị client: true=hiện, false=ẩn
+    @Column(name = "HienThi")
+    private Boolean hienThi;
 
     @Column(name = "NgayTao")
     private LocalDateTime ngayTao;

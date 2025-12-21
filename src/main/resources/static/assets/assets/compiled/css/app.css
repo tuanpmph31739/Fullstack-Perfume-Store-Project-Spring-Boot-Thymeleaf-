@@ -1,10 +1,11 @@
 /* =========================
    F PERFUME – ADMIN LITE CSS
-   Giữ lại những gì đang dùng: layout, sidebar, header, card, table, form, badge, dropdown
-   YÊU CẦU: đã load Bootstrap 5 qua CDN trước file này
+   Require: Bootstrap 5 loaded before this file
    ========================= */
 
-/* 1) CSS Variables (chủ đạo) */
+/* =========================================================
+   1) CSS Variables
+   ========================================================= */
 :root{
     --fp-primary:#435ebe;
     --fp-primary-600:#3b51a6;
@@ -18,7 +19,9 @@
     --fp-radius:16px;
 }
 
-/* 2) Reset nhỏ + base */
+/* =========================================================
+   2) Base / Reset
+   ========================================================= */
 html,body{height:100%;}
 body{
     background:var(--fp-bg);
@@ -27,54 +30,54 @@ body{
     -moz-osx-font-smoothing:grayscale;
 }
 
-/* 3) Layout khung trái–phải */
-.wrapper{display:flex;min-height:100vh;gap:0;}
-#main{flex:1;min-width:0;padding:24px 28px;}
+/* =========================================================
+   3) Layout (Sidebar + Main)
+   ========================================================= */
+.wrapper{
+    display:flex;
+    min-height:100vh;
+    gap:0;
+}
 
-/* =======================
-   SIDEBAR – Polished Look
-   ======================= */
-/* =======================
-   SIDEBAR – Light Modern
-   ======================= */
-/* =======================
-   SIDEBAR – Navy Luxury
-   ======================= */
+#main{
+    flex:1;
+    min-width:0;
+    padding:24px 28px;
+    margin-left:250px;
+
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+}
+
+/* Page content should stretch to keep footer at bottom */
+.page-content{
+    flex:1 1 auto;
+    min-height:0;
+}
+
+/* =========================================================
+   4) Sidebar
+   ========================================================= */
 #sidebar{
     width:250px;
     position:fixed;
     inset:0 auto 0 0;
     height:100vh;
 
-    /* Nền xanh than chuyển màu nhẹ */
-    background: linear-gradient(
-            180deg,
-            #0b1f3b 0%,
-            #071426 40%,
-            #020617 100%
-    );
+    background: linear-gradient(180deg,#0b1f3b 0%,#071426 40%,#020617 100%);
     color:#e5e7eb;
 
     border-right:1px solid rgba(30,64,175,0.65);
     box-shadow:4px 0 28px rgba(15,23,42,0.75);
     z-index:1000;
+
     overflow-y:auto;
     transition:left .3s ease, box-shadow .3s ease, background .3s ease;
 }
 #sidebar.inactive{ left:-250px; }
-
-#main{
-    flex: 1;
-    min-width: 0;
-    padding: 24px 28px;
-    margin-left: 250px;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
 #sidebar.inactive ~ #main{ margin-left:0; }
 
-/* Logo nổi trên nền xanh than */
 #sidebar .logo{
     width:60%;
     border-radius:14px;
@@ -89,7 +92,6 @@ body{
     box-shadow:0 18px 42px rgba(15,23,42,1);
 }
 
-/* Divider */
 .menu-divider{
     border:0;
     border-top:1px dashed rgba(148,163,184,.55);
@@ -97,7 +99,6 @@ body{
     margin:12px auto;
 }
 
-/* Title */
 .sidebar-title{
     font-size:.75rem;
     text-transform:uppercase;
@@ -107,7 +108,6 @@ body{
     margin-bottom:4px;
 }
 
-/* Link */
 .sidebar-link{
     display:flex;
     align-items:center;
@@ -127,7 +127,6 @@ body{
     transition:all .2s ease;
 }
 
-/* Hover – xanh than nhạt + bóng nhẹ */
 .sidebar-link:hover{
     background:rgba(30,64,175,0.18);
     color:#f9fafb;
@@ -139,34 +138,24 @@ body{
     transform:scale(1.08);
 }
 
-/* Active item – viền xanh ngọc, nổi bật */
 #sidebar .sidebar-item.active > .sidebar-link{
-    background:linear-gradient(
-            90deg,
-            rgba(56,189,248,0.22),
-            rgba(37,99,235,0.28)
-    );
+    background:linear-gradient(90deg,rgba(56,189,248,0.22),rgba(37,99,235,0.28));
     color:#f9fafb;
     font-weight:600;
     border-radius:14px;
     box-shadow:0 8px 24px rgba(15,23,42,0.9);
 }
-#sidebar .sidebar-item.active > .sidebar-link i{
-    color:#22d3ee;
-}
+#sidebar .sidebar-item.active > .sidebar-link i{ color:#22d3ee; }
 #sidebar .sidebar-item.active > .sidebar-link:hover{
-    background:linear-gradient(
-            90deg,
-            rgba(56,189,248,0.3),
-            rgba(37,99,235,0.34)
-    );
+    background:linear-gradient(90deg,rgba(56,189,248,0.3),rgba(37,99,235,0.34));
 }
 
 /* Submenu */
 .submenu{
     list-style:none;
-    margin:6px 0 6px 0;
+    margin:6px 0;
     padding:0 0 0 14px;
+
     overflow:hidden;
     max-height:0;
     opacity:0;
@@ -178,7 +167,6 @@ body{
     opacity:1;
     transform:translateY(0);
 }
-
 .submenu-item > a{
     display:block;
     padding:8px 10px;
@@ -216,50 +204,51 @@ body{
     opacity:1;
 }
 
-/* Scrollbar */
-#sidebar::-webkit-scrollbar{
-    width:8px;
-}
+/* Sidebar scrollbar */
+#sidebar::-webkit-scrollbar{ width:8px; }
 #sidebar::-webkit-scrollbar-thumb{
-    background:linear-gradient(
-            180deg,
-            rgba(55,65,81,0.9),
-            rgba(30,64,175,0.95)
-    );
+    background:linear-gradient(180deg,rgba(55,65,81,0.9),rgba(30,64,175,0.95));
     border-radius:10px;
 }
-#sidebar::-webkit-scrollbar-track{
-    background:transparent;
-}
+#sidebar::-webkit-scrollbar-track{ background:transparent; }
 
-/* Mobile */
+/* Mobile sidebar */
 @media (max-width:992px){
     #sidebar{ left:-250px; }
     #sidebar.active{ left:0; }
     #main{ margin-left:0 !important; }
 }
 
-
-/* 5) HEADER (navbar trên) */
+/* =========================================================
+   5) Header
+   ========================================================= */
 .header{
     background:var(--fp-card);
     border:1px solid var(--fp-border);
     border-radius:var(--fp-radius);
-    padding:14px 18px;margin-bottom:18px;
+    padding:14px 18px;
+    margin-bottom:18px;
     box-shadow:var(--fp-shadow);
-    position: sticky;
-    top: 0;
-    z-index: 1030;
+
+    position:sticky;
+    top:0;
+    z-index:1030;
 }
 .header .burger-btn{
-    display:flex;align-items:center;justify-content:center;
-    width:40px;height:40px;border-radius:12px;color:var(--fp-primary);
-    background:#eef2ff;border:1px solid #e6e9ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;height:40px;
+    border-radius:12px;
+    color:var(--fp-primary);
+    background:#eef2ff;
+    border:1px solid #e6e9ff;
     transition:.2s;
 }
-.header .burger-btn:hover{transform:translateY(-1px);}
+.header .burger-btn:hover{ transform:translateY(-1px); }
 .header .form-control{
-    background:#f8fafc;border:1px solid var(--fp-border);
+    background:#f8fafc;
+    border:1px solid var(--fp-border);
 }
 .header .btn.btn-light{
     border:1px solid var(--fp-border);
@@ -268,16 +257,13 @@ body{
 .header .dropdown-menu{
     border:1px solid var(--fp-border);
     box-shadow:var(--fp-shadow);
-    border-radius:14px;overflow:hidden;
+    border-radius:14px;
+    overflow:hidden;
 }
 
-/* 6) Page heading */
-.page-heading .page-title h3{
-    margin:0 0 6px;font-weight:700;color:#0b1020;
-}
-.page-heading .page-title .breadcrumb{margin:0;color:var(--fp-muted);}
-
-/* 7) Card */
+/* =========================================================
+   6) Card
+   ========================================================= */
 .card{
     background:var(--fp-card);
     border:1px solid var(--fp-border);
@@ -286,30 +272,16 @@ body{
     overflow:hidden;
 }
 .card-header{
-    background:linear-gradient(180deg,#ffffff, #fbfbfe);
+    background:linear-gradient(180deg,#ffffff,#fbfbfe);
     border-bottom:1px solid var(--fp-border);
     padding:14px 18px;
 }
-.card-header h5{margin:0;font-weight:700;color:#0b1020;}
-.card-body{padding:18px;}
+.card-header h5{ margin:0; font-weight:700; color:#0b1020; }
+.card-body{ padding:18px; }
 
-/* 8) Bảng (table) */
-.table{
-    border-collapse:separate;border-spacing:0;
-    background:#fff;border:1px solid var(--fp-border);
-    border-radius:12px;overflow:hidden;
-}
-.table thead th{
-    background:#f7f7fb;color:#475569;
-    font-weight:700;border-bottom:1px solid var(--fp-border);
-}
-.table tbody tr{transition:background .15s ease;}
-.table tbody tr:nth-child(even){background:#fafafa;}
-.table tbody tr:hover{background:#f3f6ff;}
-.table td,.table th{vertical-align:middle;padding:.9rem .8rem;border-top:0;}
-.table .actions .btn{--bs-btn-padding-y:.3rem;--bs-btn-padding-x:.5rem;}
-
-/* 9) Nút (primary + ghost) */
+/* =========================================================
+   7) Buttons / Forms / Pagination / Utilities
+   ========================================================= */
 .btn-primary{
     --bs-btn-bg:var(--fp-primary);
     --bs-btn-border-color:var(--fp-primary);
@@ -318,254 +290,287 @@ body{
     --bs-btn-focus-shadow-rgb:67,94,190;
     --bs-btn-active-bg:var(--fp-primary-600);
 }
+
 .btn-ghost{
-    background:#f8fafc;border:1px solid var(--fp-border);
+    background:#f8fafc;
+    border:1px solid var(--fp-border);
     color:#0b1020;
 }
-.btn-ghost:hover{background:#eef2ff;border-color:#dfe4ff;}
+.btn-ghost:hover{
+    background:#eef2ff;
+    border-color:#dfe4ff;
+}
 
-/* 10) Badge nhỏ */
-.badge.rounded-pill{padding:.35rem .55rem;font-weight:600}
+.badge.rounded-pill{ padding:.35rem .55rem; font-weight:600; }
 
-/* 11) Form nhỏ gọn */
 .form-control, .form-select{
-    border:1px solid var(--fp-border);border-radius:12px;
+    border:1px solid var(--fp-border);
+    border-radius:12px;
 }
 .form-control:focus, .form-select:focus{
-    border-color:#c7d2fe; box-shadow:0 0 0 .25rem rgba(67,94,190,.12);
+    border-color:#c7d2fe;
+    box-shadow:0 0 0 .25rem rgba(67,94,190,.12);
 }
 
-/* 12) Pagination */
 .pagination .page-link{
-    border:1px solid var(--fp-border);color:#334155;
+    border:1px solid var(--fp-border);
+    color:#334155;
 }
 .pagination .page-item.active .page-link{
-    background:var(--fp-primary);border-color:var(--fp-primary);
+    background:var(--fp-primary);
+    border-color:var(--fp-primary);
 }
 
-/* 13) Utilities nhỏ (cần dùng) */
-.rounded-xl{border-radius:var(--fp-radius);}
-.shadow-soft{box-shadow:var(--fp-shadow);}
-.text-muted-600{color:var(--fp-muted)!important;}
-.bg-soft-primary{background:#eef2ff;}
-.border-light{border-color:var(--fp-border)!important;}
+.rounded-xl{ border-radius:var(--fp-radius); }
+.shadow-soft{ box-shadow:var(--fp-shadow); }
+.text-muted-600{ color:var(--fp-muted)!important; }
+.bg-soft-primary{ background:#eef2ff; }
+.border-light{ border-color:var(--fp-border)!important; }
 
-/* =============== TABLE – ổn định bố cục, không cần width theo px cho cột =============== */
-.table.table-fixed {
-    table-layout: fixed;   /* chia đều/ổn định theo số cột */
-    width: 100%;
-    border-collapse: collapse; /* nhìn nhất quán giữa các trang */
+/* =========================================================
+   8) Table (Base)
+   ========================================================= */
+.table{
+    border-collapse:separate;
+    border-spacing:0;
+    background:#fff;
+    border:1px solid var(--fp-border);
+    border-radius:12px;
+    overflow:hidden;
+}
+.table thead th{
+    background:#f7f7fb;
+    color:#475569;
+    font-weight:700;
+    border-bottom:1px solid var(--fp-border);
+}
+.table tbody tr{ transition:background .15s ease; }
+.table tbody tr:nth-child(even){ background:#fafafa; }
+.table tbody tr:hover{ background:#f3f6ff; }
+.table td,.table th{
+    vertical-align:middle;
+    padding:.9rem .8rem;
+    border-top:0;
 }
 
-/* Ô dữ liệu không nở vì text dài */
+/* Optional: sticky header for scroll inside card */
+.table-fixed thead th{
+    position:sticky;
+    top:0;
+    z-index:1;
+    background:#f7f7fb;
+}
+
+/* =========================================================
+   9) Table Fixed Layout + Cell rules
+   ========================================================= */
+.table.table-fixed{
+    table-layout:fixed;
+    width:100%;
+    border-collapse:collapse;
+}
 .table.table-fixed th,
-.table.table-fixed td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
+.table.table-fixed td{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    vertical-align:middle;
 }
 
-/* Tên sản phẩm có thể hiển thị 2 dòng (không cần đặt width cột) */
-.table .cell-name {
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;          /* tối đa 2 dòng */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Product name clamp (if you use .cell-name) */
+.table .cell-name{
+    white-space:normal;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
 }
 
-/* Cột hành động và các nút: không xuống dòng để khỏi đẩy cột */
-.table td.actions,
-.table .actions {
-    white-space: nowrap;
-}
-
-/* Canh phải cột số (nếu bạn gán class ở th/td) */
+/* Numeric alignment helpers */
 .table .num,
 .table .price,
-.table .qty {
-    text-align: right;
+.table .qty{ text-align:right; }
+
+/* Thumb helper (if you use img.thumb) */
+.table img.thumb{
+    width:48px;
+    height:48px;
+    object-fit:cover;
+    border-radius:8px;
+    display:inline-block;
 }
 
-/* Ảnh sản phẩm giữ kích thước nội dung, không ảnh hưởng chia cột */
-.table img.thumb {
-    width: 48px; height: 48px; object-fit: cover; border-radius: 8px;
-    display: inline-block;
+/* Empty row helper */
+.table tbody tr.is-empty td{
+    white-space:normal;
+    text-align:center;
+    color:var(--fp-muted);
+    padding:1rem;
 }
 
-/* Khi không có dữ liệu: hàng trống hiển thị ổn định giữa các trang */
-.table tbody tr.is-empty td {
-    white-space: normal; text-align: center; color: var(--fp-muted);
-    padding: 1rem;
-}
-
-/* Tuỳ chọn: sticky header để 2 trang cảm giác giống nhau khi cuộn */
-.table-fixed thead th {
-    position: sticky; top: 0; z-index: 1;
-    background: #f7f7fb;
-}
-
-/* ==== TABLE CARD – pagination đứng im, bảng cuộn bên trong ==== */
-/* Card bảng chiếm theo viewport, footer không nhảy */
+/* =========================================================
+   10) Table Card (fixed height + internal scroll)
+   ========================================================= */
 .card.table-card{
-    display:flex; flex-direction:column;
+    display:flex;
+    flex-direction:column;
     height:clamp(520px, calc(100dvh - 220px), 80vh);
 }
 .card.table-card .card-body{
     flex:1 1 auto;
     padding-bottom:0;
-    overflow:auto;           /* một dòng là đủ: tránh x + y trùng nhau gây cuộn kép */
+    overflow:auto; /* internal scroll (x & y) */
 }
 .card.table-card .table{ margin-bottom:0; }
 .card.table-card .card-footer{
-    margin-top:auto; background:var(--fp-card); border-top:1px solid var(--fp-border); padding-top:10px;
+    margin-top:auto;
+    background:var(--fp-card);
+    border-top:1px solid var(--fp-border);
+    padding-top:10px;
 }
 @media (max-width:992px){
-    .card.table-card{ height:clamp(480px, calc(100dvh - 260px), 75vh); }
+    .card.table-card{
+        height:clamp(480px, calc(100dvh - 260px), 75vh);
+    }
 }
 
-/* Nút hành động trong bảng */
-.table .actions .btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    margin: 0 2px;
+/* =========================================================
+   11) Action buttons style (optional)
+   ========================================================= */
+.btn.btn-icon{
+    width:36px;height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    border-width:1px;
+    margin:0 2px;
+    transition:all .2s ease;
+}
+.btn.btn-icon.btn-sm{
+    width:32px;height:32px;
+    border-radius:8px;
+}
+.btn.btn-icon i{
+    font-size:1rem;
+    line-height:1;
+}
+.btn-outline-primary:hover{ background-color:#435ebe; color:#fff; }
+.btn-outline-danger:hover{ background-color:#dc3545; color:#fff; }
+.btn-outline-info:hover{ background-color:#0dcaf0; color:#fff; }
+
+/* =========================================================
+   12) Horizontal scroll for tables on small screens
+   ========================================================= */
+/* Wrapper that scrolls horizontally */
+.table-scroll,
+.table-wrapper,
+.table-responsive{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
 }
 
-.table .actions .btn i {
-    font-size: 1rem;
-    line-height: 1;
+/* Make table wider than viewport so scrollbar appears */
+.table-responsive > .table,
+.table-scroll .table{
+    min-width:1400px; /* adjust 1200–1600 based on columns */
 }
 
-/* Hiệu ứng hover riêng cho từng màu */
-.table .actions .btn-outline-primary:hover {
-    background-color: #435ebe;
-    color: #fff;
+/* On small screens: allow columns to size by content */
+@media (max-width:992px){
+    .table.table-fixed{ table-layout:auto; }
 }
 
-.table .actions .btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
+/* Optional: nicer horizontal scrollbar */
+.table-scroll::-webkit-scrollbar{ height:10px; }
+.table-scroll::-webkit-scrollbar-thumb{
+    background:rgba(0,0,0,.15);
+    border-radius:6px;
 }
 
-.table .actions .btn-outline-info:hover {
-    background-color: #0dcaf0;
-    color: #fff;
-}
-
-/* Giữ kích thước ổn định khi trang khác số hàng */
-.table td.actions {
+/* =========================================================
+   13) IMPORTANT: do NOT cut content in Status & Actions columns
+   (Requires adding classes col-status / col-actions to th/td)
+   ========================================================= */
+.table.table-fixed th.col-status,
+.table.table-fixed td.col-status,
+.table.table-fixed th.col-actions,
+.table.table-fixed td.col-actions{
     white-space: nowrap;
-    vertical-align: middle;
+    overflow: hidden;      /* QUAN TRỌNG: ngăn đè sang cột khác */
+    text-overflow: clip;   /* không dùng ... */
+}
+
+/* Đảm bảo đủ chỗ hiển thị full */
+.table.table-fixed th.col-status,
+.table.table-fixed td.col-status{
+    width: 190px;
+    min-width: 190px;
+}
+
+.table.table-fixed th.col-actions{
+    width: 170px;
+    min-width: 180px;
+}
+.table.table-fixed td.col-actions{
+    width: 190px;
+    min-width: 190px;
+}
+
+/* Actions: đảm bảo các nút nằm 1 hàng, không bị co */
+.table td.col-actions{
     text-align: center;
 }
-.table td.actions { white-space: nowrap; vertical-align: middle; }
-
-.btn.btn-icon{
-    width: 36px; height: 36px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 10px;
-    border-width: 1px;
-    margin: 0 2px;
-    transition: all .2s ease;
+.table td.col-actions .btn{
+    flex: 0 0 auto;
 }
 
-.btn.btn-icon i{ font-size: 1rem; line-height: 1; }
-
-/* Hover state rõ ràng theo màu */
-.btn-outline-primary:hover{ background-color: #435ebe; color: #fff; }
-.btn-outline-danger:hover{ background-color: #dc3545; color: #fff; }
-
-/* Với btn-sm vẫn giữ kích cỡ nút icon */
-.btn.btn-icon.btn-sm{ width: 32px; height: 32px; border-radius: 8px; }
-
-/* Cho phép cuộn ngang khi màn hình hẹp */
-body, .wrapper, #main {
-    .table-scroll,
-    .table-wrapper,
-    .table-responsive{
-        width:100%;
-        overflow-x:auto;
-        -webkit-overflow-scrolling:touch;
-    }
-}
-.table-wrapper, .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-/* Khối bọc cho phép cuộn ngang, mượt trên mobile */
-.table-scroll{
+/* 4) Ép table luôn có thể scroll ngang khi thiếu chỗ */
+.table-responsive > .table{
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    min-width: 1400px; /* bạn có thể chỉnh 1200–1600 */
 }
 
-/* Quan trọng: ép bảng có bề rộng tối thiểu để tạo overflow */
-/* Chọn min-width theo số cột: 7 cột ~ 7*140 = 980px (tuỳ bạn chỉnh) */
-.table-scroll .table{
-    min-width: 1400px;  /* ví dụ cho 7 cột; 10 cột có thể ~1200–1400px */
-}
-@media (max-width: 992px){
-    .table.table-fixed{
-        table-layout: auto;     /* cho phép cột lấy width nội dung tự nhiên */
-    }
-}
-
-/* (tuỳ chọn) thanh cuộn ngang hiển thị rõ ràng */
-.table-scroll::-webkit-scrollbar{ height: 10px; }
-.table-scroll::-webkit-scrollbar-thumb{
-    background: rgba(0,0,0,.15);
-    border-radius: 6px;
-}
-.wrapper{
-    display: flex;
-    min-height: 100vh; /* đã có, giữ lại */
-}
-
-#main{
-    display: flex;
-    flex-direction: column;   /* xếp dọc: header, page-content, footer */
-    min-height: 100vh;        /* đảm bảo đủ cao để footer chạm đáy màn hình */
-    /* margin-left do sidebar vẫn giữ như bạn đã cấu hình */
-}
-
-/* Khu vực nội dung chiếm hết phần dư giữa header và footer */
-.page-content{
-    flex: 1 1 auto;
-    min-height: 0;            /* tránh tạo scroll ảo khi con có overflow */
-}
-
-/* Nếu dùng card.table-card cố định chiều cao: để nó cuộn nội bộ */
-.card.table-card .card-body{
-    overflow: auto;           /* bảng cuộn trong body, không đẩy footer */
-}
-
-/* Cho phép cuộn ngang khi hẹp (tránh footer “nhảy” vì tràn chiều ngang) */
-.table-scroll, .table-responsive{
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Footer: giao diện & chiều rộng ổn định toàn trang */
+/* =========================================================
+   14) Footer
+   ========================================================= */
 .footer{
-    width: 100%;
-    background-color: #f8f9fa;
-    box-shadow: 0 -2px 8px rgba(0,0,0,.05);
-    border-top: 1px solid var(--fp-border);
+    width:100%;
+    background-color:#f8f9fa;
+    box-shadow:0 -2px 8px rgba(0,0,0,.05);
+    border-top:1px solid var(--fp-border);
 }
 .footer > div{
-    max-width: none !important;
-    padding: 0 15px;
-    width: 100%;
+    max-width:none !important;
+    padding:0 15px;
+    width:100%;
 }
-.order-last {
-    margin-bottom: 20px; /* tuỳ chỉnh khoảng cách */
+.order-last{ margin-bottom:20px; }
+
+/* ===== Fix cột Tên sản phẩm + SKU không bị "che" ===== */
+
+/* Ưu tiên độ rộng cho 2 cột này (đặc biệt khi table-layout: fixed) */
+.table.table-fixed th.col-name,
+.table.table-fixed td.col-name{
+    width: 340px;
+    min-width: 340px;
+}
+
+/* SKU: 1 dòng, cắt ... */
+.table.table-fixed th.col-sku,
+.table.table-fixed td.col-sku{
+    width: 220px;
+    min-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* Tên sản phẩm cho phép xuống dòng + kẹp 2 dòng (dùng rule bạn đã có .cell-name) */
+.table.table-fixed td.col-name{
+    white-space: normal;
 }
 
 

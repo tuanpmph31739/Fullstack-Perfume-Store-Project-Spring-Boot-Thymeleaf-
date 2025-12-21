@@ -16,7 +16,8 @@
                     </div>
 
                     <div class="card-body">
-                        <form th:action="@{/admin/san-pham/update/{id}(id=${sanPhamRequest.id})}"
+                        <form id="sanPhamEditForm"
+                              th:action="@{/admin/san-pham/update/{id}(id=${sanPhamRequest.id})}"
                               method="post"
                               th:object="${sanPhamRequest}">
                             <input type="hidden" name="backUrl" th:value="${backUrl}">
@@ -29,11 +30,13 @@
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Tên nước hoa</label>
-                                    <input type="text" class="form-control" th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
+                                    <input type="text" class="form-control"
+                                           th:field="*{tenNuocHoa}" placeholder="Nhập tên nước hoa" required>
                                     <div class="invalid-feedback d-block"
                                          th:if="${#fields.hasErrors('tenNuocHoa')}"
                                          th:errors="*{tenNuocHoa}"></div>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label">Thương hiệu</label>
                                     <select class="form-select choices" th:field="*{idThuongHieu}" required>
@@ -47,10 +50,7 @@
                                          th:if="${#fields.hasErrors('idThuongHieu')}"
                                          th:errors="*{idThuongHieu}"></div>
                                 </div>
-
                             </div>
-
-
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -111,15 +111,23 @@
                                          th:errors="*{idMuaThichHop}"></div>
                                 </div>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label">Mô tả</label>
-                                <textarea class="form-control" th:field="*{moTa}" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+                                <textarea class="form-control" th:field="*{moTa}" rows="3"
+                                          placeholder="Nhập mô tả sản phẩm"></textarea>
                             </div>
+
                             <div class="text-end">
-                                <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'" class="btn btn-secondary">
+                                <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'"
+                                   class="btn btn-secondary">
                                     ← Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn lưu?')">Cập nhật dòng sản phẩm</button>
+
+                                <!-- ✅ bỏ confirm() -->
+                                <button type="submit" class="btn btn-primary">
+                                    Cập nhật dòng sản phẩm
+                                </button>
                             </div>
 
                         </form>
@@ -133,5 +141,29 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("sanPhamEditForm");
+        if (!form) return;
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: "Xác nhận lưu thay đổi?",
+                text: "Bạn có chắc muốn cập nhật dòng sản phẩm này không?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Cập nhật",
+                cancelButtonText: "Hủy"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

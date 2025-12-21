@@ -5,17 +5,17 @@
     <link rel="icon" type="image/png"
           th:href="@{/assets/assets/compiled/jpg/logo3.png}">
 
+    <!-- ✅ CSRF meta (để fetch POST dùng được khi bật Spring Security CSRF) -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}">
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 
     <link rel="stylesheet" th:href="@{/assets/assets/compiled/css/app.css}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -23,18 +23,13 @@
 
     <style>
         /* ====== CHỈ STYLE RIÊNG Ô THƯƠNG HIỆU (giống ô Giới tính pill) ====== */
-
-        /* vỏ ngoài của select2 gắn sau <select class="js-brand-select"> */
         .js-brand-select + .select2 .select2-selection--single {
-            border-radius: 50rem;      /* pill */
+            border-radius: 50rem;
             border-color: #dee2e6;
             background-color: #fff;
-
-            /* chiều cao + padding giống form-select-sm + rounded-pill */
             height: auto;
             min-height: calc(1.2em + 0.2rem + 2px);
             padding: 0.1rem 1.8rem 0.1rem 0.75rem;
-
             display: flex;
             align-items: center;
             box-shadow: none;
@@ -42,9 +37,9 @@
 
         .js-brand-select + .select2 .select2-selection__rendered {
             font-size: 0.875rem;
-            color: #212529;       /* giống ô giới tính */
+            color: #212529;
             padding-left: 0;
-            padding-right: 0;     /* đã chừa chỗ mũi tên bằng padding container */
+            padding-right: 0;
         }
 
         .js-brand-select + .select2 .select2-selection__arrow {
@@ -67,5 +62,4 @@
             outline: 0;
         }
     </style>
-
 </head>

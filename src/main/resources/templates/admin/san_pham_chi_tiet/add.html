@@ -7,162 +7,242 @@
     <aside th:replace="~{/admin/fragments/sidebar :: sidebar}"></aside>
     <div id="main">
         <header th:replace="~{/admin/fragments/header :: header('Thêm sản phẩm chi tiết')}"></header>
+
         <section class="row">
-        <div class="card">
-        <div class="card-header">
-            <h5>Thông tin chi tiết sản phẩm</h5>
-        </div>
-
-            <div class="card-body">
-        <form th:action="@{/admin/san-pham-chi-tiet/save}"
-              th:object="${sanPhamChiTietRequest}"
-              method="post"
-              enctype="multipart/form-data">
-            <input type="hidden" name="backUrl"
-                   th:value="${backUrl != null} ? ${backUrl} : ${param.backUrl}" />
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Mã SKU</label>
-                    <input type="text" th:field="*{maSKU}" class="form-control" placeholder="Nhập mã SKU" required>
-                    <div class="invalid-feedback d-block"
-                         th:if="${#fields.hasErrors('maSKU')}"
-                         th:errors="*{maSKU}"></div>
+            <div class="card">
+                <div class="card-header">
+                    <h5>Thông tin chi tiết sản phẩm</h5>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label">Sản phẩm</label>
-                    <select th:field="*{idSanPham}" class="form-select choices" required>
-                        <option value="">-- Chọn sản phẩm --</option>
-                        <option th:each="sp : ${listSanPham}"
-                                th:value="${sp.id}"
-                                th:text="${sp.tenNuocHoa}"></option>
-                    </select>
-                    <div class="invalid-feedback d-block"
-                         th:if="${#fields.hasErrors('idSanPham')}"
-                         th:errors="*{idSanPham}"></div>
+                <div class="card-body">
+                    <form id="spctForm"
+                          th:action="@{/admin/san-pham-chi-tiet/save}"
+                          th:object="${sanPhamChiTietRequest}"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <input type="hidden" name="backUrl"
+                               th:value="${backUrl != null} ? ${backUrl} : ${param.backUrl}" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Mã SKU</label>
+                                <input type="text" th:field="*{maSKU}" class="form-control" placeholder="Nhập mã SKU" required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('maSKU')}"
+                                     th:errors="*{maSKU}"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Sản phẩm</label>
+                                <select th:field="*{idSanPham}" class="form-select choices" required>
+                                    <option value="">-- Chọn sản phẩm --</option>
+                                    <option th:each="sp : ${listSanPham}"
+                                            th:value="${sp.id}"
+                                            th:text="${sp.tenNuocHoa}"></option>
+                                </select>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('idSanPham')}"
+                                     th:errors="*{idSanPham}"></div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Dung tích</label>
+                                <select th:field="*{idDungTich}" class="form-select" required>
+                                    <option value="">-- Chọn dung tích --</option>
+                                    <option th:each="dt : ${listDungTich}"
+                                            th:value="${dt.id}"
+                                            th:text="${dt.soMl}"></option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Nồng độ</label>
+                                <select th:field="*{idNongDo}" class="form-select" required>
+                                    <option value="">-- Chọn nồng độ --</option>
+                                    <option th:each="nd : ${listNongDo}"
+                                            th:value="${nd.id}"
+                                            th:text="${nd.tenNongDo}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Giá nhập</label>
+                                <input type="text"
+                                       th:field="*{giaNhap}"
+                                       class="form-control money-input"
+                                       placeholder="Nhập giá nhập"
+                                       required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('giaNhap')}"
+                                     th:errors="*{giaNhap}"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Giá bán</label>
+                                <input type="text"
+                                       th:field="*{giaBan}"
+                                       class="form-control money-input"
+                                       placeholder="Nhập giá bán"
+                                       required>
+                                <div class="invalid-feedback d-block"
+                                     th:if="${#fields.hasErrors('giaBan')}"
+                                     th:errors="*{giaBan}"></div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Số lượng tồn</label>
+                                <input type="number" min="0" th:field="*{soLuongTon}" class="form-control" placeholder="Nhập số lượng tồn" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Trạng thái</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="trangThaiSwitch"
+                                       th:field="*{trangThai}" checked />
+                                <label class="form-check-label" for="trangThaiSwitch">Đang bán</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Hình ảnh</label>
+                            <input id="imageInput" type="file" th:field="*{hinhAnh}" class="form-control" accept="image/*">
+
+                            <!-- ✅ Preview -->
+                            <div id="imagePreviewWrap" class="mt-3" style="display:none;">
+                                <div class="small text-muted mb-2">Ảnh vừa chọn:</div>
+                                <img id="imagePreview"
+                                     alt="Preview"
+                                     style="max-width:220px; max-height:220px; border-radius:12px; border:1px solid #e5e7eb; object-fit:cover;">
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'" class="btn btn-secondary">
+                                ← Quay lại
+                            </a>
+
+                            <!-- ✅ bỏ confirm() -->
+                            <button type="submit" class="btn btn-primary" id="submitBtn">Lưu</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Dung tích</label>
-                    <select th:field="*{idDungTich}" class="form-select" required>
-                        <option value="">-- Chọn dung tích --</option>
-                        <option th:each="dt : ${listDungTich}"
-                                th:value="${dt.id}"
-                                th:text="${dt.soMl}"></option>
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Nồng độ</label>
-                    <select th:field="*{idNongDo}" class="form-select" required>
-                        <option value="">-- Chọn nồng độ --</option>
-                        <option th:each="nd : ${listNongDo}"
-                                th:value="${nd.id}"
-                                th:text="${nd.tenNongDo}"></option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Giá nhập</label>
-                    <input type="text"
-                           th:field="*{giaNhap}"
-                           class="form-control money-input"
-                           placeholder="Nhập giá nhập"
-                           required>
-                    <div class="invalid-feedback d-block"
-                         th:if="${#fields.hasErrors('giaNhap')}"
-                         th:errors="*{giaNhap}"></div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">Giá bán</label>
-                    <input type="text"
-                           th:field="*{giaBan}"
-                           class="form-control money-input"
-                           placeholder="Nhập giá bán"
-                           required>
-                    <div class="invalid-feedback d-block"
-                         th:if="${#fields.hasErrors('giaBan')}"
-                         th:errors="*{giaBan}"></div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">Số lượng tồn</label>
-                    <input type="number" min="0" th:field="*{soLuongTon}" class="form-control" placeholder="Nhập số lượng tồn" required>
-                </div>
-            </div>
-
-
-            <div class="mb-3">
-                <label class="form-label d-block">Trạng thái</label>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="trangThaiSwitch"
-                           th:field="*{trangThai}" checked />
-                    <label class="form-check-label" for="trangThaiSwitch">Đang bán</label>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Hình ảnh</label>
-                <input type="file" th:field="*{hinhAnh}" class="form-control">
-            </div>
-
-            <div class="text-end">
-                <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'" class="btn btn-secondary">
-                    ← Quay lại
-                </a>
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn thêm sản phẩm này?')">Lưu</button>
-            </div>
-        </form>
-            </div>
-        </div>
         </section>
+
         <footer th:replace="~{/admin/fragments/footer :: footer}"></footer>
     </div>
 </div>
+
 <div th:replace="~{admin/fragments/script :: script}"></div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('spctForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // ============
+        // Money format
+        // ============
         const moneyInputs = document.querySelectorAll('.money-input');
 
         function formatValue(value) {
-            // bỏ mọi ký tự không phải số
             value = value.replace(/\D/g, '');
             if (!value) return '';
-            // format theo locale Việt Nam -> 1.234.567
             return Number(value).toLocaleString('vi-VN');
         }
 
         moneyInputs.forEach(function (input) {
-            // Nếu đang ở form edit, server trả về số "1234567" -> format lại
-            if (input.value) {
-                input.value = formatValue(input.value);
-            }
+            if (input.value) input.value = formatValue(input.value);
 
-            input.addEventListener('input', function (e) {
-                const cursorPos = input.selectionStart;
-                const raw = input.value;
-
-                const formatted = formatValue(raw);
+            input.addEventListener('input', function () {
+                const formatted = formatValue(input.value);
                 input.value = formatted;
-
-                // (đơn giản) đưa con trỏ về cuối, tránh lệch quá nhiều
                 input.setSelectionRange(input.value.length, input.value.length);
             });
         });
 
-        // Trước khi submit form: bỏ dấu chấm, chỉ giữ số để Spring bind
-        const form = document.querySelector('form[enctype="multipart/form-data"]');
+        function stripMoneyDots() {
+            moneyInputs.forEach(function (input) {
+                input.value = input.value.replace(/\D/g, '');
+            });
+        }
+
+        // ============
+        // Image preview
+        // ============
+        const imageInput = document.getElementById('imageInput');
+        const previewWrap = document.getElementById('imagePreviewWrap');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function () {
+                const file = this.files && this.files[0];
+                if (!file) {
+                    previewWrap.style.display = 'none';
+                    previewImg.src = '';
+                    return;
+                }
+
+                // chỉ preview nếu đúng ảnh
+                if (!file.type.startsWith('image/')) {
+                    previewWrap.style.display = 'none';
+                    previewImg.src = '';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File không hợp lệ',
+                        text: 'Vui lòng chọn đúng định dạng hình ảnh.'
+                    });
+                    imageInput.value = '';
+                    return;
+                }
+
+                const url = URL.createObjectURL(file);
+                previewImg.src = url;
+                previewWrap.style.display = 'block';
+
+                // tránh leak memory
+                previewImg.onload = () => URL.revokeObjectURL(url);
+            });
+        }
+
+        // ============
+        // SweetAlert confirm submit
+        // ============
         if (form) {
-            form.addEventListener('submit', function () {
-                moneyInputs.forEach(function (input) {
-                    input.value = input.value.replace(/\D/g, '');
+            form.addEventListener('submit', async function (e) {
+                // chặn submit để hỏi swal
+                e.preventDefault();
+
+                const result = await Swal.fire({
+                    title: 'Xác nhận',
+                    text: 'Bạn có chắc muốn thêm sản phẩm này?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lưu',
+                    cancelButtonText: 'Hủy',
+                    reverseButtons: true
                 });
+
+                if (!result.isConfirmed) return;
+
+                // loading
+                Swal.fire({
+                    title: 'Đang lưu...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                // trước khi submit: bỏ dấu chấm để Spring bind
+                stripMoneyDots();
+
+                // submit thật
+                form.submit();
             });
         }
     });

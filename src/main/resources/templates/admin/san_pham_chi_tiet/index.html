@@ -28,19 +28,17 @@
                         <form th:action="@{/admin/san-pham-chi-tiet}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
-                                <!-- 1. INPUT SEARCH ĐA TRƯỜNG + NÚT XÓA LỌC CÙNG HÀNG -->
                                 <div class="col-12 col-md-5">
                                     <div class="input-group input-group-sm">
-                <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
                                         <input type="text" name="keyword"
                                                class="form-control form-control-sm"
                                                placeholder="Tìm kiếm sản phẩm theo tên, mã SKU..."
                                                th:value="${keyword}"
                                                id="keywordInput">
 
-                                        <!-- Nút XÓA LỌC ngay cạnh thanh tìm kiếm -->
                                         <a th:href="@{/admin/san-pham-chi-tiet}"
                                            class="btn btn-outline-secondary btn-sm fw-semibold"
                                            title="Xóa lọc">
@@ -50,7 +48,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 2. Dung tích -->
                                 <div class="col-6 col-md-2">
                                     <select name="dungTichId" class="form-select form-select-sm" id="dungTichFilter">
                                         <option value="">Tất cả dung tích</option>
@@ -62,7 +59,6 @@
                                     </select>
                                 </div>
 
-                                <!-- 3. Nồng độ -->
                                 <div class="col-6 col-md-2">
                                     <select name="nongDoId" class="form-select form-select-sm" id="nongDoFilter">
                                         <option value="">Tất cả nồng độ</option>
@@ -74,7 +70,6 @@
                                     </select>
                                 </div>
 
-                                <!-- 4. Sắp xếp giá -->
                                 <div class="col-6 col-md-2">
                                     <select name="sort" class="form-select form-select-sm" id="sortPrice">
                                         <option value="" th:selected="${sort == null or sort == ''}">Giá mặc định</option>
@@ -83,7 +78,6 @@
                                     </select>
                                 </div>
 
-                                <!-- 5. Trạng thái -->
                                 <div class="col-6 col-md-1">
                                     <select name="trangThai" class="form-select form-select-sm" id="trangThaiFilter">
                                         <option value="" th:selected="${trangThai == null or trangThai == ''}">
@@ -99,11 +93,9 @@
                                             Ngừng bán
                                         </option>
                                     </select>
-
                                 </div>
                             </div>
                         </form>
-
 
                         <div class="table-responsive">
                             <table class="table table-striped table-fixed align-middle">
@@ -111,18 +103,20 @@
                                 <tr>
                                     <th>STT</th>
                                     <th>Ảnh</th>
-                                    <th>Tên sản phẩm</th>
-                                    <th>SKU</th>
+                                    <th class="col-name">Tên sản phẩm</th>
+                                    <th class="col-sku">SKU</th>
                                     <th>Giá</th>
                                     <th>ML</th>
                                     <th>Nồng độ</th>
                                     <th>Tồn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
+                                    <th class="col-status">Trạng thái</th>
+                                    <th class="col-actions">Hành động</th>
                                 </tr>
                                 </thead>
 
-                                <tbody id="spctTableBody">
+                                <tbody id="spctTableBody"
+                                       data-toggle-kinhdoanh="/admin/san-pham-chi-tiet/toggle-kinh-doanh/"
+                                       data-toggle-hienthi="/admin/san-pham-chi-tiet/toggle-hien-thi/">
                                 <tr th:each="spct, iter : ${page.data}">
                                     <td th:text="${(page.currentPage - 1) * page.size + iter.index + 1}"></td>
 
@@ -133,48 +127,63 @@
                                         <span th:unless="${spct.hinhAnh}">---</span>
                                     </td>
 
-                                    <td th:text="${spct.tenSanPham}"></td>
-                                    <td th:text="${spct.maSKU}"></td>
-                                    <td th:text="${#numbers.formatInteger(spct.giaBan,0,'POINT')} + ' đ'"></td>
-                                    <td th:text="${spct.soMl} + ' ml'"></td>
-                                    <td th:text="${spct.tenNongDo} ?: '---'"></td>
-                                    <td th:text="${spct.soLuongTon}"></td>
+                                    <td class="col-name" th:text="${spct.tenSanPham}" th:title="${spct.tenSanPham}"></td>
+                                    <td class="col-sku"  th:text="${spct.maSKU}"      th:title="${spct.maSKU}"></td>
 
-                                    <td>
-                                        <!-- Nếu NGỪNG BÁN -->
-                                        <span th:if="${!spct.trangThai}" class="badge bg-secondary">
-        Ngừng bán
-    </span>
+                                    <td th:text="${#numbers.formatInteger(spct.giaBan,0,'POINT')} + ' đ'"
+                                        th:title="${#numbers.formatInteger(spct.giaBan,0,'POINT')} + ' đ'"></td>
+                                    <td th:text="${spct.soMl} + 'ml'" th:title="${spct.soMl} + 'ml'"></td>
+                                    <td th:text="${spct.tenNongDo} ?: '---'" th:title="${spct.tenNongDo}"></td>
+                                    <td th:text="${spct.soLuongTon}" th:title="${spct.soLuongTon}"></td>
 
-                                        <!-- Nếu ĐANG BÁN thì xét tiếp tồn kho -->
+                                    <td class="text-nowrap col-status">
+                                        <span th:if="${spct.hienThi}" class="badge bg-primary me-1">Hiện</span>
+                                        <span th:if="${!spct.hienThi}" class="badge bg-dark me-1">Ẩn</span>
+
+                                        <span th:if="${!spct.trangThai}" class="badge bg-secondary me-1">
+                                            Ngừng kinh doanh
+                                        </span>
+
                                         <span th:if="${spct.trangThai}">
-        <span th:if="${spct.soLuongTon > 0}" class="badge bg-success">
-            Còn hàng
-        </span>
-        <span th:if="${spct.soLuongTon <= 0}" class="badge bg-danger">
-            Hết hàng
-        </span>
-    </span>
+                                            <span th:if="${spct.soLuongTon > 0}" class="badge bg-success">Đang bán</span>
+                                            <span th:if="${spct.soLuongTon <= 0}" class="badge bg-danger">Hết hàng</span>
+                                        </span>
                                     </td>
 
-
-                                    <td>
+                                    <td class="text-nowrap col-actions">
                                         <a th:href="@{/admin/san-pham-chi-tiet/view/{id}(id=${spct.id})}"
-                                           class="btn btn-info btn-sm">
-                                            <i class="bi bi-eye"></i>
+                                           class="btn btn-info btn-sm"
+                                           title="Xem chi tiết">
+                                            <i class="bi bi-info-circle"></i>
                                         </a>
 
                                         <a th:href="@{/admin/san-pham-chi-tiet/edit/{id}(id=${spct.id})}"
-                                           class="btn btn-warning btn-sm">
+                                           class="btn btn-warning btn-sm"
+                                           title="Chỉnh sửa">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
-                                        <a th:href="@{/admin/san-pham-chi-tiet/delete/{id}(id=${spct.id})}"
-                                           onclick="return confirm('Bạn chắc muốn xóa?')"
-                                           class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        <!-- Toggle kinh doanh -->
+                                        <button type="button"
+                                                class="btn btn-sm toggle-kinhdoanh-btn"
+                                                th:attr="data-id=${spct.id}, data-current=${spct.trangThai}"
+                                                th:classappend="${spct.trangThai} ? ' btn-outline-secondary' : ' btn-outline-success'"
+                                                th:title="${spct.trangThai} ? 'Ngừng kinh doanh' : 'Bật kinh doanh'">
+                                            <i class="bi"
+                                               th:classappend="${spct.trangThai} ? ' bi-pause-circle' : ' bi-play-circle'"></i>
+                                        </button>
+
+                                        <!-- Toggle ẩn/hiện client -->
+                                        <button type="button"
+                                                class="btn btn-sm toggle-hienthi-btn"
+                                                th:attr="data-id=${spct.id}, data-current=${spct.hienThi}"
+                                                th:classappend="${spct.hienThi} ? ' btn-outline-dark' : ' btn-outline-primary'"
+                                                th:title="${spct.hienThi} ? 'Ẩn khỏi client' : 'Hiện lại ở client'">
+                                            <i class="bi"
+                                               th:classappend="${spct.hienThi} ? ' bi-eye-slash' : ' bi-eye'"></i>
+                                        </button>
                                     </td>
+
                                 </tr>
 
                                 <tr th:if="${#lists.isEmpty(page.data)}">
@@ -186,12 +195,10 @@
                         </div>
                     </div>
 
-                    <!-- PHÂN TRANG -->
                     <div class="card-footer" id="paginationWrapper" th:if="${page.totalPage > 1}">
                         <nav>
                             <ul class="pagination justify-content-center">
 
-                                <!-- Previous -->
                                 <li class="page-item"
                                     th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
@@ -205,10 +212,8 @@
                                            )}">
                                         Previous
                                     </a>
-
                                 </li>
 
-                                <!-- Các trang -->
                                 <li class="page-item"
                                     th:each="i : ${#numbers.sequence(1, page.totalPage)}"
                                     th:classappend="${page.currentPage == i} ? 'active'">
@@ -223,10 +228,8 @@
                                        )}"
                                        th:text="${i}">
                                     </a>
-
                                 </li>
 
-                                <!-- Next -->
                                 <li class="page-item"
                                     th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
@@ -240,7 +243,6 @@
                                        )}">
                                         Next
                                     </a>
-
                                 </li>
 
                             </ul>
@@ -255,8 +257,8 @@
     </div>
 </div>
 
-<!-- chỉ cần include script 1 lần -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -271,27 +273,23 @@
 
         const tbody           = document.getElementById("spctTableBody");
         const paginationWrap  = document.getElementById("paginationWrapper");
-
         if (!tbody) return;
 
-        // Hàm build URL từ form + page
+        let lastUrl = window.location.pathname + window.location.search;
+
         function buildUrl(page) {
             const params = new URLSearchParams(new FormData(form));
-            if (page) {
-                params.set("page", page);
-            } else {
-                params.delete("page"); // để server default = 1
-            }
+            if (page) params.set("page", page);
+            else params.delete("page");
             return form.action + "?" + params.toString();
         }
 
-        // Hàm gọi AJAX + render lại tbody + pagination
         function fetchAndRender(url) {
+            lastUrl = url;
+
             fetch(url, {
                 method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
+                headers: { "X-Requested-With": "XMLHttpRequest" }
             })
                 .then(res => res.text())
                 .then(html => {
@@ -301,56 +299,35 @@
                     const newTbody = doc.getElementById("spctTableBody");
                     const newPagination = doc.getElementById("paginationWrapper");
 
-                    if (newTbody) {
-                        tbody.innerHTML = newTbody.innerHTML;
-                    }
+                    if (newTbody) tbody.innerHTML = newTbody.innerHTML;
 
                     if (paginationWrap) {
                         if (newPagination) {
                             paginationWrap.innerHTML = newPagination.innerHTML;
                             paginationWrap.classList.remove("d-none");
                         } else {
-                            // Không còn phân trang
                             paginationWrap.innerHTML = "";
                             paginationWrap.classList.add("d-none");
                         }
-                    } else if (newPagination) {
-                        const card = document.querySelector(".table-card");
-                        if (card) {
-                            card.appendChild(newPagination);
-                        }
                     }
 
-                    // Gán lại sự kiện click cho pagination link sau mỗi lần render
                     bindPaginationEvents();
                 })
-                .catch(err => {
-                    console.error("Lỗi tải dữ liệu:", err);
-                });
+                .catch(err => console.error("Lỗi tải dữ liệu:", err));
         }
 
-        // Hàm trigger filter về page 1
         function triggerFilterToFirstPage() {
-            const url = buildUrl(1);
-            fetchAndRender(url);
+            fetchAndRender(buildUrl(1));
         }
 
-        // Debounce khi gõ keyword
         let typingTimer;
         function debounceFilter() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                triggerFilterToFirstPage();
-            }, 300);
+            typingTimer = setTimeout(triggerFilterToFirstPage, 300);
         }
 
-        // 1. Auto search khi gõ keyword (tên / SKU)
         if (keywordInput) {
-            keywordInput.addEventListener("input", function () {
-                debounceFilter();
-            });
-
-            // Nếu Enter thì lọc luôn (page 1)
+            keywordInput.addEventListener("input", debounceFilter);
             keywordInput.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -359,37 +336,146 @@
             });
         }
 
-        // 2. Auto filter khi đổi combobox (dung tích, nồng độ, trạng thái, sort giá)
         [dungTichFilter, nongDoFilter, trangThaiFilter, sortPriceSelect].forEach(el => {
-            if (el) {
-                el.addEventListener("change", function () {
-                    triggerFilterToFirstPage();
-                });
-            }
+            if (el) el.addEventListener("change", triggerFilterToFirstPage);
         });
 
-        // 3. Chặn submit mặc định (nút Lọc) -> dùng AJAX
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             triggerFilterToFirstPage();
         });
 
-        // 4. Bắt sự kiện click phân trang để dùng AJAX
         function bindPaginationEvents() {
             if (!paginationWrap) return;
-            const links = paginationWrap.querySelectorAll("a.page-link");
-            links.forEach(a => {
+            paginationWrap.querySelectorAll("a.page-link").forEach(a => {
                 a.addEventListener("click", function (e) {
                     e.preventDefault();
-                    const url = this.href;
-                    if (!url) return;
-                    fetchAndRender(url);
+                    if (this.href) fetchAndRender(this.href);
                 });
             });
         }
-
-        // Gán cho phân trang lần đầu
         bindPaginationEvents();
+
+        async function confirmWithSwal(text) {
+            const result = await Swal.fire({
+                title: "Xác nhận",
+                text,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy",
+                reverseButtons: true,
+                focusCancel: true
+            });
+            return result.isConfirmed;
+        }
+
+        function toastSuccess(message) {
+            return Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: message,
+                showConfirmButton: false,
+                timer: 1400,
+                timerProgressBar: true
+            });
+        }
+
+        function toastError(message) {
+            return Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: message,
+                showConfirmButton: false,
+                timer: 1800,
+                timerProgressBar: true
+            });
+        }
+
+        tbody.addEventListener("click", async function (e) {
+            const kdBtn = e.target.closest("button.toggle-kinhdoanh-btn");
+            const htBtn = e.target.closest("button.toggle-hienthi-btn");
+            if (!kdBtn && !htBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const csrfToken  = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+            const headers = { "X-Requested-With": "XMLHttpRequest" };
+            if (csrfToken) headers[csrfHeader] = csrfToken;
+
+            let url = null;
+            let ok = false;
+
+            if (kdBtn) {
+                const id = kdBtn.getAttribute("data-id");
+                const current = kdBtn.getAttribute("data-current") === "true";
+                const msg = current ? "Ngừng kinh doanh sản phẩm này?" : "Bật kinh doanh sản phẩm này?";
+
+                ok = await confirmWithSwal(msg);
+                if (!ok) return;
+
+                const base = tbody.getAttribute("data-toggle-kinhdoanh") || "/admin/san-pham-chi-tiet/toggle-kinh-doanh/";
+                url = base + id;
+            } else if (htBtn) {
+                const id = htBtn.getAttribute("data-id");
+                const current = htBtn.getAttribute("data-current") === "true";
+                const msg = current ? "Ẩn sản phẩm này khỏi client?" : "Hiện lại sản phẩm này ở client?";
+
+                ok = await confirmWithSwal(msg);
+                if (!ok) return;
+
+                const base = tbody.getAttribute("data-toggle-hienthi") || "/admin/san-pham-chi-tiet/toggle-hien-thi/";
+                url = base + id;
+            }
+
+            if (!url) return;
+
+            // loading
+            Swal.fire({
+                title: "Đang xử lý...",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch(url, {
+                method: "POST",
+                headers,
+                credentials: "same-origin"
+            })
+                .then(async r => {
+                    if (r.redirected) {
+                        window.location.href = r.url;
+                        return null;
+                    }
+                    if (!r.ok) {
+                        const txt = await r.text();
+                        throw new Error(txt || ("HTTP " + r.status));
+                    }
+                    const ct = r.headers.get("content-type") || "";
+                    return ct.includes("application/json") ? r.json() : null;
+                })
+                .then(data => {
+                    Swal.close();
+
+                    if (data && data.success !== true) {
+                        toastError("Thao tác thất bại!");
+                        return;
+                    }
+
+                    toastSuccess("Thao tác thành công!");
+                    fetchAndRender(lastUrl);
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.close();
+                    toastError("Có lỗi khi thao tác!");
+                });
+        });
     });
 </script>
 

@@ -8,7 +8,6 @@
     <div id="main">
         <header th:replace="~{/admin/fragments/header :: header('Chỉnh sửa sản phẩm chi tiết')}"></header>
 
-
         <div class="page-content">
             <section class="row">
                 <div class="card">
@@ -17,11 +16,14 @@
                     </div>
 
                     <div class="card-body">
-                        <form th:action="@{/admin/san-pham-chi-tiet/update/{id}(id=${sanPhamChiTietRequest.id})}"
+                        <form id="spctEditForm"
+                              th:action="@{/admin/san-pham-chi-tiet/update/{id}(id=${sanPhamChiTietRequest.id})}"
                               method="post"
                               th:object="${sanPhamChiTietRequest}"
                               enctype="multipart/form-data">
+
                             <input type="hidden" name="backUrl" th:value="${backUrl}">
+
                             <!-- Mã SKU -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -31,6 +33,7 @@
                                          th:if="${#fields.hasErrors('maSKU')}"
                                          th:errors="*{maSKU}"></div>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label">Sản phẩm</label>
                                     <select class="form-select choices" th:field="*{idSanPham}" required>
@@ -44,10 +47,9 @@
                                          th:if="${#fields.hasErrors('idSanPham')}"
                                          th:errors="*{idSanPham}"></div>
                                 </div>
-
                             </div>
 
-                            <!-- Chọn Sản phẩm - Dung tích - Nồng độ -->
+                            <!-- Dung tích - Nồng độ -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Dung tích</label>
@@ -59,6 +61,7 @@
                                         </option>
                                     </select>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label">Nồng độ</label>
                                     <select class="form-select" th:field="*{idNongDo}" required>
@@ -71,7 +74,7 @@
                                 </div>
                             </div>
 
-                            <!-- Số lượng tồn - Giá nhập - Giá bán -->
+                            <!-- Giá nhập - Giá bán - Tồn -->
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Giá nhập</label>
@@ -117,10 +120,17 @@
                             <!-- Ảnh -->
                             <div class="mb-3">
                                 <label class="form-label">Ảnh sản phẩm</label>
-                                <input type="file" class="form-control" th:field="*{hinhAnh}">
-                                <div class="mt-2" th:if="${sanPhamChiTietRequest.hinhAnh != null}">
-                                    <img th:src="@{/uploads/{file}(file=${sanPhamChiTietRequest.hinhAnh})}"
-                                         alt="Ảnh sản phẩm" style="height: 120px; border-radius: 6px;">
+                                <input id="hinhAnhInput" type="file" class="form-control" th:field="*{hinhAnh}" accept="image/*">
+
+                                <!-- ✅ Ảnh hiện tại (từ controller: hinhAnhHienTai) + dùng chung img để preview ảnh mới -->
+                                <div class="mt-2">
+                                    <img id="imagePreview"
+                                         alt="Ảnh sản phẩm"
+                                         th:attr="data-current-src=${hinhAnhHienTai != null && !#strings.isEmpty(hinhAnhHienTai)} ? @{/images/uploads/{f}(f=${hinhAnhHienTai})} : ''"
+                                         th:src="${hinhAnhHienTai != null && !#strings.isEmpty(hinhAnhHienTai)} ? @{/images/uploads/{f}(f=${hinhAnhHienTai})} : ''"
+                                         th:style="${hinhAnhHienTai != null && !#strings.isEmpty(hinhAnhHienTai)} ?
+                                                  'height:120px;border-radius:6px;object-fit:cover;' :
+                                                  'display:none;height:120px;border-radius:6px;object-fit:cover;'">
                                 </div>
                             </div>
 
@@ -129,7 +139,7 @@
                                 <a th:href="${backUrl != null} ? ${backUrl} : '@{/admin/san-pham-chi-tiet}'" class="btn btn-secondary">
                                     ← Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn lưu?')">Cập nhật</button>
+                                <button type="submit" class="btn btn-primary">Cập nhật</button>
                             </div>
 
                         </form>
@@ -146,37 +156,81 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('spctEditForm');
+
+        // ===== Money formatting =====
         const moneyInputs = document.querySelectorAll('.money-input');
 
         function formatValue(value) {
-            // bỏ mọi ký tự không phải số
             value = value.replace(/\D/g, '');
             if (!value) return '';
-            // format theo locale Việt Nam -> 1.234.567
             return Number(value).toLocaleString('vi-VN');
         }
 
+        function stripMoneyDots() {
+            moneyInputs.forEach(function (input) {
+                input.value = (input.value || '').replace(/\D/g, '');
+            });
+        }
+
         moneyInputs.forEach(function (input) {
-            // Khi load form edit, format lại giá cũ
-            if (input.value) {
-                input.value = formatValue(input.value);
-            }
+            if (input.value) input.value = formatValue(input.value);
 
             input.addEventListener('input', function () {
-                const raw = input.value;
-                const formatted = formatValue(raw);
+                const formatted = formatValue(input.value);
                 input.value = formatted;
-                // Cho con trỏ về cuối
                 input.setSelectionRange(input.value.length, input.value.length);
             });
         });
 
-        // Trước khi submit form: bỏ dấu chấm, chỉ gửi số “sạch”
-        const form = document.querySelector('form[enctype="multipart/form-data"]');
+        // ===== Preview image (current + new) =====
+        const fileInput = document.getElementById('hinhAnhInput');
+        const previewImg = document.getElementById('imagePreview');
+
+        if (fileInput && previewImg) {
+            fileInput.addEventListener('change', function () {
+                const file = fileInput.files && fileInput.files[0];
+
+                // Nếu bỏ chọn file => quay lại ảnh hiện tại (nếu có)
+                if (!file) {
+                    const currentSrc = previewImg.getAttribute('data-current-src');
+                    if (currentSrc) {
+                        previewImg.src = currentSrc;
+                        previewImg.style.display = 'inline-block';
+                    } else {
+                        previewImg.removeAttribute('src');
+                        previewImg.style.display = 'none';
+                    }
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ===== SweetAlert confirm submit =====
         if (form) {
-            form.addEventListener('submit', function () {
-                moneyInputs.forEach(function (input) {
-                    input.value = input.value.replace(/\D/g, '');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Xác nhận lưu thay đổi?',
+                    text: 'Bạn có chắc muốn cập nhật sản phẩm chi tiết này không?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lưu',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // form.submit() sẽ bypass submit listener => strip trước khi submit
+                        stripMoneyDots();
+                        form.submit();
+                    }
                 });
             });
         }

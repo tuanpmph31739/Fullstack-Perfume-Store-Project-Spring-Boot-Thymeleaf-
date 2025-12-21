@@ -5,7 +5,7 @@ import com.shop.fperfume.model.response.SanPhamChiTietResponse;
 import com.shop.fperfume.model.response.ThuongHieuResponse;
 import com.shop.fperfume.service.client.SanPhamClientService;
 import com.shop.fperfume.service.client.ThuongHieuClientService;
-import jakarta.servlet.http.HttpServletRequest;  // <— thêm
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,15 +28,32 @@ public class SanPhamClientController {
     @Autowired
     private ThuongHieuClientService thuongHieuClientService;
 
+    // ✅ Load brands cho sidebar
+    @ModelAttribute("brands")
+    public List<ThuongHieuResponse> loadBrands() {
+        return thuongHieuClientService.getAllThuongHieu();
+    }
+
+    // ✅ Chi tiết sản phẩm (client chỉ xem được nếu hienThi = true)
     @GetMapping("/{id}")
     public String viewProduct(@PathVariable Integer id, Model model) {
-        SanPhamChiTietResponse spct = sanPhamClientService.getById(id);
-        if (spct == null) return "redirect:/san-pham";
+
+        SanPhamChiTietResponse spct;
+        try {
+            spct = sanPhamClientService.getById(id); // service của bạn nên dùng query visible (hienThi=true)
+        } catch (Exception e) {
+            return "redirect:/san-pham/all";
+        }
+
+        // ✅ Nếu sản phẩm bị ẩn khỏi client
+        if (spct == null || Boolean.FALSE.equals(spct.getHienThi())) {
+            return "redirect:/san-pham/all";
+        }
 
         var options = sanPhamClientService.getDungTichOptions(spct.getIdSanPham());
         Integer selectedDungTich = spct.getSoMl();
 
-        // ✅ Lấy danh sách sản phẩm liên quan theo thương hiệu + nhóm hương
+        // ✅ related products (repo đã filter hienThi=true)
         List<SanPhamChiTietResponse> relatedProducts =
                 sanPhamClientService.getRelatedProducts(
                         spct.getId(),
@@ -43,7 +61,6 @@ public class SanPhamClientController {
                         spct.getIdNhomHuong(),
                         spct.getIdLoaiNuocHoa()
                 );
-
 
         if (relatedProducts.size() > 8) {
             relatedProducts = relatedProducts.subList(0, 8);
@@ -57,10 +74,9 @@ public class SanPhamClientController {
             );
         }
 
-
-        model.addAttribute("relatedProducts", relatedProducts);
-        model.addAttribute("relatedChunks", relatedChunks);
-
+        // ✅ Flag cho UI: ngừng KD vẫn hiển thị nhưng disable mua
+        boolean isNgungKinhDoanh = Boolean.FALSE.equals(spct.getTrangThai());
+        boolean canBuy = Boolean.TRUE.equals(spct.getTrangThai()) && spct.getSoLuongTon() != null && spct.getSoLuongTon() > 0;
 
         model.addAttribute("sanPhamChiTiet", spct);
         model.addAttribute("options", options);
@@ -69,71 +85,71 @@ public class SanPhamClientController {
         model.addAttribute("idSanPham", spct.getIdSanPham());
         model.addAttribute("soLuongTon", spct.getSoLuongTon());
 
+        model.addAttribute("relatedProducts", relatedProducts);
+        model.addAttribute("relatedChunks", relatedChunks);
+
+        // ✅ thêm 2 biến để thymeleaf dùng (disable button, show badge)
+        model.addAttribute("isNgungKinhDoanh", isNgungKinhDoanh);
+        model.addAttribute("canBuy", canBuy);
 
         return "client/san_pham/product-detail";
     }
 
-
+    // ✅ API lấy giá theo dung tích (chỉ trả nếu biến thể hienThi = true)
     @GetMapping("/{idSanPham}/gia")
     @ResponseBody
     public ResponseEntity<?> getProductPrice(@PathVariable Integer idSanPham,
                                              @RequestParam Integer soMl) {
 
-        Optional<SanPhamChiTiet> sanPhamChiTiet =
-                sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
+        Optional<SanPhamChiTiet> opt = sanPhamClientService.getBySanPhamAndSoMl(idSanPham, soMl);
 
-        if (sanPhamChiTiet.isPresent()) {
-            SanPhamChiTiet ct = sanPhamChiTiet.get();
-
-            String tenNongDo = null;
-            if (ct.getNongDo() != null) {
-                tenNongDo = ct.getNongDo().getTenNongDo();
-            }
-
-            return ResponseEntity.ok(Map.of(
-                    "giaBan", ct.getGiaBan() != null ? ct.getGiaBan().toPlainString() : null,
-                    "idSpct", ct.getId(),
-                    "soLuongTon", ct.getSoLuongTon(),
-                    "trangThai", ct.getTrangThai(),
-
-                    // 🆕 thêm 3 field này
-                    "hinhAnh", ct.getHinhAnh(),
-                    "tenNongDo", tenNongDo,
-                    "maSKU", ct.getMaSKU(),
-
-                    "message", "OK"
-            ));
-        } else {
-            return ResponseEntity
-                    .status(404)
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(404)
                     .body(Map.of("message", "Không tìm thấy biến thể theo dung tích"));
         }
-    }
 
+        SanPhamChiTiet ct = opt.get();
 
-    @ModelAttribute("brands")
-    public List<ThuongHieuResponse> loadBrands() {
-        return thuongHieuClientService.getAllThuongHieu();
+        // ✅ Chặn nếu bị ẩn (phòng trường hợp service/repo chưa filter)
+        if (ct.getHienThi() != null && !ct.getHienThi()) {
+            return ResponseEntity.status(404)
+                    .body(Map.of("message", "Sản phẩm đang bị ẩn"));
+        }
+
+        String tenNongDo = (ct.getNongDo() != null) ? ct.getNongDo().getTenNongDo() : null;
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("giaBan", ct.getGiaBan() != null ? ct.getGiaBan().toPlainString() : null);
+        res.put("idSpct", ct.getId());
+        res.put("soLuongTon", ct.getSoLuongTon());
+
+        // ✅ quan trọng: trả trạng thái kinh doanh để frontend disable mua khi false
+        res.put("trangThai", ct.getTrangThai());
+
+        res.put("hinhAnh", ct.getHinhAnh());
+        res.put("tenNongDo", tenNongDo);
+        res.put("maSKU", ct.getMaSKU());
+        res.put("message", "OK");
+
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/all")
     public String listAllProducts(
             Model model,
-            HttpServletRequest request, // <— thêm
+            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
             @RequestParam(name = "size", defaultValue = "15") Integer pageSize,
             @RequestParam(name = "brand", required = false) List<Integer> selectedBrands,
-            @RequestParam(name = "gender", required = false) String selectedGender,  // nam|nu|unisex|null
+            @RequestParam(name = "gender", required = false) String selectedGender, // nam|nu|unisex|null
             @RequestParam(name = "min", required = false) Integer minPrice,
             @RequestParam(name = "max", required = false) Integer maxPrice,
             @RequestParam(name = "sort", required = false) String sort
     ) {
-        // selfPath cho view
         model.addAttribute("selfPath", request.getRequestURI());
 
         int pageIndex = Math.max(pageNo - 1, 0);
 
-        // Chuẩn hóa gender theo DB (Nam/Nữ/Unisex)
         String loaiDb = null;
         if (selectedGender != null && !selectedGender.isBlank()) {
             switch (selectedGender.toLowerCase()) {
@@ -147,14 +163,12 @@ public class SanPhamClientController {
         if (maxPrice != null && maxPrice <= 0) maxPrice = null;
         if (selectedBrands == null) selectedBrands = new ArrayList<>();
 
-        // Lấy giá max động theo loaiDb (gender filter nếu có)
         long maxPriceBound = sanPhamClientService.getMaxPriceBound(loaiDb);
         model.addAttribute("maxPriceBound", maxPriceBound);
 
         var pageData = sanPhamClientService.filterProducts(
                 selectedBrands, loaiDb, minPrice, maxPrice, sort, pageIndex, pageSize
         );
-
 
         model.addAttribute("sanPhams", pageData.getContent());
         model.addAttribute("currentPage", pageData.getNumber() + 1);
@@ -168,9 +182,8 @@ public class SanPhamClientController {
             model.addAttribute("pageNumbers", pageNumbers);
         }
 
-        // Giữ trạng thái filter cho sidebar & toolbar
         model.addAttribute("selectedBrands", selectedBrands);
-        model.addAttribute("selectedGender", selectedGender); // vẫn giữ 'nam/nu/unisex' cho radio
+        model.addAttribute("selectedGender", selectedGender);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("sort", sort);
@@ -181,7 +194,7 @@ public class SanPhamClientController {
     @GetMapping("/nuoc-hoa-nam")
     public String listNamProducts(
             Model model,
-            HttpServletRequest request, // <— thêm
+            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
             @RequestParam(name = "size", defaultValue = "15") Integer pageSize,
             @RequestParam(name = "brand", required = false) List<Integer> selectedBrands,
@@ -196,7 +209,7 @@ public class SanPhamClientController {
     @GetMapping("/nuoc-hoa-nu")
     public String listNuProducts(
             Model model,
-            HttpServletRequest request, // <— thêm
+            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
             @RequestParam(name = "size", defaultValue = "15") Integer pageSize,
             @RequestParam(name = "brand", required = false) List<Integer> selectedBrands,
@@ -211,7 +224,7 @@ public class SanPhamClientController {
     @GetMapping("/nuoc-hoa-unisex")
     public String listUnisexProducts(
             Model model,
-            HttpServletRequest request, // <— thêm
+            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "1") Integer pageNo,
             @RequestParam(name = "size", defaultValue = "15") Integer pageSize,
             @RequestParam(name = "brand", required = false) List<Integer> selectedBrands,
@@ -232,7 +245,6 @@ public class SanPhamClientController {
                                 Integer minPrice, Integer maxPrice,
                                 String sort) {
 
-        // selfPath cho view gender
         model.addAttribute("selfPath", request.getRequestURI());
 
         int pageIndex = Math.max((pageNo == null ? 1 : pageNo) - 1, 0);
@@ -240,7 +252,6 @@ public class SanPhamClientController {
         if (maxPrice != null && maxPrice <= 0) maxPrice = null;
         if (selectedBrands == null) selectedBrands = new ArrayList<>();
 
-        // 🔹 Lấy max giá theo đúng giới (Nam/Nữ/Unisex)
         long maxPriceBound = sanPhamClientService.getMaxPriceBound(loaiDb);
         model.addAttribute("maxPriceBound", maxPriceBound);
 
@@ -260,17 +271,14 @@ public class SanPhamClientController {
             model.addAttribute("pageNumbers", pageNumbers);
         }
 
-        // Giữ trạng thái filter cho sidebar/toolbar
         model.addAttribute("selectedBrands", selectedBrands);
-        model.addAttribute("selectedGender", selectedGenderForUI); // để radio trong sidebar tự check
+        model.addAttribute("selectedGender", selectedGenderForUI);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("sort", sort);
 
-        // Tiêu đề trang
         model.addAttribute("title", title);
 
-        // render view chung cho 3 trang theo giới
         return "client/san_pham/product-gender";
     }
 }

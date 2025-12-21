@@ -15,10 +15,13 @@
                         <h5>Thông tin dòng sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{/admin/san-pham/save}" method="post"
+                        <form id="sanPhamAddForm"
+                              th:action="@{/admin/san-pham/save}" method="post"
                               th:object="${sanPhamRequest}" enctype="multipart/form-data">
+
                             <input type="hidden" name="backUrl"
                                    th:value="${backUrl != null} ? ${backUrl} : ${param.backUrl}" />
+
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <span th:text="${errorMessage}"></span>
@@ -47,6 +50,7 @@
                                          th:errors="*{idThuongHieu}"></div>
                                 </div>
                             </div>
+
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Giới tính</label>
@@ -60,6 +64,7 @@
                                          th:if="${#fields.hasErrors('idLoaiNuocHoa')}"
                                          th:errors="*{idLoaiNuocHoa}"></div>
                                 </div>
+
                                 <div class="col-md-6">
                                     <label class="form-label">Xuất xứ</label>
                                     <select class="form-select" th:field="*{idXuatXu}" required>
@@ -112,7 +117,11 @@
                                 <a th:href="${backUrl != null} ? ${backUrl} : @{/admin/san-pham}" class="btn btn-secondary">
                                     ← Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-primary" onclick="return confirm('Xác nhận muốn thêm dòng sản phẩm này?')">Lưu dòng sản phẩm</button>
+
+                                <!-- ✅ bỏ confirm() -->
+                                <button type="submit" class="btn btn-primary">
+                                    Lưu dòng sản phẩm
+                                </button>
                             </div>
 
                         </form>
@@ -126,5 +135,31 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("sanPhamAddForm");
+        if (!form) return;
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: "Xác nhận thêm dòng sản phẩm?",
+                text: "Bạn có chắc muốn lưu dòng sản phẩm này không?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Lưu",
+                cancelButtonText: "Hủy"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // submit thật sự (bypass event listener)
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

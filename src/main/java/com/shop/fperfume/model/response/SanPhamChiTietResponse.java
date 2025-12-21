@@ -1,9 +1,9 @@
 package com.shop.fperfume.model.response;
 
-import com.shop.fperfume.entity.*;
+import com.shop.fperfume.entity.SanPhamChiTiet;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,11 +19,13 @@ public class SanPhamChiTietResponse {
     private BigDecimal giaNhap;
     private BigDecimal giaBan;
     private String hinhAnh;
-    private Boolean trangThai;
+
+    private Boolean trangThai; // kinh doanh
+    private Boolean hienThi;   // ✅ hiển thị client
 
     private Integer idSanPham;
     private String tenSanPham;
-    private String moTa;  // Thêm MoTa vào dto
+    private String moTa;
 
     private Long idDungTich;
     private Integer soMl;
@@ -36,6 +38,7 @@ public class SanPhamChiTietResponse {
 
     private String tenThuongHieu;
     private Long idThuongHieu;
+    private String slugThuongHieu;
 
     private Long idMuaThichHop;
     private String tenMuaThichHop;
@@ -46,11 +49,6 @@ public class SanPhamChiTietResponse {
     private Long idNhomHuong;
     private String tenNhomHuong;
 
-    // thêm field
-    private String slugThuongHieu;
-
-
-    // Constructor chuyển đổi từ SanPhamChiTiet sang SanPhamChiTietResponse
     public SanPhamChiTietResponse(SanPhamChiTiet ct) {
         this.id = ct.getId();
         this.maSKU = ct.getMaSKU();
@@ -58,19 +56,24 @@ public class SanPhamChiTietResponse {
         this.giaNhap = ct.getGiaNhap();
         this.giaBan = ct.getGiaBan();
         this.hinhAnh = ct.getHinhAnh();
+
         this.trangThai = ct.getTrangThai();
+        this.hienThi = ct.getHienThi();
+
         this.ngayTao = ct.getNgayTao();
         this.ngaySua = ct.getNgaySua();
 
         if (ct.getSanPham() != null) {
-            // Chỉ kiểm tra ct.getSanPham() một lần
             this.idSanPham = ct.getSanPham().getId();
             this.tenSanPham = ct.getSanPham().getTenNuocHoa();
-            this.moTa = ct.getSanPham().getMoTa();  // Lấy MoTa từ SanPham
+            this.moTa = ct.getSanPham().getMoTa();
+
             if (ct.getSanPham().getThuongHieu() != null) {
                 this.idThuongHieu = ct.getSanPham().getThuongHieu().getId();
                 this.tenThuongHieu = ct.getSanPham().getThuongHieu().getTenThuongHieu();
+                this.slugThuongHieu = ct.getSanPham().getThuongHieu().getSlug();
             }
+
             if (ct.getSanPham().getLoaiNuocHoa() != null) {
                 this.idLoaiNuocHoa = ct.getSanPham().getLoaiNuocHoa().getId();
                 this.tenLoaiNuocHoa = ct.getSanPham().getLoaiNuocHoa().getTenLoai();
@@ -83,12 +86,6 @@ public class SanPhamChiTietResponse {
                 this.idNhomHuong = ct.getSanPham().getNhomHuong().getId();
                 this.tenNhomHuong = ct.getSanPham().getNhomHuong().getTenNhomHuong();
             }
-            if (ct.getSanPham().getThuongHieu() != null) {
-                this.idThuongHieu = ct.getSanPham().getThuongHieu().getId();
-                this.tenThuongHieu = ct.getSanPham().getThuongHieu().getTenThuongHieu();
-                this.slugThuongHieu = ct.getSanPham().getThuongHieu().getSlug(); // <-- tên getter theo entity của bạn
-            }
-
         }
 
         if (ct.getDungTich() != null) {
