@@ -173,62 +173,47 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // ----- Hàm format tiền: 1000000 -> 1.000.000 -----
+        function formatMoney(value) {
+            if (value === null || value === undefined) return "";
+
+            let s = value.toString().trim();
+
+            // ✅ Nếu server trả về dạng decimal như 1000000.00 hoặc 1000000,00 -> lấy phần nguyên
+            if (/^\d+\.\d{1,2}$/.test(s)) s = s.split('.')[0];
+            if (/^\d+,\d{1,2}$/.test(s)) s = s.split(',')[0];
+
+            // ✅ Remove hết ký tự không phải số (xóa dấu . phân tách nghìn nếu người dùng gõ)
+            s = s.replace(/[^\d]/g, "");
+            if (!s) return "";
+
+            // add dấu chấm phân tách nghìn
+            return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // ====== phần code còn lại của bạn giữ nguyên ======
         const loaiSelect       = document.getElementById("loaiGiamSelect");
         const giaTriInput      = document.getElementById("giaTriInput");
         const giaTriUnit       = document.getElementById("giaTriUnit");
         const moneyInputs      = document.querySelectorAll(".money-input");
         const form             = document.getElementById("giamGiaForm");
-        const donHangMinInput  = document.getElementById("donHangToiThieu");
 
-        // ----- Hàm format tiền: 1000000 -> 1.000.000 -----
-        function formatMoney(value) {
-            value = (value || "").toString().replace(/[^\d]/g, "");
-            if (!value) return "";
-            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        // Chuẩn hoá hiển thị phần trăm: cho phép 1 dấu phẩy (,)
         function normalizePercentDisplay(value) {
             if (!value) return "";
-            value = value.toString();
-
-            // convert . -> , cho thống nhất
-            value = value.replace('.', ',');
-
-            // chỉ giữ số và dấu ,
-            value = value.replace(/[^\d,]/g, "");
-
-            // chỉ cho phép 1 dấu ,
+            value = value.toString().replace('.', ',').replace(/[^\d,]/g, "");
             const parts = value.split(',');
-            if (parts.length > 2) {
-                value = parts[0] + ',' + parts.slice(1).join('');
-            }
+            if (parts.length > 2) value = parts[0] + ',' + parts.slice(1).join('');
             return value;
         }
 
-        // Format sẵn các ô tiền khi load (đơn hàng tối thiểu, giảm tối đa,...)
         moneyInputs.forEach(function (input) {
-            if (input.value) {
-                input.value = formatMoney(input.value);
-            }
+            if (input.value) input.value = formatMoney(input.value);
             input.addEventListener("input", function () {
-                const raw = input.value;
-                input.value = formatMoney(raw);
+                input.value = formatMoney(input.value);
                 input.setSelectionRange(input.value.length, input.value.length);
             });
         });
 
-        const maInput = document.getElementById("maGiamGia");
-        if (maInput) {
-            maInput.addEventListener("input", function () {
-                // Loại bỏ mọi ký tự không phải chữ hoặc số
-                this.value = this.value
-                    .replace(/[^A-Za-z0-9]/g, '')  // chỉ giữ A-Z a-z 0-9
-                    .toUpperCase();                // nếu muốn tự động viết HOA
-            });
-        }
-
-        // ----- Cập nhật giao diện giá trị giảm theo loại -----
         function updateGiaTriField() {
             if (!loaiSelect || !giaTriInput || !giaTriUnit) return;
 
@@ -237,88 +222,59 @@
             if (loai === "PERCENT") {
                 giaTriUnit.innerText = "%";
                 giaTriInput.placeholder = "0 - 100";
-
-                // hiển thị dạng 1,5 (không ép về số)
                 giaTriInput.value = normalizePercentDisplay(giaTriInput.value);
 
             } else if (loai === "AMOUNT") {
                 giaTriUnit.innerText = "đ";
                 giaTriInput.placeholder = "Nhập số tiền";
-
-                if (giaTriInput.value) {
-                    giaTriInput.value = formatMoney(giaTriInput.value);
-                }
+                if (giaTriInput.value) giaTriInput.value = formatMoney(giaTriInput.value);
             } else {
                 giaTriUnit.innerText = "đ";
             }
         }
 
-        if (loaiSelect) {
-            loaiSelect.addEventListener("change", updateGiaTriField);
-        }
+        if (loaiSelect) loaiSelect.addEventListener("change", updateGiaTriField);
 
-        // Gõ vào ô GIÁ TRỊ
         if (giaTriInput) {
             giaTriInput.addEventListener("input", function () {
                 const loai = loaiSelect ? loaiSelect.value : "";
-
                 if (loai === "PERCENT") {
-                    // chỉ chuẩn hoá chuỗi, giữ 1 dấu ',' — không parseFloat ở đây
                     giaTriInput.value = normalizePercentDisplay(giaTriInput.value);
                 } else if (loai === "AMOUNT") {
                     giaTriInput.value = formatMoney(giaTriInput.value);
-                    giaTriInput.setSelectionRange(
-                        giaTriInput.value.length,
-                        giaTriInput.value.length
-                    );
+                    giaTriInput.setSelectionRange(giaTriInput.value.length, giaTriInput.value.length);
                 }
             });
         }
 
-        // ----- Submit form: validate % + bỏ dấu . trước khi gửi -----
         if (form) {
             form.addEventListener("submit", function (e) {
                 const loai = loaiSelect ? loaiSelect.value : "";
 
-                // Validate GIÁ TRỊ khi giảm %
                 if (loai === "PERCENT" && giaTriInput) {
-                    let raw = giaTriInput.value || "";
-
-                    // giữ lại số và dấu ,
-                    raw = raw.replace(/[^\d,]/g, "");
-
-                    // chuyển , -> . để parse
-                    raw = raw.replace(',', '.');
-
+                    let raw = (giaTriInput.value || "").replace(/[^\d,]/g, "").replace(',', '.');
                     let val = parseFloat(raw || "0");
-
                     if (isNaN(val) || val <= 0 || val > 100) {
                         e.preventDefault();
                         alert("Giá trị % phải lớn hơn 0 và không được vượt quá 100");
                         giaTriInput.focus();
                         return;
                     }
-
-                    // server nhận dạng 1.5 (BigDecimal)
                     giaTriInput.value = val.toString();
                 }
 
-                // Bỏ dấu . khỏi các ô tiền trước khi gửi
-                moneyInputs.forEach(function (input) {
-                    input.value = input.value.replace(/[^\d]/g, "");
-                });
-
-                // Nếu là AMOUNT thì cũng bỏ dấu . trong ô GIÁ TRỊ
+                // bỏ dấu . trước khi gửi
+                moneyInputs.forEach(input => input.value = (input.value || "").replace(/[^\d]/g, ""));
                 if (giaTriInput && loai === "AMOUNT") {
-                    giaTriInput.value = giaTriInput.value.replace(/[^\d]/g, "");
+                    giaTriInput.value = (giaTriInput.value || "").replace(/[^\d]/g, "");
                 }
             });
         }
 
-        // chạy khi load để set đúng trạng thái ban đầu
         updateGiaTriField();
     });
 </script>
+
 
 </body>
 </html>

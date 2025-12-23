@@ -162,15 +162,18 @@ public class GioHangClientServiceImpl implements GioHangClientService {
     @Override
     public void clearCart(NguoiDung khachHang) {
         GioHang gioHang = getCartByUser(khachHang);
+
+        // xóa voucher
+        gioHang.setGiamGia(null);
+
         if (gioHang.getGioHangChiTiets() != null && !gioHang.getGioHangChiTiets().isEmpty()) {
-            // Xóa tất cả chi tiết trong DB
             gioHangChiTietRepository.deleteAll(gioHang.getGioHangChiTiets());
-            // Xóa list trong Object để đồng bộ Hibernate
             gioHang.getGioHangChiTiets().clear();
-            // Lưu lại
-            gioHangRepository.save(gioHang);
         }
+
+        gioHangRepository.save(gioHang);
     }
+
 
     @Override
     public void GuiMailDonHang(HoaDon hoaDon, String emailNhan) {
