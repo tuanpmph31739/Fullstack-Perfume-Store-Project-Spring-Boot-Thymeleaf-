@@ -23,8 +23,15 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
     List<HoaDon> findByKhachHangOrderByNgayTaoDesc(NguoiDung khachHang);
 
     // 3. Lấy chi tiết đơn hàng (Fetch Join để tránh lỗi Lazy Loading User)
-    @Query("SELECT h FROM HoaDon h LEFT JOIN FETCH h.khachHang WHERE h.id = :id")
+    @Query("""
+    SELECT hd FROM HoaDon hd
+    LEFT JOIN FETCH hd.khachHang kh
+    LEFT JOIN FETCH hd.giamGia gg
+    LEFT JOIN FETCH gg.sanPhamChiTiet spct
+    WHERE hd.id = :id
+""")
     Optional<HoaDon> findByIdWithKhachHang(@Param("id") Integer id);
+
 
     // 4. TÌM KIẾM & LỌC LỊCH SỬ (CLIENT)
     @Query("SELECT DISTINCT h FROM HoaDon h " +

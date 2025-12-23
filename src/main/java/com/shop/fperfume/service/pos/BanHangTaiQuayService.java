@@ -2,11 +2,11 @@ package com.shop.fperfume.service.pos;
 
 import com.shop.fperfume.entity.*;
 import com.shop.fperfume.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,13 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Service chứa toàn bộ logic nghiệp vụ cho trang Bán Hàng Tại Quầy (POS).
- * - Tính tiền, áp voucher đúng phạm vi (SP / toàn cửa hàng)
- * - Kiểm tra điều kiện đơn hàng tối thiểu
- * - Áp giảm PERCENT / AMOUNT đúng
- * - Giảm không vượt quá GiamToiDa (nếu có) và không vượt quá phần áp dụng
- */
 @Service
 @RequiredArgsConstructor
 public class BanHangTaiQuayService {
@@ -83,7 +76,6 @@ public class BanHangTaiQuayService {
 
         SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
 
-        // ✅ CHẶN SẢN PHẨM NGỪNG KINH DOANH
         if (spct.getTrangThai() == null || !spct.getTrangThai()) {
             throw new RuntimeException("Sản phẩm "
                     + spct.getSanPham().getTenNuocHoa()
@@ -170,63 +162,76 @@ public class BanHangTaiQuayService {
         }
     }
 
+    // =========================
+    // ✅ VALIDATE VOUCHER CHUẨN
+    // =========================
+    private void validateVoucherStillValidOrThrow(GiamGia voucher) {
+        if (voucher == null) return;
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (voucher.getTrangThai() == null || !voucher.getTrangThai()) {
+            throw new RuntimeException("Voucher đang bị khóa hoặc không khả dụng.");
+        }
+
+        if (voucher.getNgayBatDau() != null && now.isBefore(voucher.getNgayBatDau())) {
+            throw new RuntimeException("Voucher chưa bắt đầu áp dụng.");
+        }
+
+        if (voucher.getNgayKetThuc() != null && now.isAfter(voucher.getNgayKetThuc())) {
+            throw new RuntimeException("Voucher đã hết hạn.");
+        }
+
+        // soLuong null = không giới hạn (theo logic repo findAllActive)
+        if (voucher.getSoLuong() != null && voucher.getSoLuong() <= 0) {
+            throw new RuntimeException("Voucher đã hết lượt sử dụng.");
+        }
+    }
+
     /**
-     * Áp dụng mã giảm giá cho hóa đơn - kiểm tra điều kiện trước khi gán
-     * -> Nếu không thỏa, ném RuntimeException với thông báo rõ ràng
+     * Áp dụng voucher (POS) - bản chuẩn:
+     * ✅ check ngày, trạng thái, số lượng
+     * ✅ check điều kiện tối thiểu + phạm vi sản phẩm
+     * ✅ tính giảm và cập nhật tổng
      */
     @Transactional
     public HoaDon applyVoucher(Integer idHoaDon, String maGiamGia) {
         HoaDon hoaDon = hoaDonRepo.findById(idHoaDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
 
-        GiamGia giamGia = giamGiaRepo.findByMa(maGiamGia)
+        // ✅ fetch spct để không bị lazy khi redirect về view
+        GiamGia giamGia = giamGiaRepo.findByMaFetchSpct(maGiamGia)
                 .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ"));
 
-        // Lấy chi tiết hiện tại
+        // ✅ validate như client
+        validateVoucherStillValidOrThrow(giamGia);
+
         List<HoaDonChiTiet> chiTiets = hoaDonChiTietRepo.findByHoaDon_Id(idHoaDon);
         if (chiTiets.isEmpty()) throw new RuntimeException("Hóa đơn không có sản phẩm");
 
-        // Tính tổng tiền áp dụng theo phạm vi voucher
         BigDecimal tongTienApDung = calculateApplicableSubtotal(giamGia, chiTiets);
 
-        // Kiểm tra điều kiện đơn hàng tối thiểu (nếu có)
+        // Điều kiện đơn tối thiểu (nếu có)
         if (giamGia.getDonHangToiThieu() != null && giamGia.getDonHangToiThieu().compareTo(BigDecimal.ZERO) > 0) {
             if (tongTienApDung.compareTo(giamGia.getDonHangToiThieu()) < 0) {
                 throw new RuntimeException("Mã giảm giá không áp dụng: chưa đạt điều kiện đơn hàng tối thiểu");
             }
         }
 
-        // Nếu voucher áp cho 1 sản phẩm nhưng giỏ không có sản phẩm đó -> báo lỗi
-        // Nếu voucher áp cho 1 sản phẩm nhưng giỏ không có sản phẩm đó -> báo lỗi rõ tên mã SKU
+        // Voucher áp cho 1 SP nhưng giỏ không có SP đó
         if (giamGia.getSanPhamChiTiet() != null && tongTienApDung.compareTo(BigDecimal.ZERO) == 0) {
-
-            SanPhamChiTiet spVoucher = giamGia.getSanPhamChiTiet();
-            String maSku = null;
-            if (spVoucher != null) {
-                try {
-                    maSku = spVoucher.getMaSKU(); // hoặc getMaSku() tuỳ tên getter trong entity
-                } catch (Exception e) {
-                    // nếu có vấn đề getter thì cứ để null, fallback message chung
-                }
-            }
-
+            String maSku = (giamGia.getSanPhamChiTiet() != null) ? giamGia.getSanPhamChiTiet().getMaSKU() : null;
             if (maSku != null && !maSku.isBlank()) {
-                throw new RuntimeException(
-                        "Mã giảm giá chỉ có thể áp dụng cho sản phẩm có mã SKU: " + maSku
-                );
-            } else {
-                throw new RuntimeException("Mã giảm giá chỉ áp dụng cho một sản phẩm cụ thể trong giỏ hàng");
+                throw new RuntimeException("Mã giảm giá chỉ áp dụng cho sản phẩm có mã SKU: " + maSku);
             }
+            throw new RuntimeException("Mã giảm giá chỉ áp dụng cho một sản phẩm cụ thể trong giỏ hàng");
         }
 
-        // Tính tiền giảm chính xác (theo phạm vi)
         BigDecimal tienGiam = calculateDiscountAmount(giamGia, tongTienApDung);
 
-        // Gán voucher và tienGiamGia lên hóa đơn
         hoaDon.setGiamGia(giamGia);
         hoaDon.setTienGiamGia(tienGiam);
 
-        // Cập nhật tổng tiền (hàm sẽ dùng hoaDon.getGiamGia() hoặc hoaDon.getTienGiamGia())
         updateTongTienHoaDon(hoaDon);
         return hoaDonRepo.save(hoaDon);
     }
@@ -252,8 +257,12 @@ public class BanHangTaiQuayService {
 
         return nguoiDungRepo.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên: " + username));
-
     }
+
+    /**
+     * ✅ Thanh toán: kiểm tra lại voucher trước khi trừ kho và trừ lượt
+     * => chặn trường hợp: apply xong nhưng voucher hết hạn / về 0 vẫn thanh toán được
+     */
     @Transactional
     public HoaDon thanhToanHoaDonTaiQuay(Integer idHoaDon,
                                          String tenNguoiNhan, String sdtGiaoHang,
@@ -267,7 +276,7 @@ public class BanHangTaiQuayService {
         if (chiTiets.isEmpty()) throw new RuntimeException("Hóa đơn không có sản phẩm nào");
 
         NguoiDung nhanVien = hoaDon.getNhanVien();
-        if (nhanVien == null) {          // nếu đơn chưa có NV (phòng khi tạo trước đó chưa set)
+        if (nhanVien == null) {
             nhanVien = getCurrentNhanVien();
             hoaDon.setNhanVien(nhanVien);
         }
@@ -286,10 +295,18 @@ public class BanHangTaiQuayService {
         hoaDon.setDiaChi(diaChiGiaoHang);
         hoaDon.setPhiShip(phiShip != null ? phiShip : BigDecimal.ZERO);
 
-        // cập nhật tiền (sẽ tính lại giảm nếu voucher tồn tại)
+        // ✅ Re-check voucher tại thời điểm thanh toán (nạp mới từ DB cho chắc)
+        if (hoaDon.getGiamGia() != null) {
+            GiamGia fresh = giamGiaRepo.findById(hoaDon.getGiamGia().getId())
+                    .orElseThrow(() -> new RuntimeException("Voucher không còn tồn tại."));
+            validateVoucherStillValidOrThrow(fresh);
+            hoaDon.setGiamGia(fresh); // gắn lại bản fresh
+        }
+
+        // cập nhật tiền (tính lại giảm nếu voucher tồn tại)
         updateTongTienHoaDon(hoaDon);
 
-        // Xử lý tiền khách đưa
+        // Tiền khách đưa
         if (soTienKhachDua != null) {
             BigDecimal tong = hoaDon.getTongThanhToan();
             hoaDon.setSoTienKhachDua(soTienKhachDua);
@@ -300,7 +317,6 @@ public class BanHangTaiQuayService {
         for (HoaDonChiTiet hdct : chiTiets) {
             SanPhamChiTiet spct = hdct.getSanPhamChiTiet();
 
-            // CHẶN HÓA ĐƠN CÓ SẢN PHẨM NGỪNG KINH DOANH
             if (spct.getTrangThai() == null || !spct.getTrangThai()) {
                 throw new RuntimeException("Sản phẩm "
                         + spct.getSanPham().getTenNuocHoa()
@@ -313,23 +329,26 @@ public class BanHangTaiQuayService {
             sanPhamChiTietRepo.save(spct);
         }
 
-        hoaDon.setTrangThai("HOAN_THANH");
-        hoaDon.setNgayThanhToan(LocalDateTime.now());
-
-        /* ---------------------------
-         * 🚀 TRỪ SỐ LƯỢNG VOUCHER Ở ĐÂY
-         * --------------------------- */
+        // Trừ lượt voucher (nếu có) – phải check lại lần nữa để tránh âm
         if (hoaDon.getGiamGia() != null) {
-            GiamGia voucher = hoaDon.getGiamGia();
+            GiamGia voucher = giamGiaRepo.findById(hoaDon.getGiamGia().getId())
+                    .orElseThrow(() -> new RuntimeException("Voucher không còn tồn tại."));
 
-            if (voucher.getSoLuong() != null && voucher.getSoLuong() > 0) {
+            validateVoucherStillValidOrThrow(voucher);
+
+            if (voucher.getSoLuong() != null) {
+                if (voucher.getSoLuong() <= 0) {
+                    throw new RuntimeException("Voucher đã hết lượt sử dụng.");
+                }
                 voucher.setSoLuong(voucher.getSoLuong() - 1);
                 giamGiaRepo.save(voucher);
             }
         }
 
-        return hoaDonRepo.save(hoaDon);
+        hoaDon.setTrangThai("HOAN_THANH");
+        hoaDon.setNgayThanhToan(LocalDateTime.now());
 
+        return hoaDonRepo.save(hoaDon);
     }
 
     private void updateTongTienHoaDon(HoaDon hoaDon) {
@@ -346,26 +365,37 @@ public class BanHangTaiQuayService {
         BigDecimal phiShip = (hoaDon.getPhiShip() != null) ? hoaDon.getPhiShip() : BigDecimal.ZERO;
 
         BigDecimal tienGiamGia = BigDecimal.ZERO;
-        // Nếu có voucher gán trên hoadon -> tính lại dựa trên chi tiết hiện tại
+
         if (hoaDon.getGiamGia() != null) {
             GiamGia gg = hoaDon.getGiamGia();
+
+            // ✅ Nếu voucher bỗng dưng invalid (hết hạn / về 0 / bị khóa) => không áp nữa
+            try {
+                validateVoucherStillValidOrThrow(gg);
+            } catch (RuntimeException ex) {
+                hoaDon.setGiamGia(null);
+                hoaDon.setTienGiamGia(BigDecimal.ZERO);
+
+                BigDecimal tongThanhToan = tongTienHang.add(phiShip).max(BigDecimal.ZERO);
+                hoaDon.setTongThanhToan(tongThanhToan);
+                hoaDonRepo.save(hoaDon);
+                return;
+            }
+
             BigDecimal tongTienApDung = calculateApplicableSubtotal(gg, chiTiets);
 
-            // Kiểm tra điều kiện tối thiểu (nếu không đủ thì không áp)
             if (gg.getDonHangToiThieu() != null && gg.getDonHangToiThieu().compareTo(BigDecimal.ZERO) > 0
                     && tongTienApDung.compareTo(gg.getDonHangToiThieu()) < 0) {
-                tienGiamGia = BigDecimal.ZERO;
-                // giữ voucher nhưng không áp tiền giảm
+                tienGiamGia = BigDecimal.ZERO; // giữ voucher nhưng không áp tiền giảm
             } else {
                 tienGiamGia = calculateDiscountAmount(gg, tongTienApDung);
             }
         } else {
-            // fallback nếu trước đó có set trực tiếp tienGiamGia
             tienGiamGia = (hoaDon.getTienGiamGia() != null) ? hoaDon.getTienGiamGia() : BigDecimal.ZERO;
         }
 
-        // không cho tiền giảm vượt quá tổng áp dụng hoặc tổng hàng
         if (tienGiamGia.compareTo(tongTienHang) > 0) tienGiamGia = tongTienHang;
+
         hoaDon.setTienGiamGia(tienGiamGia);
 
         BigDecimal tongThanhToan = tongTienHang.add(phiShip).subtract(tienGiamGia).max(BigDecimal.ZERO);
@@ -374,11 +404,6 @@ public class BanHangTaiQuayService {
         hoaDonRepo.save(hoaDon);
     }
 
-    /**
-     * Tính tổng tiền "áp dụng" theo phạm vi giảm của GiamGia:
-     * - Nếu giamGia.sanPhamChiTiet != null => chỉ cộng các item có id = sanPhamChiTiet.id
-     * - Ngược lại => trả về tổng giỏ (tất cả)
-     */
     private BigDecimal calculateApplicableSubtotal(GiamGia giamGia, List<HoaDonChiTiet> chiTiets) {
         if (giamGia == null) return BigDecimal.ZERO;
 
@@ -389,7 +414,6 @@ public class BanHangTaiQuayService {
                     .map(h -> h.getDonGia().multiply(BigDecimal.valueOf(h.getSoLuong())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } else {
-            // Toàn cửa hàng
             return chiTiets.stream()
                     .map(h -> h.getDonGia().multiply(BigDecimal.valueOf(h.getSoLuong())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -409,12 +433,10 @@ public class BanHangTaiQuayService {
             return BigDecimal.ZERO;
         }
 
-        // Áp cap GiamToiDa nếu có
         if (giamGia.getGiamToiDa() != null && giamGia.getGiamToiDa().compareTo(BigDecimal.ZERO) > 0) {
             result = result.min(giamGia.getGiamToiDa());
         }
 
-        // Không cho vượt quá subtotal áp dụng
         if (result.compareTo(subtotalApDung) > 0) result = subtotalApDung;
 
         return result.max(BigDecimal.ZERO);
@@ -430,14 +452,13 @@ public class BanHangTaiQuayService {
                 ));
     }
 
+    // ✅ Quan trọng: dùng findAllActiveFetchSpct để không lazy khi render datalist
+    @Transactional(readOnly = true)
     public List<GiamGia> findVoucherPhuHopChoHoaDon(HoaDon hoaDon, List<HoaDonChiTiet> chiTiets) {
-        if (hoaDon == null || chiTiets == null || chiTiets.isEmpty()) {
-            return List.of();
-        }
+        if (hoaDon == null || chiTiets == null || chiTiets.isEmpty()) return List.of();
 
-        // Lấy toàn bộ voucher đang hoạt động
         LocalDateTime now = LocalDateTime.now();
-        List<GiamGia> allActive = giamGiaRepo.findAllActive(now);
+        List<GiamGia> allActive = giamGiaRepo.findAllActiveFetchSpct(now);
 
         return allActive.stream()
                 .filter(v -> isVoucherApDungChoGioHang(v, chiTiets))
@@ -445,22 +466,13 @@ public class BanHangTaiQuayService {
     }
 
     private boolean isVoucherApDungChoGioHang(GiamGia giamGia, List<HoaDonChiTiet> chiTiets) {
-        // tính tổng tiền áp dụng theo phạm vi
         BigDecimal tongTienApDung = calculateApplicableSubtotal(giamGia, chiTiets);
-        if (tongTienApDung.compareTo(BigDecimal.ZERO) <= 0) {
-            // nếu áp cho 1 sản phẩm mà giỏ không có sản phẩm đó thì = 0
-            return false;
-        }
+        if (tongTienApDung.compareTo(BigDecimal.ZERO) <= 0) return false;
 
-        // Kiểm tra điều kiện đơn tối thiểu (nếu có)
         if (giamGia.getDonHangToiThieu() != null
                 && giamGia.getDonHangToiThieu().compareTo(BigDecimal.ZERO) > 0) {
-            if (tongTienApDung.compareTo(giamGia.getDonHangToiThieu()) < 0) {
-                return false;
-            }
+            if (tongTienApDung.compareTo(giamGia.getDonHangToiThieu()) < 0) return false;
         }
-
-        // Bạn có thể bổ sung thêm các điều kiện khác ở đây nếu cần
 
         return true;
     }
