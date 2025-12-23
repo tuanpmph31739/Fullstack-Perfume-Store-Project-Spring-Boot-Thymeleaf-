@@ -18,6 +18,14 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
     // Tìm giảm giá theo mã
     Optional<GiamGia> findByMa(String ma);
 
+    // ✅ Fetch luôn SPCT để tránh LazyInitializationException ở Thymeleaf/POS
+    @Query("""
+        SELECT g FROM GiamGia g
+        LEFT JOIN FETCH g.sanPhamChiTiet spct
+        WHERE LOWER(g.ma) = LOWER(:ma)
+    """)
+    Optional<GiamGia> findByMaFetchSpct(@Param("ma") String ma);
+
     // Kiểm tra mã giảm giá đã tồn tại chưa
     boolean existsByMa(String ma);
 
@@ -37,6 +45,18 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
                                 @Param("trangThai") Boolean trangThai,
                                 Pageable pageable);
 
+    // ✅ ACTIVE + FETCH SPCT (cái này là nguyên nhân lỗi ở POS)
+    @Query("""
+        SELECT DISTINCT g FROM GiamGia g
+        LEFT JOIN FETCH g.sanPhamChiTiet spct
+        WHERE (g.trangThai = true)
+          AND (g.ngayBatDau IS NULL OR g.ngayBatDau <= :now)
+          AND (g.ngayKetThuc IS NULL OR g.ngayKetThuc >= :now)
+          AND (g.soLuong IS NULL OR g.soLuong > 0)
+        """)
+    List<GiamGia> findAllActiveFetchSpct(@Param("now") LocalDateTime now);
+
+    // (Giữ lại nếu nơi khác đang dùng)
     @Query("""
         SELECT g FROM GiamGia g
         WHERE (g.trangThai = true)
@@ -45,5 +65,4 @@ public interface GiamGiaRepository extends JpaRepository<GiamGia, Integer> {
           AND (g.soLuong IS NULL OR g.soLuong > 0)
         """)
     List<GiamGia> findAllActive(@Param("now") LocalDateTime now);
-
 }
