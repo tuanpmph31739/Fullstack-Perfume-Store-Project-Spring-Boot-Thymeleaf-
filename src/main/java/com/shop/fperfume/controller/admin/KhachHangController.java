@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URI;
 import java.util.Optional;
 
 @Controller
@@ -39,6 +40,11 @@ public class KhachHangController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
         model.addAttribute("currentPath", "/admin/khach-hang");
+
+        // nếu view đang dùng totalPages/currentPage thì nhớ set:
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("currentPage", pageData.getNumber());
+
         return "admin/khach_hang/index";
     }
 
@@ -71,9 +77,7 @@ public class KhachHangController {
         Optional<NguoiDung> existing = repo.findByEmail(nguoiDung.getEmail());
         if (existing.isPresent() && !existing.get().getId().equals(nguoiDung.getId())) {
             redirect.addFlashAttribute("error", "Email đã tồn tại!");
-            if (nguoiDung.getId() != null) {
-                return "redirect:/admin/khach-hang/edit/" + nguoiDung.getId();
-            }
+            if (nguoiDung.getId() != null) return "redirect:/admin/khach-hang/edit/" + nguoiDung.getId();
             return "redirect:/admin/khach-hang/add";
         }
 
@@ -99,10 +103,30 @@ public class KhachHangController {
         return "redirect:/admin/khach-hang";
     }
 
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        service.delete(id);
-        return "redirect:/admin/khach-hang";
+    /**
+     * ✅ KHÓA / MỞ KHÓA khách hàng (thay cho delete)
+     * Link HTML: /admin/khach-hang/toggle-lock/{id}
+     */
+    @GetMapping("/toggle-lock/{id}")
+    public String toggleLock(@PathVariable Long id,
+                             @RequestHeader(value = "Referer", required = false) String referer,
+                             RedirectAttributes redirect) {
+        try {
+            boolean newStatus = service.toggleTrangThaiKhachHang(id); // true=hoạt động, false=khóa
+
+            if (newStatus) {
+                redirect.addFlashAttribute("success", "Mở khóa khách hàng thành công!");
+            } else {
+                redirect.addFlashAttribute("success", "Khóa khách hàng thành công!");
+            }
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", e.getMessage() != null ? e.getMessage()
+                    : "Có lỗi xảy ra khi khóa/mở khóa!");
+        }
+
+        // ✅ Quay lại đúng trang đang đứng (giữ filter/page) nếu hợp lệ
+        String back = safeBackUrl(referer);
+        return "redirect:" + (back != null ? back : "/admin/khach-hang");
     }
 
     // API check email cho JS gọi (form của bạn đang gọi endpoint này)
@@ -110,5 +134,24 @@ public class KhachHangController {
     @ResponseBody
     public boolean checkEmail(@RequestParam String email) {
         return repo.findByEmail(email).isPresent();
+    }
+
+    /**
+     * Chống open-redirect: chỉ cho phép quay lại trong /admin/khach-hang
+     */
+    private String safeBackUrl(String referer) {
+        if (referer == null || referer.isBlank()) return null;
+        try {
+            URI uri = URI.create(referer);
+            String path = uri.getPath();
+            String query = uri.getQuery();
+
+            if (path == null) return null;
+            if (!path.startsWith("/admin/khach-hang")) return null;
+
+            return (query != null && !query.isBlank()) ? (path + "?" + query) : path;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

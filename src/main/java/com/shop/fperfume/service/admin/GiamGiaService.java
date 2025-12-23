@@ -106,6 +106,20 @@ public class GiamGiaService {
         giamGiaRepository.save(giamGia);
     }
 
+    // ================================
+    //  BẬT/TẮT trạng thái áp dụng
+    // ================================
+    @Transactional
+    public void toggleTrangThai(Integer id) {
+        GiamGia g = giamGiaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảm giá ID: " + id));
+
+        boolean current = Boolean.TRUE.equals(g.getTrangThai());
+        g.setTrangThai(!current);
+
+        giamGiaRepository.save(g);
+    }
+
     // Xóa
     @Transactional
     public void deleteGiamGia(Integer id) {
@@ -127,7 +141,7 @@ public class GiamGiaService {
         return paging(pageNo, pageSize, null, null, null);
     }
 
-    // Phân trang + lọc + search cho trang index mới
+    // Phân trang + lọc + search
     @Transactional
     public PageableObject<GiamGiaResponse> paging(Integer pageNo,
                                                   Integer pageSize,
@@ -137,7 +151,6 @@ public class GiamGiaService {
         if (pageNo == null || pageNo < 1) pageNo = 1;
         if (pageSize == null || pageSize < 1) pageSize = 10;
 
-        // Normalize chuỗi rỗng
         if (keyword != null) {
             keyword = keyword.trim();
             if (keyword.isEmpty()) keyword = null;

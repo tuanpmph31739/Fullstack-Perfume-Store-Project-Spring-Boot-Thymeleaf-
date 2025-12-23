@@ -7,159 +7,146 @@ import com.shop.fperfume.model.response.ThuongHieuResponse;
 import com.shop.fperfume.repository.ThuongHieuRepository;
 import com.shop.fperfume.util.MapperUtils;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.text.Normalizer;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
-import java.util.Optional;
+import java.nio.file.*;
+import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.util.*;
+
 @Service
 public class ThuongHieuService {
+
     @Autowired
     private ThuongHieuRepository thuongHieuRepository;
 
     private final Path uploadDir = Paths.get("uploads/thuong-hieu");
 
-    // --- XỬ LÝ FILE ẢNH (GIỐNG STYLE SanPhamChiTietService) ---
-
     private String saveFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            return null;
-        }
+        if (file == null || file.isEmpty()) return null;
+
         try {
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
+            if (!Files.exists(uploadDir)) Files.createDirectories(uploadDir);
 
             String originalFilename = file.getOriginalFilename();
-            String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
-            Path destinationFile = this.uploadDir.resolve(uniqueFilename);
+            String uniqueFilename = UUID.randomUUID() + "_" + originalFilename;
+            Path destinationFile = uploadDir.resolve(uniqueFilename);
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
-
             return uniqueFilename;
         } catch (IOException e) {
-            System.err.println("Lỗi lưu file: " + e.getMessage());
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
         }
     }
 
     private void deleteFile(String filename) {
-        if (filename == null || filename.isEmpty()) {
-            return;
-        }
+        if (filename == null || filename.isEmpty()) return;
         try {
-            Path filePath = uploadDir.resolve(filename);
-            Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            System.err.println("Không thể xóa file: " + filename + " - " + e.getMessage());
-        }
+            Files.deleteIfExists(uploadDir.resolve(filename));
+        } catch (IOException ignored) {}
     }
 
     public List<ThuongHieuResponse> getThuongHieu() {
-        return thuongHieuRepository.findAll()
-                .stream()
-                .map(ThuongHieuResponse::new)
-                .toList();
+        return thuongHieuRepository.findAll().stream().map(ThuongHieuResponse::new).toList();
     }
 
-
+    // ✅ normalize tên (gom space, trim) để lưu nhất quán
+    private String normalizeName(String s) {
+        if (s == null) return "";
+        return s.replaceAll("\\s+", " ").trim();
+    }
 
     @Transactional
-    public void addThuongHieu(ThuongHieuRequest thuongHieuRequest) {
-        String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
-        String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
+    public void addThuongHieu(ThuongHieuRequest req) {
+        String maMoi  = (req.getMaThuongHieu() == null) ? "" : req.getMaThuongHieu().trim();
+        String tenMoi = normalizeName(req.getTenThuongHieu());
 
-        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi)) {
-            throw new RuntimeException("Mã thương hiệu '" + maThuongHieuMoi + "' đã tồn tại!");
+        if (thuongHieuRepository.existsByMaThuongHieu(maMoi)) {
+            throw new RuntimeException("Mã thương hiệu '" + maMoi + "' đã tồn tại!");
         }
 
-        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi)) {
-            throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
+        if (thuongHieuRepository.existsByTenThuongHieu(tenMoi)) {
+            throw new RuntimeException("Tên thương hiệu '" + tenMoi + "' đã tồn tại!");
         }
 
-        // Lưu file ảnh, lấy tên file
-        String tenFileAnh = saveFile(thuongHieuRequest.getHinhAnh());
+        // ✅ CHECK TRÙNG SLUG (ngăn lỗi UNIQUE KEY)
+        String slug = generateSlug(tenMoi);
+        if (thuongHieuRepository.existsBySlug(slug)) {
+            throw new RuntimeException("Tên thương hiệu bị trùng (chỉ khác khoảng trắng/ký tự đặc biệt). Vui lòng chọn tên khác!");
+        }
 
-        // Tránh MapperUtils map chồng lên MultipartFile
-        thuongHieuRequest.setHinhAnh(null);
+        String tenFileAnh = saveFile(req.getHinhAnh());
+        req.setHinhAnh(null);
 
-        // Map request -> entity
-        ThuongHieu thuongHieu = MapperUtils.map(thuongHieuRequest, ThuongHieu.class);
+        // để lưu nhất quán
+        req.setMaThuongHieu(maMoi);
+        req.setTenThuongHieu(tenMoi);
+
+        ThuongHieu thuongHieu = MapperUtils.map(req, ThuongHieu.class);
 
         thuongHieu.setHinhAnh(tenFileAnh);
-
         thuongHieu.setNgayTao(LocalDateTime.now());
         thuongHieu.setNgaySua(LocalDateTime.now());
-        thuongHieu.setSlug(generateSlug(tenThuongHieuMoi));
+        thuongHieu.setSlug(slug);
 
         thuongHieuRepository.save(thuongHieu);
     }
 
     @Transactional
-    public void updateThuongHieu(Long id, ThuongHieuRequest thuongHieuRequest) {
+    public void updateThuongHieu(Long id, ThuongHieuRequest req) {
         ThuongHieu thuongHieu = thuongHieuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu với ID: " + id));
 
-        String maThuongHieuMoi = thuongHieuRequest.getMaThuongHieu().trim();
-        String tenThuongHieuMoi = thuongHieuRequest.getTenThuongHieu().trim();
+        String maMoi  = (req.getMaThuongHieu() == null) ? "" : req.getMaThuongHieu().trim();
+        String tenMoi = normalizeName(req.getTenThuongHieu());
 
-        // --- Check trùng mã ---
-        if (thuongHieuRepository.existsByMaThuongHieu(maThuongHieuMoi)
-                && !maThuongHieuMoi.equals(thuongHieu.getMaThuongHieu())) {
-            throw new RuntimeException("Mã thương hiệu '" + maThuongHieuMoi + "' đã tồn tại!");
+        if (thuongHieuRepository.existsByMaThuongHieu(maMoi)
+                && !maMoi.equals(thuongHieu.getMaThuongHieu())) {
+            throw new RuntimeException("Mã thương hiệu '" + maMoi + "' đã tồn tại!");
         }
 
-        // --- Check trùng tên ---
-        if (thuongHieuRepository.existsByTenThuongHieu(tenThuongHieuMoi)
-                && !tenThuongHieuMoi.equals(thuongHieu.getTenThuongHieu())) {
-            throw new RuntimeException("Tên thương hiệu '" + tenThuongHieuMoi + "' đã tồn tại!");
+        if (thuongHieuRepository.existsByTenThuongHieu(tenMoi)
+                && !tenMoi.equals(thuongHieu.getTenThuongHieu())) {
+            throw new RuntimeException("Tên thương hiệu '" + tenMoi + "' đã tồn tại!");
         }
 
-        // ================== XỬ LÝ ẢNH ==================
-        String tenFileAnhCu = thuongHieu.getHinhAnh();     // tên file cũ đang lưu trong DB
-        String tenFileAnhMoi = tenFileAnhCu;               // mặc định giữ nguyên nếu không up ảnh mới
+        // ✅ CHECK TRÙNG SLUG (ngoại trừ chính nó)
+        String slugMoi = generateSlug(tenMoi);
+        if (thuongHieuRepository.existsBySlugAndIdNot(slugMoi, id)) {
+            throw new RuntimeException("Tên thương hiệu bị trùng (chỉ khác khoảng trắng/ký tự đặc biệt). Vui lòng chọn tên khác!");
+        }
 
-        MultipartFile fileMoi = thuongHieuRequest.getHinhAnh();
+        // ===== xử lý ảnh =====
+        String tenFileAnhCu = thuongHieu.getHinhAnh();
+        String tenFileAnhMoi = tenFileAnhCu;
+
+        MultipartFile fileMoi = req.getHinhAnh();
         if (fileMoi != null && !fileMoi.isEmpty()) {
-            // Lưu file mới
             tenFileAnhMoi = saveFile(fileMoi);
-
-            // Nếu có file cũ và khác tên file mới thì xoá file cũ
             if (tenFileAnhCu != null && !tenFileAnhCu.equals(tenFileAnhMoi)) {
                 deleteFile(tenFileAnhCu);
             }
         }
 
-        // Để tránh MapperUtils map chồng lên MultipartFile
-        thuongHieuRequest.setHinhAnh(null);
+        req.setHinhAnh(null);
 
-        // Map các field khác từ request -> entity hiện có
-        MapperUtils.mapToExisting(thuongHieuRequest, thuongHieu);
+        // lưu nhất quán
+        req.setMaThuongHieu(maMoi);
+        req.setTenThuongHieu(tenMoi);
 
-        // Gán lại tên file ảnh (cũ hoặc mới) cho entity
+        MapperUtils.mapToExisting(req, thuongHieu);
+
         thuongHieu.setHinhAnh(tenFileAnhMoi);
-
-        // Cập nhật ngày sửa
         thuongHieu.setNgaySua(LocalDateTime.now());
-
-        // 🔹 Cập nhật lại slug khi tên thương hiệu đổi
-        thuongHieu.setSlug(generateSlug(tenThuongHieuMoi));
+        thuongHieu.setSlug(slugMoi);
 
         thuongHieuRepository.save(thuongHieu);
     }
@@ -177,35 +164,29 @@ public class ThuongHieuService {
     public PageableObject<ThuongHieuResponse> paging(Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         Page<ThuongHieu> page = thuongHieuRepository.findAll(pageable);
-        Page<ThuongHieuResponse> responses = page.map(ThuongHieuResponse::new);
-        return new PageableObject<>(responses);
+        return new PageableObject<>(page.map(ThuongHieuResponse::new));
     }
 
     public PageableObject<ThuongHieuResponse> paging(Integer pageNo, Integer pageSize, String keyword) {
-        if (pageNo == null || pageNo < 1) {
-            pageNo = 1;
-        }
+        if (pageNo == null || pageNo < 1) pageNo = 1;
 
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
 
         Page<ThuongHieu> page;
-
         if (keyword == null || keyword.trim().isEmpty()) {
             page = thuongHieuRepository.findAll(pageable);
         } else {
-            String kw = keyword.trim();
-            page = thuongHieuRepository.searchByKeyword(kw, pageable);
+            page = thuongHieuRepository.searchByKeyword(keyword.trim(), pageable);
         }
 
-        Page<ThuongHieuResponse> responses = page.map(ThuongHieuResponse::new);
-        return new PageableObject<>(responses);
+        return new PageableObject<>(page.map(ThuongHieuResponse::new));
     }
 
-    // 🧩 Hàm generateSlug tái sử dụng cho thêm/sửa
+    // slug: bỏ dấu -> a-z0-9 -> '-' (đảm bảo cùng logic hiện tại của bạn)
     private String generateSlug(String tenThuongHieu) {
         String slug = Normalizer.normalize(tenThuongHieu, Normalizer.Form.NFD);
-        slug = slug.replaceAll("\\p{M}", ""); // bỏ dấu tiếng Việt
-        slug = slug.toLowerCase().replaceAll("[^a-z0-9]+", "-"); // chỉ giữ chữ + số, thay khoảng trắng bằng "-"
-        return StringUtils.strip(slug, "-"); // bỏ dấu - ở đầu/cuối
+        slug = slug.replaceAll("\\p{M}", "");
+        slug = slug.toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        return StringUtils.strip(slug, "-");
     }
 }

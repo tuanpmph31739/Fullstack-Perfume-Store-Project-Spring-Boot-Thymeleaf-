@@ -24,9 +24,16 @@
 
                     <div class="card-body">
 
-                        <!-- ALERT -->
-                        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-                        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                        <!-- FLASH (ẩn để dùng SweetAlert, vẫn giữ fallback) -->
+                        <div th:if="${success}"
+                             id="flashSuccess"
+                             class="alert alert-success d-none"
+                             th:text="${success}"></div>
+
+                        <div th:if="${error}"
+                             id="flashError"
+                             class="alert alert-danger d-none"
+                             th:text="${error}"></div>
 
                         <!-- ========== FORM LỌC (AJAX) ========== -->
                         <form th:action="@{/admin/giam-gia}" method="get" class="mb-3" id="filterForm">
@@ -60,16 +67,13 @@
                                     <select name="trangThai"
                                             class="form-select form-select-sm"
                                             id="trangThaiFilter">
-                                        <option value=""
-                                                th:selected="${trangThai == null}">
+                                        <option value="" th:selected="${trangThai == null}">
                                             Tất cả trạng thái
                                         </option>
-                                        <option value="true"
-                                                th:selected="${trangThai != null and trangThai == true}">
+                                        <option value="true" th:selected="${trangThai != null and trangThai == true}">
                                             Đang áp dụng
                                         </option>
-                                        <option value="false"
-                                                th:selected="${trangThai != null and trangThai == false}">
+                                        <option value="false" th:selected="${trangThai != null and trangThai == false}">
                                             Ngừng
                                         </option>
                                     </select>
@@ -124,10 +128,8 @@
                                     <td th:text="${g.ma}"></td>
                                     <td th:text="${g.ten}"></td>
 
-                                    <!-- Mô tả -->
                                     <td th:text="${g.moTa}"></td>
 
-                                    <!-- Loại giảm -->
                                     <td>
                                         <span th:switch="${g.loaiGiam}">
                                             <span th:case="'PERCENT'">Giảm %</span>
@@ -136,28 +138,31 @@
                                         </span>
                                     </td>
 
-                                    <!-- Giá trị -->
                                     <td>
                                         <span th:if="${g.loaiGiam == 'PERCENT'}"
                                               th:text="${g.giaTri + '%'}"></span>
 
                                         <span th:if="${g.loaiGiam == 'AMOUNT'}"
                                               th:text="${#numbers.formatDecimal(g.giaTri, 0, 'POINT', 0, 'NONE')} + ' đ'"></span>
-
                                     </td>
 
                                     <td th:text="${g.soLuong}"></td>
 
-                                    <!-- Điều kiện -->
                                     <td>
                                         <small>
-                                            Đơn hàng tối thiểu: <span th:text="${#numbers.formatDecimal(g.donHangToiThieu, 0, 'POINT', 0, 'NONE')}"></span> đ<br>
-                                            Giảm tối đa: <span th:text="${#numbers.formatDecimal(g.giamToiDa, 0, 'POINT', 0, 'NONE')}"></span> đ
+                                            Đơn hàng tối thiểu:
+                                            <span th:text="${g.donHangToiThieu != null
+                                                ? #numbers.formatDecimal(g.donHangToiThieu, 0, 'POINT', 0, 'NONE')
+                                                : 0}"></span> đ<br>
 
+                                            Giảm tối đa:
+                                            <span th:text="${g.giamToiDa != null
+                                                ? #numbers.formatDecimal(g.giamToiDa, 0, 'POINT', 0, 'NONE')
+                                                : 'Không giới hạn'}"></span> đ
                                         </small>
                                     </td>
 
-                                    <!-- Ngày áp dụng -->
+
                                     <td>
                                         <small>
                                             Ngày bắt đầu: <span th:text="${#temporals.format(g.ngayBatDau,'dd/MM/yyyy')}"></span> <br>
@@ -165,29 +170,67 @@
                                         </small>
                                     </td>
 
-                                    <!-- Trạng thái -->
-                                    <td>
-                                        <span class="badge"
-                                              th:classappend="${g.trangThai} ? ' bg-success' : ' bg-secondary'"
-                                              th:text="${g.trangThai} ? 'Đang áp dụng' : 'Ngừng'"></span>
+                                    <!-- Trạng thái hiển thị -->
+                                    <td th:with="
+                                        now=${T(java.time.LocalDateTime).now()},
+                                        notActive=${g.trangThai == null or !g.trangThai},
+                                        notStarted=${!notActive and g.ngayBatDau != null and g.ngayBatDau.isAfter(now)},
+                                        expired=${!notActive and !notStarted and g.ngayKetThuc != null and g.ngayKetThuc.isBefore(now)},
+                                        outOfUses=${!notActive and !notStarted and !expired and g.soLuong != null and g.soLuong <= 0}
+                                    ">
+                                        <span th:if="${notActive}" class="badge bg-secondary">Ngừng áp dụng</span>
+                                        <span th:if="${notStarted}" class="badge bg-info">Chưa bắt đầu</span>
+                                        <span th:if="${expired}" class="badge bg-danger">Hết hạn</span>
+                                        <span th:if="${outOfUses}" class="badge bg-warning text-dark">Hết lượt dùng</span>
+
+                                        <span th:if="${!notActive and !notStarted and !expired and !outOfUses}"
+                                              class="badge bg-success">
+                                            Đang áp dụng
+                                        </span>
                                     </td>
 
-                                    <!-- Phạm vi áp dụng -->
                                     <td th:text="${g.tenSanPhamChiTiet != null ? g.tenSanPhamChiTiet : 'Toàn cửa hàng'}"></td>
 
-                                    <!-- Hành động -->
-                                    <td>
+                                    <!-- Hành động: Sửa + Bật/Tắt -->
+                                    <td class="text-nowrap col-actions">
+
                                         <a th:href="@{/admin/giam-gia/edit/{id}(id=${g.id})}"
                                            class="btn btn-warning btn-sm" title="Sửa">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
-                                        <a th:href="@{/admin/giam-gia/delete/{id}(id=${g.id})}"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Bạn có chắc muốn xóa?')"
-                                           title="Xóa">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        <form th:action="@{/admin/giam-gia/toggle/{id}(id=${g.id})}"
+                                              method="post"
+                                              style="display:inline"
+                                              class="js-toggle-form"
+                                              th:attr="data-enabled=${g.trangThai != null and g.trangThai},data-code=${g.ma}">
+
+                                            <input type="hidden" th:if="${_csrf != null}"
+                                                   th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                                            <!-- giữ filter/page/size để redirect đúng -->
+                                            <input type="hidden" name="page" th:value="${page.currentPage}"/>
+                                            <input type="hidden" name="size" th:value="${page.size}"/>
+                                            <input type="hidden" name="keyword" th:value="${keyword}"/>
+                                            <input type="hidden" name="loaiGiam" th:value="${loaiGiam}"/>
+                                            <input type="hidden" name="trangThai" th:value="${trangThai}"/>
+
+                                            <!-- Nếu đang bật -> hiện nút TẮT -->
+                                            <button th:if="${g.trangThai != null and g.trangThai}"
+                                                    type="submit"
+                                                    class="btn btn-success btn-sm"
+                                                    title="Tắt áp dụng">
+                                                <i class="bi bi-toggle-on"></i>
+                                            </button>
+
+                                            <!-- Nếu đang tắt (hoặc null) -> hiện nút BẬT -->
+                                            <button th:unless="${g.trangThai != null and g.trangThai}"
+                                                    type="submit"
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    title="Bật áp dụng">
+                                                <i class="bi bi-toggle-off"></i>
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
 
@@ -204,7 +247,6 @@
                         <nav>
                             <ul class="pagination justify-content-center">
 
-                                <!-- Previous -->
                                 <li class="page-item"
                                     th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
@@ -218,7 +260,6 @@
                                     </a>
                                 </li>
 
-                                <!-- Số trang -->
                                 <li class="page-item"
                                     th:each="i : ${#numbers.sequence(1, page.totalPage)}"
                                     th:classappend="${i == page.currentPage} ? 'active'">
@@ -233,7 +274,6 @@
                                     </a>
                                 </li>
 
-                                <!-- Next -->
                                 <li class="page-item"
                                     th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
@@ -261,39 +301,105 @@
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 
-<!-- ========== JS LỌC + PHÂN TRANG AJAX ========== -->
+<!-- ========== JS LỌC + PHÂN TRANG AJAX + SWEETALERT ========== -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const form           = document.getElementById("filterForm");
-        if (!form) return;
+        const tbody          = document.getElementById("giamGiaTableBody");
+        const paginationWrap = document.getElementById("paginationWrapper");
+
+        // ===== SweetAlert: flash message =====
+        function showFlashSweetAlert() {
+            const successEl = document.getElementById("flashSuccess");
+            const errorEl   = document.getElementById("flashError");
+
+            if (successEl && successEl.textContent.trim()) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Thành công",
+                    text: successEl.textContent.trim(),
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+
+            if (errorEl && errorEl.textContent.trim()) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Có lỗi xảy ra",
+                    text: errorEl.textContent.trim(),
+                    confirmButtonText: "Đóng"
+                });
+            }
+        }
+
+        // ===== SweetAlert: confirm toggle =====
+        function bindToggleSweetAlert() {
+            document.querySelectorAll("form.js-toggle-form").forEach(f => {
+                if (f.dataset.bound === "true") return; // tránh bind trùng
+                f.dataset.bound = "true";
+
+                f.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const enabled = (this.dataset.enabled === "true");
+                    const code    = this.dataset.code || "";
+
+                    const title = enabled ? "Tắt áp dụng mã?" : "Bật áp dụng mã?";
+                    const text  = enabled
+                        ? ("Bạn có chắc muốn TẮT áp dụng mã " + code + "?")
+                        : ("Bạn có chắc muốn BẬT áp dụng mã " + code + "?");
+
+                    Swal.fire({
+                        icon: "question",
+                        title: title,
+                        text: text,
+                        showCancelButton: true,
+                        confirmButtonText: "Xác nhận",
+                        cancelButtonText: "Hủy",
+                        reverseButtons: true
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            // submit thật (không trigger lại event submit)
+                            this.submit();
+                        }
+                    });
+                });
+            });
+        }
+
+        // ===== AJAX filter/pagination =====
+        if (!form || !tbody) {
+            // vẫn show flash nếu không có form/tbody
+            showFlashSweetAlert();
+            return;
+        }
 
         const keywordInput   = document.getElementById("keywordInput");
         const loaiGiamFilter = document.getElementById("loaiGiamFilter");
         const trangThaiFilter= document.getElementById("trangThaiFilter");
 
-        const tbody          = document.getElementById("giamGiaTableBody");
-        const paginationWrap = document.getElementById("paginationWrapper");
-
-        if (!tbody) return;
-
-        // Build URL từ form + page
         function buildUrl(page) {
             const params = new URLSearchParams(new FormData(form));
-            if (page) {
-                params.set("page", page);
-            } else {
-                params.delete("page"); // để server default = 1
-            }
+            if (page) params.set("page", page);
+            else params.delete("page");
             return form.action + "?" + params.toString();
         }
 
-        // AJAX fetch + render
+        function bindPaginationEvents() {
+            if (!paginationWrap) return;
+            paginationWrap.querySelectorAll("a.page-link").forEach(a => {
+                a.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (this.href) fetchAndRender(this.href);
+                });
+            });
+        }
+
         function fetchAndRender(url) {
             fetch(url, {
                 method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
+                headers: { "X-Requested-With": "XMLHttpRequest" }
             })
                 .then(res => res.text())
                 .then(html => {
@@ -303,9 +409,7 @@
                     const newTbody      = doc.getElementById("giamGiaTableBody");
                     const newPagination = doc.getElementById("paginationWrapper");
 
-                    if (newTbody) {
-                        tbody.innerHTML = newTbody.innerHTML;
-                    }
+                    if (newTbody) tbody.innerHTML = newTbody.innerHTML;
 
                     if (paginationWrap) {
                         if (newPagination) {
@@ -315,35 +419,26 @@
                             paginationWrap.innerHTML = "";
                             paginationWrap.classList.add("d-none");
                         }
-                    } else if (newPagination) {
-                        const card = document.querySelector(".table-card");
-                        if (card) {
-                            card.appendChild(newPagination);
-                        }
                     }
 
+                    // rebind events sau khi render lại
                     bindPaginationEvents();
+                    bindToggleSweetAlert();
                 })
-                .catch(err => {
-                    console.error("Lỗi tải dữ liệu:", err);
-                });
+                .catch(err => console.error("Lỗi tải dữ liệu:", err));
         }
 
         function triggerFilterToFirstPage() {
-            const url = buildUrl(1);
-            fetchAndRender(url);
+            fetchAndRender(buildUrl(1));
         }
 
         // Debounce cho keyword
         let typingTimer;
         function debounceFilter() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                triggerFilterToFirstPage();
-            }, 300);
+            typingTimer = setTimeout(() => triggerFilterToFirstPage(), 300);
         }
 
-        // Auto search theo keyword
         if (keywordInput) {
             keywordInput.addEventListener("input", debounceFilter);
             keywordInput.addEventListener("keydown", function (e) {
@@ -354,37 +449,19 @@
             });
         }
 
-        // Auto filter khi đổi combobox
         [loaiGiamFilter, trangThaiFilter].forEach(el => {
-            if (el) {
-                el.addEventListener("change", function () {
-                    triggerFilterToFirstPage();
-                });
-            }
+            if (el) el.addEventListener("change", triggerFilterToFirstPage);
         });
 
-        // Chặn submit form -> dùng AJAX
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             triggerFilterToFirstPage();
         });
 
-        // Bắt sự kiện click phân trang
-        function bindPaginationEvents() {
-            if (!paginationWrap) return;
-            const links = paginationWrap.querySelectorAll("a.page-link");
-            links.forEach(a => {
-                a.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    const url = this.href;
-                    if (!url) return;
-                    fetchAndRender(url);
-                });
-            });
-        }
-
-        // Gán lần đầu
+        // ===== init =====
+        showFlashSweetAlert();
         bindPaginationEvents();
+        bindToggleSweetAlert();
     });
 </script>
 

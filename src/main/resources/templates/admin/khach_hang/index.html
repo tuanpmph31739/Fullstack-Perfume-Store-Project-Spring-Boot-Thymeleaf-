@@ -29,6 +29,12 @@
 
                     <div class="card-body">
 
+                        <!-- ✅ Flash message để Swal hiển thị (controller redirectAttributes addFlashAttribute) -->
+                        <div id="flashMessage"
+                             th:if="${success != null or error != null}"
+                             th:attr="data-success=${success},data-error=${error}"
+                             style="display:none"></div>
+
                         <form th:action="@{/admin/khach-hang}" method="get"
                               class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
@@ -100,15 +106,22 @@
                                               th:classappend="${n.trangThai} ? ' badge bg-success' : ' badge bg-danger'">
                                         </span>
                                     </td>
+
+                                    <!-- ✅ Thao tác: Sửa + Khóa/Mở khóa -->
                                     <td>
                                         <a th:href="@{'/admin/khach-hang/edit/' + ${n.id}}"
-                                           class="btn btn-warning btn-sm">
+                                           class="btn btn-warning btn-sm"
+                                           title="Sửa khách hàng">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <a th:href="@{'/admin/khach-hang/delete/' + ${n.id}}"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
-                                            <i class="bi bi-trash"></i>
+
+                                        <!-- ✅ Nút KHÓA/MỞ KHÓA (thay cho XÓA) -->
+                                        <a th:href="@{/admin/khach-hang/toggle-lock/{id}(id=${n.id})}"
+                                           class="btn btn-sm btn-toggle-lock"
+                                           th:classappend="${n.trangThai} ? ' btn-danger' : ' btn-success'"
+                                           th:attr="data-name=${n.hoTen},data-status=${n.trangThai}"
+                                           th:title="${n.trangThai} ? 'Khóa tài khoản' : 'Mở khóa tài khoản'">
+                                            <i th:class="${n.trangThai} ? 'bi bi-lock-fill' : 'bi bi-unlock-fill'"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -184,11 +197,10 @@
 <!-- SCRIPT CHUNG -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 
-<!-- JS AJAX SEARCH & PHÂN TRANG -->
+<!-- JS AJAX SEARCH & PHÂN TRANG + SWEET ALERT -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("filterForm");
-        if (!form) return;
 
         const keywordInput    = document.getElementById("keywordInput");
         const trangThaiFilter = document.getElementById("trangThaiFilter");
@@ -196,26 +208,115 @@
         const tbody          = document.getElementById("khachHangTableBody");
         const paginationWrap = document.getElementById("paginationWrapper");
 
-        if (!tbody) return;
+        // ===================== SWEET ALERT HELPERS =====================
+        function swalAvailable() {
+            return typeof window.Swal !== "undefined";
+        }
 
-        // Build URL từ form + page (page 0-based)
+        function showFlashIfAny() {
+            const flash = document.getElementById("flashMessage");
+            if (!flash) return;
+
+            const success = flash.dataset.success;
+            const error = flash.dataset.error;
+
+            if (success && success.trim()) {
+                if (swalAvailable()) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Thành công",
+                        text: success,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert(success);
+                }
+            }
+
+            if (error && error.trim()) {
+                if (swalAvailable()) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Lỗi",
+                        text: error,
+                        confirmButtonText: "OK"
+                    });
+                } else {
+                    alert(error);
+                }
+            }
+        }
+
+        async function confirmToggleLock(name, isActive) {
+            const actionText = isActive ? "Khóa" : "Mở khóa";
+            const desc = isActive
+                ? "Tài khoản sẽ bị khóa và không thể đăng nhập."
+                : "Tài khoản sẽ được mở khóa và có thể đăng nhập lại.";
+
+            if (swalAvailable()) {
+                const rs = await Swal.fire({
+                    icon: "question",
+                    title: actionText + " tài khoản?",
+                    html: `<div style="text-align:left">
+                             <div><b>Khách hàng:</b> ${name || "—"}</div>
+                             <div class="mt-1">${desc}</div>
+                           </div>`,
+                    showCancelButton: true,
+                    confirmButtonText: actionText,
+                    cancelButtonText: "Hủy",
+                    reverseButtons: true
+                });
+                return rs.isConfirmed;
+            }
+
+            return confirm(`${actionText} tài khoản khách hàng "${name}"?`);
+        }
+
+        function bindToggleLockEvents() {
+            const btns = document.querySelectorAll("a.btn-toggle-lock");
+            btns.forEach(btn => {
+                btn.addEventListener("click", async function (e) {
+                    e.preventDefault();
+
+                    const href = this.getAttribute("href");
+                    if (!href) return;
+
+                    const name = this.dataset.name || "";
+                    const statusStr = this.dataset.status; // "true"/"false"
+                    const isActive = (statusStr === "true");
+
+                    const ok = await confirmToggleLock(name, isActive);
+                    if (!ok) return;
+
+                    // điều hướng GET để backend toggle rồi redirect về list
+                    window.location.href = href;
+                });
+            });
+        }
+
+        // ===================== AJAX FILTER/PAGING =====================
+        if (!form || !tbody) {
+            // vẫn cần show flash + bind lock nếu không có form
+            showFlashIfAny();
+            bindToggleLockEvents();
+            return;
+        }
+
         function buildUrl(page) {
             const params = new URLSearchParams(new FormData(form));
             if (page !== undefined && page !== null) {
                 params.set("page", page);
             } else {
-                params.delete("page"); // để server default = 0
+                params.delete("page");
             }
             return form.action + "?" + params.toString();
         }
 
-        // Gọi AJAX + render lại tbody + pagination
         function fetchAndRender(url) {
             fetch(url, {
                 method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
+                headers: { "X-Requested-With": "XMLHttpRequest" }
             })
                 .then(res => res.text())
                 .then(html => {
@@ -225,9 +326,7 @@
                     const newTbody = doc.getElementById("khachHangTableBody");
                     const newPagination = doc.getElementById("paginationWrapper");
 
-                    if (newTbody) {
-                        tbody.innerHTML = newTbody.innerHTML;
-                    }
+                    if (newTbody) tbody.innerHTML = newTbody.innerHTML;
 
                     if (paginationWrap) {
                         if (newPagination) {
@@ -239,36 +338,24 @@
                         }
                     }
 
-                    // Gán lại sự kiện click cho pagination link sau mỗi lần render
                     bindPaginationEvents();
+                    bindToggleLockEvents(); // ✅ rất quan trọng (vì tbody thay đổi)
                 })
-                .catch(err => {
-                    console.error("Lỗi tải dữ liệu:", err);
-                });
+                .catch(err => console.error("Lỗi tải dữ liệu:", err));
         }
 
-        // Trigger filter về page 0
         function triggerFilterToFirstPage() {
-            const url = buildUrl(0);
-            fetchAndRender(url);
+            fetchAndRender(buildUrl(0));
         }
 
-        // Debounce khi gõ keyword
         let typingTimer;
         function debounceFilter() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                triggerFilterToFirstPage();
-            }, 300);
+            typingTimer = setTimeout(() => triggerFilterToFirstPage(), 300);
         }
 
-        // 1. Auto search khi gõ keyword
         if (keywordInput) {
-            keywordInput.addEventListener("input", function () {
-                debounceFilter();
-            });
-
-            // Enter => lọc luôn (page 0)
+            keywordInput.addEventListener("input", debounceFilter);
             keywordInput.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -277,35 +364,29 @@
             });
         }
 
-        // 2. Auto filter khi đổi trạng thái
         if (trangThaiFilter) {
-            trangThaiFilter.addEventListener("change", function () {
-                triggerFilterToFirstPage();
-            });
+            trangThaiFilter.addEventListener("change", triggerFilterToFirstPage);
         }
 
-        // 3. Chặn submit mặc định (nút Lọc) -> dùng AJAX
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             triggerFilterToFirstPage();
         });
 
-        // 4. Bắt sự kiện click phân trang để dùng AJAX
         function bindPaginationEvents() {
             if (!paginationWrap) return;
-            const links = paginationWrap.querySelectorAll("a.page-link");
-            links.forEach(a => {
+            paginationWrap.querySelectorAll("a.page-link").forEach(a => {
                 a.addEventListener("click", function (e) {
                     e.preventDefault();
-                    const url = this.href;
-                    if (!url) return;
-                    fetchAndRender(url);
+                    if (this.href) fetchAndRender(this.href);
                 });
             });
         }
 
-        // Gán event cho phân trang lần đầu
+        // init
         bindPaginationEvents();
+        bindToggleLockEvents();
+        showFlashIfAny();
     });
 </script>
 

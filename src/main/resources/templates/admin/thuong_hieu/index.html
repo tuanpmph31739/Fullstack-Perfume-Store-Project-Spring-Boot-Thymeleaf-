@@ -24,15 +24,20 @@
 
                     <div class="card-body">
 
+                        <!-- flash -> show bằng SweetAlert -->
+                        <div id="flashData"
+                             th:attr="data-success=${successMessage},data-error=${errorMessage}"
+                             style="display:none"></div>
+
                         <form th:action="@{/admin/thuong-hieu}" method="get" class="mb-3" id="filterForm">
                             <div class="row g-2 align-items-end">
 
                                 <!-- Ô tìm kiếm + nút XÓA LỌC cùng 1 hàng -->
                                 <div class="col-12 col-md-8">
                                     <div class="input-group input-group-sm">
-                <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
                                         <input type="text"
                                                name="keyword"
                                                class="form-control form-control-sm"
@@ -40,7 +45,6 @@
                                                th:value="${keyword}"
                                                id="keywordInput">
 
-                                        <!-- Nút XÓA LỌC nằm ngay cạnh ô search -->
                                         <a th:href="@{/admin/thuong-hieu}"
                                            class="btn btn-outline-secondary btn-sm fw-semibold"
                                            title="Xóa lọc">
@@ -52,7 +56,6 @@
 
                             </div>
                         </form>
-
 
                         <div class="table-responsive">
                             <table class="table table-striped table-fixed align-middle">
@@ -91,10 +94,12 @@
                                            title="Sửa thương hiệu">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+
+                                        <!-- ✅ Xóa: SweetAlert + check can-delete -->
                                         <a th:href="@{/admin/thuong-hieu/delete/{id}(id=${th.id})}"
-                                           class="btn btn-danger btn-sm"
+                                           class="btn btn-danger btn-sm btn-delete-brand"
                                            title="Xóa thương hiệu"
-                                           onclick="return confirm('Bạn có chắc muốn xóa thương hiệu này?')">
+                                           th:attr="data-check-url=@{/admin/thuong-hieu/can-delete/{id}(id=${th.id})}">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </td>
@@ -113,7 +118,6 @@
                         <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
 
-                                <!-- Previous -->
                                 <li class="page-item" th:classappend="${page.currentPage <= 1} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/thuong-hieu(
@@ -124,7 +128,6 @@
                                     </a>
                                 </li>
 
-                                <!-- Số trang -->
                                 <li class="page-item"
                                     th:each="i : ${#numbers.sequence(1, page.totalPage)}"
                                     th:classappend="${i == page.currentPage} ? 'active'">
@@ -136,7 +139,6 @@
                                        th:text="${i}"></a>
                                 </li>
 
-                                <!-- Next -->
                                 <li class="page-item" th:classappend="${page.currentPage >= page.totalPage} ? 'disabled'">
                                     <a class="page-link"
                                        th:href="@{/admin/thuong-hieu(
@@ -163,23 +165,112 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const form          = document.getElementById("filterForm");
+        const form           = document.getElementById("filterForm");
         if (!form) return;
 
-        const keywordInput  = document.getElementById("keywordInput");
-        const tbody         = document.getElementById("brandTableBody");
-        const paginationWrap= document.getElementById("paginationWrapper");
-
+        const keywordInput   = document.getElementById("keywordInput");
+        const tbody          = document.getElementById("brandTableBody");
+        const paginationWrap = document.getElementById("paginationWrapper");
         if (!tbody) return;
+
+        // ===== SweetAlert helpers =====
+        function swalToast(icon, title, text) {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon,
+                    title,
+                    text,
+                    confirmButtonText: "OK"
+                });
+            }
+            alert((title ? title + ": " : "") + text);
+            return Promise.resolve();
+        }
+
+        function swalConfirmDelete() {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: "question",
+                    title: "Xác nhận",
+                    text: "Bạn có chắc muốn xóa thương hiệu này?",
+                    showCancelButton: true,
+                    confirmButtonText: "Xóa",
+                    cancelButtonText: "Hủy",
+                    reverseButtons: true
+                }).then(r => r.isConfirmed);
+            }
+            return Promise.resolve(confirm("Bạn có chắc muốn xóa thương hiệu này?"));
+        }
+
+        // show flash bằng SweetAlert
+        (function showFlash() {
+            const flash = document.getElementById("flashData");
+            if (!flash) return;
+
+            const success = flash.getAttribute("data-success");
+            const error   = flash.getAttribute("data-error");
+
+            if (success && success !== "null" && success.trim() !== "") {
+                swalToast("success", "Thành công", success);
+            }
+            if (error && error !== "null" && error.trim() !== "") {
+                swalToast("error", "Lỗi", error);
+            }
+        })();
+
+        // ===== bind delete buttons =====
+        function bindDeleteEvents(root) {
+            const scope = root || document;
+            const buttons = scope.querySelectorAll(".btn-delete-brand");
+
+            buttons.forEach(btn => {
+                btn.addEventListener("click", async function (e) {
+                    e.preventDefault();
+
+                    const href = this.getAttribute("href");
+                    const checkUrl = this.getAttribute("data-check-url");
+
+                    // 1) check can-delete
+                    try {
+                        const res = await fetch(checkUrl, {
+                            method: "GET",
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        });
+
+                        if (res.ok) {
+                            const json = await res.json();
+                            const canDelete = !!json.canDelete;
+                            const count = Number(json.count || 0);
+
+                            if (!canDelete) {
+                                await swalToast(
+                                    "warning",
+                                    "Không thể xóa",
+                                    `Thương hiệu này đang có ${count} sản phẩm.`
+                                );
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        // nếu lỗi check thì vẫn cho confirm xóa như bình thường
+                        console.warn("Lỗi check can-delete:", err);
+                    }
+
+                    // 2) confirm delete
+                    const ok = await swalConfirmDelete();
+                    if (!ok) return;
+
+                    // 3) redirect tới link delete
+                    window.location.href = href;
+                });
+            });
+        }
 
         // Build URL từ form + page
         function buildUrl(page) {
             const params = new URLSearchParams(new FormData(form));
-            if (page) {
-                params.set("page", page);
-            } else {
-                params.delete("page"); // default page = 1
-            }
+            if (page) params.set("page", page);
+            else params.delete("page");
             return form.action + "?" + params.toString();
         }
 
@@ -187,9 +278,7 @@
         function fetchAndRender(url) {
             fetch(url, {
                 method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
+                headers: { "X-Requested-With": "XMLHttpRequest" }
             })
                 .then(res => res.text())
                 .then(html => {
@@ -201,6 +290,7 @@
 
                     if (newTbody) {
                         tbody.innerHTML = newTbody.innerHTML;
+                        bindDeleteEvents(tbody); // ✅ rebind delete
                     }
 
                     if (paginationWrap) {
@@ -211,40 +301,26 @@
                             paginationWrap.innerHTML = "";
                             paginationWrap.classList.add("d-none");
                         }
-                    } else if (newPagination) {
-                        const card = document.querySelector(".table-card");
-                        if (card) {
-                            card.appendChild(newPagination);
-                        }
                     }
 
                     bindPaginationEvents();
                 })
-                .catch(err => {
-                    console.error("Lỗi tải dữ liệu:", err);
-                });
+                .catch(err => console.error("Lỗi tải dữ liệu:", err));
         }
 
-        // Trigger filter về page 1
         function triggerFilterToFirstPage() {
-            const url = buildUrl(1);
-            fetchAndRender(url);
+            fetchAndRender(buildUrl(1));
         }
 
-        // Debounce cho keyword
+        // Debounce keyword
         let typingTimer;
         function debounceFilter() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                triggerFilterToFirstPage();
-            }, 300);
+            typingTimer = setTimeout(triggerFilterToFirstPage, 300);
         }
 
-        // 1. Auto search theo keyword
         if (keywordInput) {
-            keywordInput.addEventListener("input", function () {
-                debounceFilter();
-            });
+            keywordInput.addEventListener("input", debounceFilter);
             keywordInput.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -253,13 +329,11 @@
             });
         }
 
-        // 2. Chặn submit mặc định -> dùng AJAX
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             triggerFilterToFirstPage();
         });
 
-        // 3. Click phân trang -> AJAX
         function bindPaginationEvents() {
             if (!paginationWrap) return;
             const links = paginationWrap.querySelectorAll("a.page-link");
@@ -273,8 +347,9 @@
             });
         }
 
-        // Lần đầu vào trang
+        // init
         bindPaginationEvents();
+        bindDeleteEvents(document);
     });
 </script>
 

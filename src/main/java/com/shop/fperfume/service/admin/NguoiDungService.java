@@ -11,6 +11,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
@@ -148,5 +149,45 @@ public class NguoiDungService {
     public Optional<NguoiDung> findByEmail(String email) {
         return repo.findByEmail(email);
     }
+
+
+    @Transactional
+    public boolean toggleTrangThaiNhanVien(Long id) {
+        NguoiDung nd = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên!"));
+
+        // đảm bảo đúng vai trò
+        if (nd.getVaiTro() == null || !nd.getVaiTro().equals("NHANVIEN")) {
+            throw new RuntimeException("Chỉ được khóa/mở khóa tài khoản nhân viên!");
+        }
+
+        boolean current = nd.getTrangThai() != null ? nd.getTrangThai() : true; // null coi như đang hoạt động
+        boolean newStatus = !current;
+
+        nd.setTrangThai(newStatus);
+        repo.save(nd);
+
+        return newStatus;
+    }
+
+    @Transactional
+    public boolean toggleTrangThaiKhachHang(Long id) {
+        NguoiDung nd = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng!"));
+
+        // đảm bảo đúng vai trò
+        if (nd.getVaiTro() == null || !nd.getVaiTro().equals("KHACHHANG")) {
+            throw new RuntimeException("Chỉ được khóa/mở khóa tài khoản khách hàng!");
+        }
+
+        boolean current = nd.getTrangThai() != null ? nd.getTrangThai() : true; // null coi như đang hoạt động
+        boolean newStatus = !current;
+
+        nd.setTrangThai(newStatus);
+        repo.save(nd);
+
+        return newStatus; // true = hoạt động, false = khóa
+    }
+
 
 }

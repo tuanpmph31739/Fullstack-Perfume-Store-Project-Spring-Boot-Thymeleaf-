@@ -38,6 +38,11 @@ public class NhanVienController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedTrangThai", trangThai);
+
+        // ✅ để view đang dùng totalPages/currentPage không bị null
+        model.addAttribute("totalPages", pageData.getTotalPages());
+        model.addAttribute("currentPage", pageData.getNumber());
+
         model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/index";
     }
@@ -46,14 +51,22 @@ public class NhanVienController {
     public String add(Model model) {
         NguoiDung nd = new NguoiDung();
         nd.setVaiTro("NHANVIEN");
+        // ✅ mặc định hoạt động nếu entity của bạn cho phép null
+        if (nd.getTrangThai() == null) nd.setTrangThai(true);
+
         model.addAttribute("nguoiDung", nd);
         model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/form";
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, Model model) {
-        model.addAttribute("nguoiDung", service.getById(id).orElseThrow());
+    public String edit(@PathVariable Long id, Model model, RedirectAttributes redirect) {
+        Optional<NguoiDung> opt = service.getById(id);
+        if (opt.isEmpty()) {
+            redirect.addFlashAttribute("error", "Không tìm thấy nhân viên!");
+            return "redirect:/admin/nhan-vien";
+        }
+        model.addAttribute("nguoiDung", opt.get());
         model.addAttribute("currentPath", "/admin/nhan-vien");
         return "admin/nhan_vien/form";
     }
@@ -66,14 +79,14 @@ public class NhanVienController {
         // cố định vai trò
         nguoiDung.setVaiTro("NHANVIEN");
 
+        // ✅ nếu chưa set trạng thái thì mặc định hoạt động
+        if (nguoiDung.getTrangThai() == null) nguoiDung.setTrangThai(true);
+
         // Check email trùng
         Optional<NguoiDung> existing = repo.findByEmail(nguoiDung.getEmail());
-        if (existing.isPresent() && !existing.get().getId().equals(nguoiDung.getId())) {
+        if (existing.isPresent() && (nguoiDung.getId() == null || !existing.get().getId().equals(nguoiDung.getId()))) {
             redirect.addFlashAttribute("error", "Email đã tồn tại!");
-            // nếu đang edit thì quay lại đúng trang edit
-            if (nguoiDung.getId() != null) {
-                return "redirect:/admin/nhan-vien/edit/" + nguoiDung.getId();
-            }
+            if (nguoiDung.getId() != null) return "redirect:/admin/nhan-vien/edit/" + nguoiDung.getId();
             return "redirect:/admin/nhan-vien/add";
         }
 
@@ -83,14 +96,12 @@ public class NhanVienController {
                 redirect.addFlashAttribute("error", "Nhập mật khẩu cho nhân viên mới!");
                 return "redirect:/admin/nhan-vien/add";
             }
-            // gán pass mới (service.save sẽ encode)
             nguoiDung.setMatKhau(newPassword.trim());
         } else {
             // UPDATE: nếu có nhập mật khẩu mới thì đổi, không nhập thì giữ nguyên
             if (newPassword != null && !newPassword.isBlank()) {
-                nguoiDung.setMatKhau(newPassword.trim()); // service.save sẽ encode
+                nguoiDung.setMatKhau(newPassword.trim());
             } else {
-                // đảm bảo không vô tình ghi đè pass (trong case object có matKhau rác)
                 nguoiDung.setMatKhau(null);
             }
         }
@@ -101,9 +112,26 @@ public class NhanVienController {
         return "redirect:/admin/nhan-vien";
     }
 
+    // ✅ KHÓA / MỞ KHÓA
+    @GetMapping("/toggle-lock/{id}")
+    public String toggleLock(@PathVariable Long id, RedirectAttributes redirect) {
+        try {
+            boolean nowActive = service.toggleTrangThaiNhanVien(id); // true=hoạt động, false=khóa
+            redirect.addFlashAttribute("success",
+                    nowActive ? "Đã mở khóa tài khoản!" : "Đã khóa tài khoản!");
+        } catch (RuntimeException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", "Không thể đổi trạng thái tài khoản!");
+        }
+        return "redirect:/admin/nhan-vien";
+    }
+
+    // (Tuỳ chọn) giữ lại delete, nhưng bạn sẽ không dùng nữa
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
+    public String delete(@PathVariable Long id, RedirectAttributes redirect) {
         service.delete(id);
+        redirect.addFlashAttribute("success", "Đã xóa nhân viên!");
         return "redirect:/admin/nhan-vien";
     }
 
