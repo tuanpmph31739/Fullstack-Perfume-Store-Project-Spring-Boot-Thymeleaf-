@@ -789,21 +789,21 @@ VALUES
  ((SELECT Id FROM SanPham WHERE TenNuocHoa = N'Roja Elysium Pour Homme'),
  (SELECT Id FROM DungTich WHERE Ma = 'DT50'),
  (SELECT Id FROM NongDo WHERE Ma = 'EDP'),
- 'ROJA_ELYSIUM_50_EDP', 15, 4200000, 5900000, '425b2a69-0488-46e6-8bf4-8d3b786d18ad_Roja Elysium Pour Homme.png', 1),
+ 'ROJA_ELYSIUM_50_EDP', 15, 4200000, 5900000, '864f5a25-2950-44a8-82f3-a7b44d991dd8_Roja Elysium Pour Homme.png', 1),
 ((SELECT Id FROM SanPham WHERE TenNuocHoa = N'Roja Elysium Pour Homme'),
  (SELECT Id FROM DungTich WHERE Ma = 'DT100'),
  (SELECT Id FROM NongDo WHERE Ma = 'EDP'),
- 'ROJA_ELYSIUM_100_EDP', 10, 6200000, 8900000, 'be8a74d8-1925-4484-8f43-701a71df999b_Roja Elysium Pour Homme.png', 1),
+ 'ROJA_ELYSIUM_100_EDP', 10, 6200000, 8900000, 'b230f3a0-f290-4aac-934c-7a56c1144cbd_Roja Elysium Pour Homme.png', 1),
 
 -- Roja Enigma Parfum Cologne
 ((SELECT Id FROM SanPham WHERE TenNuocHoa = N'Roja Enigma Parfum Cologne'),
  (SELECT Id FROM DungTich WHERE Ma = 'DT50'),
  (SELECT Id FROM NongDo WHERE Ma = 'EDP'),
- 'ROJA_ENIGMA_50_EDP', 12, 4500000, 6300000, 'bde77dec-acbc-4b86-be67-2f11092d3a07_Roja Enigma Parfum Cologne.png', 1),
+ 'ROJA_ENIGMA_50_EDP', 12, 4500000, 6300000, '2d5835bd-4872-4459-825f-a97d1617848e_Roja Enigma Parfum Cologne.png', 1),
 ((SELECT Id FROM SanPham WHERE TenNuocHoa = N'Roja Enigma Parfum Cologne'),
  (SELECT Id FROM DungTich WHERE Ma = 'DT100'),
  (SELECT Id FROM NongDo WHERE Ma = 'EDP'),
- 'ROJA_ENIGMA_100_EDP', 8, 6800000, 9500000, '705d3a9f-e534-41c9-be0b-d65b6339dc8a_Roja Enigma Parfum Cologne.png', 1);
+ 'ROJA_ENIGMA_100_EDP', 8, 6800000, 9500000, 'aa7db561-7db9-4d08-a2bc-8dd6c16b79b8_Roja Enigma Parfum Cologne.png', 1);
 GO
 PRINT N'Đã chèn SanPhamChiTiet mẫu.';
 
@@ -929,6 +929,300 @@ GO
 -- PHẦN 4: KIỂM TRA DỮ LIỆU
 -- =================================================================================
 PRINT 'Hoan tat script. Kiem tra du lieu:';
+GO
+
+USE PerfumeStore;
+GO
+
+/* =========================================================
+   1) THÊM THƯƠNG HIỆU MẪU
+   - HinhAnh để NULL để tránh UI bị "ảnh lỗi" nếu chưa có file
+   ========================================================= */
+
+IF NOT EXISTS (SELECT 1 FROM ThuongHieu WHERE Ma = 'TH25')
+INSERT INTO ThuongHieu (Ma, Ten, Slug, HinhAnh)
+VALUES ('TH25', N'Clive Christian', 'clive-christian', N'da49ed67-ee47-4b25-b088-88397d310671_Clive-Christian-logo.png');
+
+IF NOT EXISTS (SELECT 1 FROM ThuongHieu WHERE Ma = 'TH26')
+INSERT INTO ThuongHieu (Ma, Ten, Slug, HinhAnh)
+VALUES ('TH26', N'Xerjoff', 'xerjoff', N'71219a57-a487-4645-a33b-05ee845b3f60_Xerjoff-logo.png');
+
+IF NOT EXISTS (SELECT 1 FROM ThuongHieu WHERE Ma = 'TH27')
+INSERT INTO ThuongHieu (Ma, Ten, Slug, HinhAnh)
+VALUES ('TH27', N'Penhaligon', 'penhaligon', N'd4b5727f-fdac-4a01-8e93-5523ba19a56b_Penhaligons-logo.png');
+
+IF NOT EXISTS (SELECT 1 FROM ThuongHieu WHERE Ma = 'TH28')
+INSERT INTO ThuongHieu (Ma, Ten, Slug, HinhAnh)
+VALUES ('TH28', N'Ormonde Jayne', 'ormonde-jayne', N'6429b5af-4ee9-4c39-a3b0-1c1b2eed2e44_Ormonde-Jayne-logo.png');
+
+IF NOT EXISTS (SELECT 1 FROM ThuongHieu WHERE Ma = 'TH29')
+INSERT INTO ThuongHieu (Ma, Ten, Slug, HinhAnh)
+VALUES ('TH29', N'Nasomatto', 'nasomatto', N'77df7471-d366-44e1-969f-8ecbb841e467_Nasomatto-logo.png');
+
+GO
+
+
+/* =========================================================
+   2) THÊM HÓA ĐƠN MẪU (HD002 -> HD005)
+   - Dùng các SKU đã có sẵn trong script của bạn
+   - Có cả WEB và TAI_QUAY
+   ========================================================= */
+
+------------------------------------------------------------
+-- HD002 (WEB + VNPay + có giảm giá GG15ALL, giảm capped 100k)
+------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM HoaDon WHERE Ma = N'HD002')
+BEGIN
+INSERT INTO HoaDon
+(IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, Email,
+ TrangThai, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan,
+ IdThanhToan, KenhBan, MaGiaoDichThanhToan, GhiChu)
+VALUES
+    (
+        (SELECT Id FROM NguoiDung WHERE Ma = N'KH002'),
+        (SELECT Id FROM NguoiDung WHERE Ma = N'NV001'),
+        N'HD002',
+        '2025-12-19 20:10:00',
+        '2025-12-19 20:15:00',
+        N'Vũ Hoàng Anh',
+        N'50 Võ Văn Tần, Quận 3',
+        '0321456987',
+        N'anh.vu@email.com',
+        N'CHO_XAC_NHAN',
+        (SELECT Id FROM GiamGia WHERE Ma = 'GG15ALL'),
+        5900000,   -- 3.200.000 + 2.700.000
+        100000,    -- 15% capped 100.000
+        30000,
+        5830000,   -- 5.900.000 - 100.000 + 30.000
+        (SELECT TOP 1 Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%VNPay%'),
+        'WEB',
+        N'VNPAY_TXN_0002',
+        N'Thanh toán VNPay thành công'
+    );
+END
+
+DECLARE @HD002 INT = (SELECT Id FROM HoaDon WHERE Ma = N'HD002');
+
+IF @HD002 IS NOT NULL
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD002
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'DIOR_SAUVAGE_100_EDT')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD002,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'DIOR_SAUVAGE_100_EDT'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'DIOR_SAUVAGE_100_EDT')
+    );
+
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD002
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'DG_LIGHT_BLUE_50_EDT')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD002,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'DG_LIGHT_BLUE_50_EDT'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'DG_LIGHT_BLUE_50_EDT')
+    );
+END
+GO
+
+
+------------------------------------------------------------
+-- HD003 (WEB + Chuyển khoản + không giảm)
+------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM HoaDon WHERE Ma = N'HD003')
+BEGIN
+INSERT INTO HoaDon
+(IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, Email,
+ TrangThai, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan,
+ IdThanhToan, KenhBan, MaGiaoDichThanhToan, GhiChu)
+VALUES
+    (
+        (SELECT Id FROM NguoiDung WHERE Ma = N'KH001'),
+        (SELECT Id FROM NguoiDung WHERE Ma = N'NV001'),
+        N'HD003',
+        '2025-12-18 20:12:00',
+        '2025-12-18 20:15:00',
+        N'Lê Thị Mai',
+        N'10 Lý Thường Kiệt, Hoàn Kiếm',
+        '0369852147',
+        N'mai.le@email.com',
+        N'CHO_XAC_NHAN',
+        NULL,
+        5300000,   -- 2.500.000 + (1.400.000 * 2)
+        0,
+        30000,
+        5330000,   -- 5.300.000 + 30.000
+        (SELECT TOP 1 Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%Chuyển khoản%'),
+        'WEB',
+        N'BANK_TXN_0003',
+        N'Khách đã chuyển khoản, chờ xác nhận'
+    );
+END
+
+DECLARE @HD003 INT = (SELECT Id FROM HoaDon WHERE Ma = N'HD003');
+
+IF @HD003 IS NOT NULL
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD003
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'JM_WS_50_EDP')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD003,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'JM_WS_50_EDP'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'JM_WS_50_EDP')
+    );
+
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD003
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CK_ONE_50_EDT')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD003,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CK_ONE_50_EDT'),
+        2,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'CK_ONE_50_EDT')
+    );
+END
+GO
+
+
+------------------------------------------------------------
+-- HD004 (TẠI QUẦY + tiền khách đưa/tiền trả lại + giảm GG30K + ship = 0)
+------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM HoaDon WHERE Ma = N'HD004')
+BEGIN
+INSERT INTO HoaDon
+(IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, Email,
+ TrangThai, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan,
+ IdThanhToan, KenhBan, SoTienKhachDua, SoTienTraLai, GhiChu)
+VALUES
+    (
+        NULL,
+        (SELECT Id FROM NguoiDung WHERE Ma = N'NV001'),
+        N'HD004',
+        '2025-12-18 20:05:00',
+        '2025-12-18 20:10:00',
+        N'Khách lẻ tại quầy',
+        N'Tại quầy',
+        '0000000000',
+        NULL,
+        N'HOAN_THANH',
+        (SELECT Id FROM GiamGia WHERE Ma = 'GG30K'),
+        6300000,   -- 2.900.000 + 3.400.000
+        30000,
+        0,
+        6270000,   -- 6.300.000 - 30.000
+        (SELECT TOP 1 Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%COD%'),
+        'TAI_QUAY',
+        6500000,
+        230000,
+        N'Bán tại quầy - thu tiền mặt'
+    );
+END
+
+DECLARE @HD004 INT = (SELECT Id FROM HoaDon WHERE Ma = N'HD004');
+
+IF @HD004 IS NOT NULL
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD004
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'PRD_CANDY_50_EDP')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD004,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'PRD_CANDY_50_EDP'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'PRD_CANDY_50_EDP')
+    );
+
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD004
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'NR_FORHER_50_EDP')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD004,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'NR_FORHER_50_EDP'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'NR_FORHER_50_EDP')
+    );
+END
+GO
+
+
+------------------------------------------------------------
+-- HD005 (WEB + COD + đơn bị hủy)
+------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM HoaDon WHERE Ma = N'HD005')
+BEGIN
+INSERT INTO HoaDon
+(IdKH, IdNV, Ma, NgayTao, NgayThanhToan, TenNguoiNhan, DiaChi, Sdt, Email,
+ TrangThai, IdGiamGia, TongTienHang, TienGiamGia, PhiShip, TongThanhToan,
+ IdThanhToan, KenhBan, GhiChu)
+VALUES
+    (
+        (SELECT Id FROM NguoiDung WHERE Ma = N'KH002'),
+        (SELECT Id FROM NguoiDung WHERE Ma = N'NV001'),
+        N'HD005',
+        '2025-12-18 20:10:00',
+        NULL,
+        N'Vũ Hoàng Anh',
+        N'50 Võ Văn Tần, Quận 3',
+        '0321456987',
+        N'anh.vu@email.com',
+        N'DA_HUY',
+        NULL,
+        8800000,   -- 1 * 8.800.000
+        0,
+        30000,
+        8830000,
+        (SELECT TOP 1 Id FROM ThanhToan WHERE HinhThucThanhToan LIKE N'%COD%'),
+        'WEB',
+        N'Khách đổi ý - hủy đơn'
+    );
+END
+
+DECLARE @HD005 INT = (SELECT Id FROM HoaDon WHERE Ma = N'HD005');
+
+IF @HD005 IS NOT NULL
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM HoaDonChiTiet
+        WHERE IdHoaDon = @HD005
+          AND IdSanPhamChiTiet = (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CREED_AVENTUS_100_EDP')
+    )
+    INSERT INTO HoaDonChiTiet (IdHoaDon, IdSanPhamChiTiet, SoLuong, DonGia)
+    VALUES
+    (
+        @HD005,
+        (SELECT Id FROM SanPhamChiTiet WHERE MaSKU = 'CREED_AVENTUS_100_EDP'),
+        1,
+        (SELECT GiaBan FROM SanPhamChiTiet WHERE MaSKU = 'CREED_AVENTUS_100_EDP')
+    );
+END
 GO
 
 
