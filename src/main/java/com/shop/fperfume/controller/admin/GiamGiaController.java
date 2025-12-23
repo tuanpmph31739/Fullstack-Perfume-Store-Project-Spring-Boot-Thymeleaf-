@@ -40,7 +40,7 @@ public class GiamGiaController {
         model.addAttribute("page", pageableObject);
         model.addAttribute("currentPath", "/admin/giam-gia");
 
-        // Để giữ lại giá trị trên form lọc
+        // giữ giá trị filter
         model.addAttribute("keyword", keyword);
         model.addAttribute("loaiGiam", loaiGiam);
         model.addAttribute("trangThai", trangThai);
@@ -48,16 +48,13 @@ public class GiamGiaController {
         return "admin/giam_gia/index";
     }
 
-
     // ================================
     //  Trang thêm mới
     // ================================
     @GetMapping("/add")
     public String addForm(Model model) {
-
         model.addAttribute("giamGiaRequest", new GiamGiaRequest());
         model.addAttribute("sanPhamChiTietList", sanPhamChiTietService.getAllSanPhamChiTiet());
-
         return "admin/giam_gia/add";
     }
 
@@ -72,7 +69,6 @@ public class GiamGiaController {
             giamGiaService.addGiamGia(request);
             redirectAttributes.addFlashAttribute("success", "Thêm giảm giá thành công!");
             return "redirect:/admin/giam-gia";
-
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/admin/giam-gia/add";
@@ -138,8 +134,53 @@ public class GiamGiaController {
     }
 
     // ================================
-    //  Xóa
+    //  BẬT/TẮT trạng thái áp dụng (thay cho nút xóa)
     // ================================
+    @PostMapping("/toggle/{id}")
+    public String toggleTrangThai(@PathVariable Integer id,
+                                  RedirectAttributes ra,
+                                  @RequestParam(name = "page", required = false) Integer page,
+                                  @RequestParam(name = "size", required = false) Integer size,
+                                  @RequestParam(name = "keyword", required = false) String keyword,
+                                  @RequestParam(name = "loaiGiam", required = false) String loaiGiam,
+                                  @RequestParam(name = "trangThai", required = false) Boolean trangThai) {
+
+        try {
+            giamGiaService.toggleTrangThai(id);
+            ra.addFlashAttribute("success", "Đã cập nhật trạng thái áp dụng!");
+        } catch (RuntimeException ex) {
+            ra.addFlashAttribute("error", ex.getMessage());
+        }
+
+        // Redirect về đúng trang + đúng filter
+        StringBuilder redirect = new StringBuilder("redirect:/admin/giam-gia");
+        boolean hasParam = false;
+
+        if (page != null) {
+            redirect.append(hasParam ? "&" : "?").append("page=").append(page);
+            hasParam = true;
+        }
+        if (size != null) {
+            redirect.append(hasParam ? "&" : "?").append("size=").append(size);
+            hasParam = true;
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            redirect.append(hasParam ? "&" : "?").append("keyword=").append(keyword);
+            hasParam = true;
+        }
+        if (loaiGiam != null && !loaiGiam.isBlank()) {
+            redirect.append(hasParam ? "&" : "?").append("loaiGiam=").append(loaiGiam);
+            hasParam = true;
+        }
+        if (trangThai != null) {
+            redirect.append(hasParam ? "&" : "?").append("trangThai=").append(trangThai);
+        }
+
+        return redirect.toString();
+    }
+
+    // (Tuỳ chọn) Nếu bạn muốn xoá thật sự thì giữ endpoint này,
+    // còn không dùng nữa có thể xoá đi.
     @GetMapping("/delete/{id}")
     public String deleteGiamGia(@PathVariable Integer id,
                                 RedirectAttributes redirectAttributes) {
@@ -147,7 +188,6 @@ public class GiamGiaController {
         try {
             giamGiaService.deleteGiamGia(id);
             redirectAttributes.addFlashAttribute("success", "Xóa giảm giá thành công!");
-
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }

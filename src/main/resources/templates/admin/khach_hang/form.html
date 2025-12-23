@@ -121,7 +121,7 @@
 </div>
 
 <script th:replace="/admin/fragments/script :: script"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", () => {
@@ -133,14 +133,9 @@
         const khStreet   = document.getElementById("kh-street");
         const khFullAddr = document.getElementById("kh-fullAddress");
 
-        // Tách "Số nhà, Phường X, Quận Y, Tỉnh Z" thành 4 phần
         function splitAddress(addr) {
-            const parts = addr.split(',')
-                .map(p => p.trim())
-                .filter(p => p.length > 0);
-
+            const parts = addr.split(',').map(p => p.trim()).filter(p => p.length > 0);
             let province = "", district = "", ward = "", street = "";
-
             if (parts.length >= 4) {
                 province = parts[parts.length - 1];
                 district = parts[parts.length - 2];
@@ -159,7 +154,6 @@
             return { province, district, ward, street };
         }
 
-        // Tìm option theo tên (gần đúng)
         function findOptionByName(select, targetName) {
             if (!select || !targetName) return null;
             const normTarget = targetName.toLowerCase();
@@ -167,20 +161,17 @@
             Array.from(select.options).forEach(opt => {
                 const name = (opt.textContent || "").toLowerCase();
                 if (!name) return;
-                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) {
-                    found = opt;
-                }
+                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) found = opt;
             });
             return found;
         }
 
-        // Build lại chuỗi địa chỉ cho KH -> hidden kh-fullAddress
         function updateKhFullAddress() {
             if (!khProvince || !khDistrict || !khWard || !khStreet || !khFullAddr) return;
 
-            const p = khProvince.value  ? khProvince.options[khProvince.selectedIndex].text.trim()  : "";
-            const d = khDistrict.value  ? khDistrict.options[khDistrict.selectedIndex].text.trim()  : "";
-            const w = khWard.value      ? khWard.options[khWard.selectedIndex].text.trim()          : "";
+            const p = khProvince.value ? khProvince.options[khProvince.selectedIndex].text.trim() : "";
+            const d = khDistrict.value ? khDistrict.options[khDistrict.selectedIndex].text.trim() : "";
+            const w = khWard.value     ? khWard.options[khWard.selectedIndex].text.trim() : "";
             const s = khStreet.value.trim();
 
             const arr = [];
@@ -204,27 +195,19 @@
                 const parts = splitAddress(existingKhAddress);
                 if (!parts.province) return;
 
-                if (parts.street) {
-                    khStreet.value = parts.street;
-                }
+                if (parts.street) khStreet.value = parts.street;
 
                 const provOpt = findOptionByName(khProvince, parts.province);
                 if (!provOpt) { updateKhFullAddress(); return; }
 
-                khProvince.value    = provOpt.value;
+                khProvince.value = provOpt.value;
                 khDistrict.disabled = false;
 
-                // Load Huyện
                 fetch(`https://esgoo.net/api-tinhthanh/2/${provOpt.value}.htm`)
                     .then(r => r.json())
                     .then(data => {
                         khDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
-                        if (data.error === 0) {
-                            data.data.forEach(item => {
-                                const opt = new Option(item.full_name, item.id);
-                                khDistrict.add(opt);
-                            });
-                        }
+                        if (data.error === 0) data.data.forEach(item => khDistrict.add(new Option(item.full_name, item.id)));
 
                         if (!parts.district) { updateKhFullAddress(); return; }
 
@@ -232,19 +215,13 @@
                         if (!distOpt) { updateKhFullAddress(); return; }
 
                         khDistrict.value = distOpt.value;
-                        khWard.disabled  = false;
+                        khWard.disabled = false;
 
-                        // Load Xã
                         return fetch(`https://esgoo.net/api-tinhthanh/3/${distOpt.value}.htm`)
                             .then(r => r.json())
                             .then(data2 => {
                                 khWard.innerHTML = '<option value="">Phường / Xã</option>';
-                                if (data2.error === 0) {
-                                    data2.data.forEach(item => {
-                                        const opt = new Option(item.full_name, item.id);
-                                        khWard.add(opt);
-                                    });
-                                }
+                                if (data2.error === 0) data2.data.forEach(item => khWard.add(new Option(item.full_name, item.id)));
 
                                 if (parts.ward) {
                                     const wardOpt = findOptionByName(khWard, parts.ward);
@@ -257,16 +234,10 @@
                     .catch(err => console.error("Lỗi auto-fill địa chỉ KH:", err));
             }
 
-            // Load Tỉnh lần đầu
             fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
                 .then(r => r.json())
                 .then(data => {
-                    if (data.error === 0) {
-                        data.data.forEach(item => {
-                            const opt = new Option(item.full_name, item.id);
-                            khProvince.add(opt);
-                        });
-                    }
+                    if (data.error === 0) data.data.forEach(item => khProvince.add(new Option(item.full_name, item.id)));
                     autoFillKhAddress();
                 })
                 .catch(err => console.error("Lỗi load tỉnh KH:", err));
@@ -281,12 +252,7 @@
                     fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.error === 0) {
-                                data.data.forEach(item => {
-                                    const opt = new Option(item.full_name, item.id);
-                                    khDistrict.add(opt);
-                                });
-                            }
+                            if (data.error === 0) data.data.forEach(item => khDistrict.add(new Option(item.full_name, item.id)));
                         })
                         .catch(err => console.error("Lỗi load huyện KH:", err));
                 } else {
@@ -302,12 +268,7 @@
                     fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.error === 0) {
-                                data.data.forEach(item => {
-                                    const opt = new Option(item.full_name, item.id);
-                                    khWard.add(opt);
-                                });
-                            }
+                            if (data.error === 0) data.data.forEach(item => khWard.add(new Option(item.full_name, item.id)));
                         })
                         .catch(err => console.error("Lỗi load xã KH:", err));
                 } else {
@@ -320,70 +281,77 @@
             khStreet.addEventListener("input", updateKhFullAddress);
         }
 
-        // ========== SWEETALERT + CHECK EMAIL KHÁCH HÀNG ==========
-        const form = document.getElementById("formKhachHang");
+        // ========== SWEETALERT FLASH MESSAGE (AN TOÀN KHI NULL) ==========
+        const successMsg = /*[[${success}]]*/ '';
+        const errorMsg   = /*[[${error}]]*/ '';
 
-        const successMsg = [[${success}]];
-        const errorMsg   = [[${error}]];
-        if (successMsg) {
+        if (successMsg && successMsg !== 'null') {
             Swal.fire({
                 icon: 'success',
-                title: 'Thành công',
+                title: 'Thành công!',
                 text: successMsg,
-                timer: 1500,
+                timer: 2000,
                 showConfirmButton: false
             });
         }
-        if (errorMsg) {
+
+        if (errorMsg && errorMsg !== 'null') {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
+                title: 'Lỗi!',
                 text: errorMsg
             });
         }
 
+        // ========== CONFIRM + VALIDATE + CHECK EMAIL ==========
+        const form = document.getElementById("formKhachHang");
+
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const id       = document.getElementById("userId").value;
-            const hoTen    = document.getElementById("hoTen").value.trim();
-            const email    = document.getElementById("email").value.trim();
-            const oldEmail = document.getElementById("oldEmail").value.trim();
-            const matKhau  = document.getElementById("matKhau").value.trim();
+            const id       = (document.getElementById("userId").value || "").trim();
+            const hoTen    = (document.getElementById("hoTen").value || "").trim();
+            const email    = (document.getElementById("email").value || "").trim();
+            const oldEmail = (document.getElementById("oldEmail").value || "").trim();
+            const matKhau  = (document.getElementById("matKhau").value || "").trim();
 
-            if (!hoTen)  return Swal.fire("Thiếu thông tin", "Vui lòng nhập họ tên!", "warning");
-            if (!email)  return Swal.fire("Thiếu thông tin", "Vui lòng nhập email!", "warning");
+            if (!hoTen) return Swal.fire("Thiếu thông tin", "Vui lòng nhập họ tên!", "warning");
+            if (!email) return Swal.fire("Thiếu thông tin", "Vui lòng nhập email!", "warning");
 
+            // thêm mới thì bắt buộc mật khẩu
             if (!id && !matKhau) {
                 return Swal.fire("Thiếu thông tin", "Vui lòng tạo mật khẩu cho khách hàng mới!", "warning");
             }
 
-            // Check email trùng
+            // check email trùng (thêm mới hoặc đổi email)
             if (!id || (id && email !== oldEmail)) {
-                const res    = await fetch(`/admin/khach-hang/check-email?email=${encodeURIComponent(email)}`);
-                const exists = await res.json();
-                if (exists) {
-                    return Swal.fire("Trùng lặp", "Email này đã có người sử dụng!", "error");
+                try {
+                    const res = await fetch(`/admin/khach-hang/check-email?email=${encodeURIComponent(email)}`);
+                    const exists = await res.json();
+                    if (exists) return Swal.fire("Trùng lặp", "Email này đã có người sử dụng!", "error");
+                } catch (err) {
+                    return Swal.fire("Lỗi", "Không kiểm tra được email. Vui lòng thử lại!", "error");
                 }
             }
 
-            Swal.fire({
+            const result = await Swal.fire({
                 title: "Xác nhận lưu?",
                 text: "Thông tin khách hàng sẽ được cập nhật vào hệ thống.",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "Đồng ý",
-                cancelButtonText: "Hủy"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Cập nhật hidden địa chỉ trước khi submit
-                    updateKhFullAddress();
-                    form.submit();
-                }
+                cancelButtonText: "Hủy",
+                reverseButtons: true
             });
+
+            if (result.isConfirmed) {
+                updateKhFullAddress(); // cập nhật hidden địa chỉ
+                form.submit();
+            }
         });
     });
 </script>
+
 
 </body>
 </html>

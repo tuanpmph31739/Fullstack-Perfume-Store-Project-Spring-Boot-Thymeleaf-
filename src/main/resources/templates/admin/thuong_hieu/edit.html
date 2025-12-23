@@ -11,57 +11,73 @@
 
         <div class="page-content">
             <section class="row">
-                <div class="col-md-8 offset-md-2"> <div class="card">
-                    <div class="card-header">
-                        <h5>Thông tin Thương hiệu</h5>
-                    </div>
-                    <div class="card-body">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thông tin Thương hiệu</h5>
+                        </div>
 
-                        <form th:action="@{/admin/thuong-hieu/update/{id}(id=${thuongHieuRequest.id})}"
-                              method="post"
-                              th:object="${thuongHieuRequest}"
-                              enctype="multipart/form-data">
+                        <div class="card-body">
 
-                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <span th:text="${errorMessage}"></span>
-                            </div>
+                            <form id="thuongHieuForm"
+                                  th:action="@{/admin/thuong-hieu/update/{id}(id=${thuongHieuRequest.id})}"
+                                  method="post"
+                                  th:object="${thuongHieuRequest}"
+                                  enctype="multipart/form-data">
 
-                            <div class="mb-3">
-                                <label for="maThuongHieu" class="form-label">Mã Thương hiệu</label>
-                                <input type="text" class="form-control" id="maThuongHieu"
-                                       th:field="*{maThuongHieu}" required>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('maThuongHieu')}"
-                                     th:errors="*{maThuongHieu}"></div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="tenThuongHieu" class="form-label">Tên Thương hiệu</label>
-                                <input type="text" class="form-control" id="tenThuongHieu"
-                                       th:field="*{tenThuongHieu}" required>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('tenThuongHieu')}"
-                                     th:errors="*{tenThuongHieu}"></div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Ảnh thương hiệu</label>
-                                <input type="file" class="form-control" th:field="*{hinhAnh}">
-                                <div class="mt-2" th:if="${thuongHieuRequest.hinhAnh != null}">
-                                    <img th:src="@{/uploads/thuong-hieu/{file}(file=${thuongHieuRequest.hinhAnh})}"
-                                         alt="Ảnh thương hiệu" style="height: 120px; border-radius: 6px;">
+                                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <span th:text="${errorMessage}"></span>
                                 </div>
-                            </div>
 
-                            <div class="text-end mt-4">
-                                <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
-                                <button type="submit" class="btn btn-primary ms-2" onclick="return confirm('Xác nhận lưu?')">Cập nhật</button>
-                            </div>
+                                <div class="mb-3">
+                                    <label for="maThuongHieu" class="form-label">Mã Thương hiệu</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="maThuongHieu"
+                                           th:field="*{maThuongHieu}"
+                                           required
+                                           pattern="[A-Za-z0-9]+"
+                                           title="Mã thương hiệu chỉ gồm chữ và số, không khoảng trắng">
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('maThuongHieu')}"
+                                         th:errors="*{maThuongHieu}"></div>
+                                </div>
 
-                        </form>
+                                <div class="mb-3">
+                                    <label for="tenThuongHieu" class="form-label">Tên Thương hiệu</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="tenThuongHieu"
+                                           th:field="*{tenThuongHieu}"
+                                           required
+                                           pattern="^[0-9A-Za-zÀ-ỹà-ỹ\s\-&\.,']+$"
+                                           title="Tên thương hiệu chỉ được chứa chữ (có dấu), số, khoảng trắng và một số ký tự - & . , '">
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('tenThuongHieu')}"
+                                         th:errors="*{tenThuongHieu}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Ảnh thương hiệu</label>
+                                    <input type="file" class="form-control" th:field="*{hinhAnh}">
+                                    <div class="mt-2" th:if="${thuongHieuRequest.hinhAnh != null}">
+                                        <img th:src="@{/uploads/thuong-hieu/{file}(file=${thuongHieuRequest.hinhAnh})}"
+                                             alt="Ảnh thương hiệu" style="height: 120px; border-radius: 6px;">
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-4">
+                                    <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
+                                    <button id="btnSubmit" type="submit" class="btn btn-primary ms-2">
+                                        Cập nhật
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
                     </div>
-                </div>
                 </div>
             </section>
         </div>
@@ -71,5 +87,94 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<!-- Nếu project bạn CHƯA có Swal trong fragment script thì bật CDN này -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+-->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const form = document.getElementById("thuongHieuForm");
+        const maInput = document.getElementById("maThuongHieu");
+        const tenInput = document.getElementById("tenThuongHieu");
+
+        function swalError(msg) {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: msg,
+                    confirmButtonText: "OK"
+                });
+            }
+            alert(msg);
+            return Promise.resolve();
+        }
+
+        function swalConfirmUpdate() {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: "question",
+                    title: "Xác nhận",
+                    text: "Bạn có chắc muốn cập nhật thương hiệu này?",
+                    showCancelButton: true,
+                    confirmButtonText: "Cập nhật",
+                    cancelButtonText: "Hủy",
+                    reverseButtons: true
+                }).then(r => r.isConfirmed);
+            }
+            return Promise.resolve(confirm("Bạn có chắc muốn cập nhật thương hiệu này?"));
+        }
+
+        // ✅ Validate + format mã thương hiệu: chỉ chữ số, auto uppercase
+        if (maInput) {
+            maInput.addEventListener("input", function () {
+                this.value = this.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+            });
+        }
+
+        // ✅ Validate tên thương hiệu: chữ có dấu + số + khoảng trắng + - & . , '
+        // (chặn ký tự lạ ngay khi gõ)
+        if (tenInput) {
+            tenInput.addEventListener("input", function () {
+                // Cho phép: chữ có dấu (À-ỹ), chữ thường/hoa, số, space và - & . , '
+                this.value = this.value.replace(/[^0-9A-Za-zÀ-ỹà-ỹ\s\-&\.,']/g, "");
+            });
+        }
+
+        function focusFirstInvalid() {
+            const firstInvalid = form.querySelector(":invalid");
+            if (firstInvalid) firstInvalid.focus();
+        }
+
+        if (form) {
+            let isProgrammaticSubmit = false;
+
+            form.addEventListener("submit", async function (e) {
+                if (isProgrammaticSubmit) return;
+
+                e.preventDefault();
+
+                // 1) HTML5 validate (required/pattern)
+                if (!form.checkValidity()) {
+                    focusFirstInvalid();
+                    await swalError("Vui lòng nhập đúng thông tin (kiểm tra các trường bắt buộc và định dạng).");
+                    return;
+                }
+
+                // 2) SweetAlert confirm
+                const ok = await swalConfirmUpdate();
+                if (!ok) return;
+
+                // 3) Submit thật
+                isProgrammaticSubmit = true;
+                form.submit();
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

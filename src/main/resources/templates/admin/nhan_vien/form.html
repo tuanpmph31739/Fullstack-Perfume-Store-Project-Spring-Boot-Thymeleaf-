@@ -25,6 +25,7 @@
                             <input type="text" class="form-control" th:field="*{hoTen}" id="hoTen">
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
@@ -36,6 +37,7 @@
                                    placeholder="Để trống nếu không đổi">
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Giới tính</label>
@@ -53,6 +55,7 @@
                             <input type="text" class="form-control" th:field="*{sdt}" id="sdt">
                         </div>
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label class="form-label fw-bold">Địa chỉ</label>
@@ -83,6 +86,7 @@
                             <!-- Hidden bind về NguoiDung.diaChi -->
                             <input type="hidden" th:field="*{diaChi}" id="nv-fullAddress">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Trạng thái</label>
                             <select class="form-select" th:field="*{trangThai}">
@@ -92,7 +96,6 @@
                         </div>
                     </div>
 
-
                     <div class="text-end mt-3">
                         <a href="/admin/nhan-vien" class="btn btn-secondary">Quay lại</a>
                         <button type="submit" class="btn btn-success">Lưu lại</button>
@@ -100,16 +103,39 @@
                 </form>
             </div>
         </div>
+
         <footer th:replace="/admin/fragments/footer :: footer"></footer>
     </div>
 </div>
+
 <script th:replace="/admin/fragments/script :: script"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", () => {
 
-        // ========== ĐỊa CHỈ NHÂN VIÊN (nv-*) ==========
+        // ========== SWEET ALERT FLASH MESSAGE (AN TOÀN KHI NULL) ==========
+        const successMsg = /*[[${success}]]*/ '';
+        const errorMsg   = /*[[${error}]]*/ '';
+
+        if (successMsg && successMsg !== 'null') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: successMsg,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+
+        if (errorMsg && errorMsg !== 'null') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: errorMsg
+            });
+        }
+
+        // ========== ĐỊA CHỈ NHÂN VIÊN (nv-*) ==========
         const nvProvince = document.getElementById("nv-province");
         const nvDistrict = document.getElementById("nv-district");
         const nvWard     = document.getElementById("nv-ward");
@@ -117,10 +143,7 @@
         const nvFullAddr = document.getElementById("nv-fullAddress");
 
         function splitAddress(addr) {
-            const parts = addr.split(',')
-                .map(p => p.trim())
-                .filter(p => p.length > 0);
-
+            const parts = addr.split(',').map(p => p.trim()).filter(p => p.length > 0);
             let province = "", district = "", ward = "", street = "";
 
             if (parts.length >= 4) {
@@ -148,9 +171,7 @@
             Array.from(select.options).forEach(opt => {
                 const name = (opt.textContent || "").toLowerCase();
                 if (!name) return;
-                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) {
-                    found = opt;
-                }
+                if (name === normTarget || name.includes(normTarget) || normTarget.includes(name)) found = opt;
             });
             return found;
         }
@@ -184,9 +205,7 @@
                 const parts = splitAddress(existingNvAddress);
                 if (!parts.province) return;
 
-                if (parts.street) {
-                    nvStreet.value = parts.street;
-                }
+                if (parts.street) nvStreet.value = parts.street;
 
                 const provOpt = findOptionByName(nvProvince, parts.province);
                 if (!provOpt) { updateNvFullAddress(); return; }
@@ -199,10 +218,7 @@
                     .then(data => {
                         nvDistrict.innerHTML = '<option value="">Quận / Huyện</option>';
                         if (data.error === 0) {
-                            data.data.forEach(item => {
-                                const opt = new Option(item.full_name, item.id);
-                                nvDistrict.add(opt);
-                            });
+                            data.data.forEach(item => nvDistrict.add(new Option(item.full_name, item.id)));
                         }
 
                         if (!parts.district) { updateNvFullAddress(); return; }
@@ -218,10 +234,7 @@
                             .then(data2 => {
                                 nvWard.innerHTML = '<option value="">Phường / Xã</option>';
                                 if (data2.error === 0) {
-                                    data2.data.forEach(item => {
-                                        const opt = new Option(item.full_name, item.id);
-                                        nvWard.add(opt);
-                                    });
+                                    data2.data.forEach(item => nvWard.add(new Option(item.full_name, item.id)));
                                 }
 
                                 if (parts.ward) {
@@ -239,10 +252,7 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.error === 0) {
-                        data.data.forEach(item => {
-                            const opt = new Option(item.full_name, item.id);
-                            nvProvince.add(opt);
-                        });
+                        data.data.forEach(item => nvProvince.add(new Option(item.full_name, item.id)));
                     }
                     autoFillNvAddress();
                 })
@@ -258,12 +268,7 @@
                     fetch(`https://esgoo.net/api-tinhthanh/2/${this.value}.htm`)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.error === 0) {
-                                data.data.forEach(item => {
-                                    const opt = new Option(item.full_name, item.id);
-                                    nvDistrict.add(opt);
-                                });
-                            }
+                            if (data.error === 0) data.data.forEach(item => nvDistrict.add(new Option(item.full_name, item.id)));
                         })
                         .catch(err => console.error("Lỗi load huyện NV:", err));
                 } else {
@@ -279,12 +284,7 @@
                     fetch(`https://esgoo.net/api-tinhthanh/3/${this.value}.htm`)
                         .then(r => r.json())
                         .then(data => {
-                            if (data.error === 0) {
-                                data.data.forEach(item => {
-                                    const opt = new Option(item.full_name, item.id);
-                                    nvWard.add(opt);
-                                });
-                            }
+                            if (data.error === 0) data.data.forEach(item => nvWard.add(new Option(item.full_name, item.id)));
                         })
                         .catch(err => console.error("Lỗi load xã NV:", err));
                 } else {
@@ -297,60 +297,47 @@
             nvStreet.addEventListener("input", updateNvFullAddress);
         }
 
-        // ========== SWEETALERT + CHECK EMAIL NHÂN VIÊN ==========
+        // ========== CONFIRM + VALIDATE + CHECK EMAIL ==========
         const form = document.getElementById("formNguoiDung");
-        const successMsg = [[${success}]];
-        const errorMsg   = [[${error}]];
-
-        if (successMsg) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Thành công!',
-                text: successMsg,
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }
-        if (errorMsg) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Lỗi!',
-                text: errorMsg
-            });
-        }
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const id       = document.getElementById("userId").value;
-            const email    = document.getElementById("email").value.trim();
-            const oldEmail = document.getElementById("oldEmail").value.trim();
-            const hoTen    = document.getElementById("hoTen").value.trim();
-            const matKhau  = document.getElementById("matKhau").value.trim();
 
-            if (!hoTen)  return Swal.fire("Lỗi", "Nhập họ tên", "error");
-            if (!email)  return Swal.fire("Lỗi", "Nhập email", "error");
+            const id       = (document.getElementById("userId").value || "").trim();
+            const email    = (document.getElementById("email").value || "").trim();
+            const oldEmail = (document.getElementById("oldEmail").value || "").trim();
+            const hoTen    = (document.getElementById("hoTen").value || "").trim();
+            const matKhau  = (document.getElementById("matKhau").value || "").trim();
+
+            if (!hoTen) return Swal.fire("Lỗi", "Vui lòng nhập họ tên", "error");
+            if (!email) return Swal.fire("Lỗi", "Vui lòng nhập email", "error");
             if (!id && !matKhau) return Swal.fire("Lỗi", "Nhập mật khẩu cho nhân viên mới", "error");
 
+            // Check email trùng chỉ khi thêm mới hoặc đổi email
             if (!id || (id && email !== oldEmail)) {
-                const res    = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
-                const exists = await res.json();
-                if (exists) {
-                    return Swal.fire("Lỗi", "Email đã tồn tại", "error");
+                try {
+                    const res = await fetch(`/admin/nhan-vien/check-email?email=${encodeURIComponent(email)}`);
+                    const exists = await res.json();
+                    if (exists) return Swal.fire("Lỗi", "Email đã tồn tại", "error");
+                } catch (err) {
+                    return Swal.fire("Lỗi", "Không kiểm tra được email. Vui lòng thử lại!", "error");
                 }
             }
 
-            Swal.fire({
+            const result = await Swal.fire({
                 title: "Lưu nhân viên?",
+                text: "Bạn có chắc chắn muốn lưu thông tin này?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "Lưu"
-            }).then(r => {
-                if (r.isConfirmed) {
-                    // Cập nhật hidden địa chỉ trước khi submit
-                    updateNvFullAddress();
-                    form.submit();
-                }
+                confirmButtonText: "Lưu",
+                cancelButtonText: "Hủy",
+                reverseButtons: true
             });
+
+            if (result.isConfirmed) {
+                updateNvFullAddress(); // cập nhật hidden địa chỉ trước khi submit
+                form.submit();
+            }
         });
     });
 </script>

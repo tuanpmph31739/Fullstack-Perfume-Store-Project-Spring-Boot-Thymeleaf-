@@ -11,52 +11,91 @@
 
         <div class="page-content">
             <section class="row">
-                <div class="col-md-8 offset-md-2"> <div class="card">
-                    <div class="card-header">
-                        <h5>Thông tin Thương hiệu</h5>
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thông tin Thương hiệu</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <form id="thuongHieuForm"
+                                  th:action="@{/admin/thuong-hieu/save}"
+                                  th:object="${thuongHieuRequest}"
+                                  method="post"
+                                  enctype="multipart/form-data">
+
+                                <!-- ✅ ĐẶT TRONG FORM để #fields hoạt động đúng -->
+                                <div id="serverMessages"
+                                     style="display:none"
+                                     th:with="
+                                        maErr=${#fields.hasErrors('maThuongHieu') ? #fields.errors('maThuongHieu')[0] : ''},
+                                        tenErr=${#fields.hasErrors('tenThuongHieu') ? #fields.errors('tenThuongHieu')[0] : ''}
+                                     "
+                                     th:attr="
+                                        data-error=${errorMessage},
+                                        data-ma-error=${maErr},
+                                        data-ten-error=${tenErr}
+                                     ">
+                                </div>
+
+                                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <span th:text="${errorMessage}"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="maThuongHieu" class="form-label">Mã Thương hiệu</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="maThuongHieu"
+                                           th:field="*{maThuongHieu}"
+                                           placeholder="Ví dụ: TH01"
+                                           autocomplete="off"
+                                           required>
+
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('maThuongHieu')}"
+                                         th:errors="*{maThuongHieu}"></div>
+
+                                    <small class="text-muted">
+                                        Chỉ gồm chữ và số (không dấu, không khoảng trắng). Ví dụ: TH01, DIOR2025
+                                    </small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="tenThuongHieu" class="form-label">Tên Thương hiệu</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="tenThuongHieu"
+                                           th:field="*{tenThuongHieu}"
+                                           placeholder="Ví dụ: Dolce & Gabbana - 2025.0"
+                                           autocomplete="off"
+                                           required>
+
+                                    <div class="invalid-feedback d-block"
+                                         th:if="${#fields.hasErrors('tenThuongHieu')}"
+                                         th:errors="*{tenThuongHieu}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Hình ảnh</label>
+                                    <input type="file"
+                                           th:field="*{hinhAnh}"
+                                           class="form-control"
+                                           accept="image/*">
+                                </div>
+
+                                <div class="text-end mt-4">
+                                    <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
+                                    <button type="submit" class="btn btn-primary ms-2">
+                                        Lưu lại
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+
                     </div>
-                    <div class="card-body">
-                        <form th:action="@{/admin/thuong-hieu/save}"
-                              th:object="${thuongHieuRequest}"
-                              method="post"
-                              enctype="multipart/form-data">
-
-                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <span th:text="${errorMessage}"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="maThuongHieu" class="form-label">Mã Thương hiệu</label>
-                                <input type="text" class="form-control" id="maThuongHieu"
-                                       th:field="*{maThuongHieu}" placeholder="Ví dụ: TH01" required>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('maThuongHieu')}"
-                                     th:errors="*{maThuongHieu}"></div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="tenThuongHieu" class="form-label">Tên Thương hiệu</label>
-                                <input type="text" class="form-control" id="tenThuongHieu"
-                                       th:field="*{tenThuongHieu}" placeholder="Ví dụ: Dior" required>
-                                <div class="invalid-feedback d-block"
-                                     th:if="${#fields.hasErrors('tenThuongHieu')}"
-                                     th:errors="*{tenThuongHieu}"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Hình ảnh</label>
-                                <input type="file" th:field="*{hinhAnh}" class="form-control">
-                            </div>
-
-                            <div class="text-end mt-4">
-                                <a th:href="@{/admin/thuong-hieu}" class="btn btn-secondary">Quay lại</a>
-                                <button type="submit" class="btn btn-primary ms-2" onclick="return confirm('Xác nhận muốn thêm thương hiệu này?')">Lưu lại</button>
-                            </div>
-
-                        </form>
-                    </div>
-
-                </div>
                 </div>
             </section>
         </div>
@@ -66,5 +105,170 @@
 </div>
 
 <div th:replace="~{/admin/fragments/script :: script}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("thuongHieuForm");
+        const maInput = document.getElementById("maThuongHieu");
+        const tenInput = document.getElementById("tenThuongHieu");
+
+        // ===== SweetAlert helpers =====
+        function swalError(msg) {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: msg,
+                    confirmButtonText: "OK"
+                });
+            }
+            alert(msg);
+            return Promise.resolve();
+        }
+
+        function swalConfirm(msg) {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: "question",
+                    title: "Xác nhận",
+                    text: msg,
+                    showCancelButton: true,
+                    confirmButtonText: "Lưu",
+                    cancelButtonText: "Hủy",
+                    reverseButtons: true
+                }).then(r => r.isConfirmed);
+            }
+            return Promise.resolve(confirm(msg));
+        }
+
+        function markInvalid(el) { el && el.classList.add("is-invalid"); }
+        function clearInvalid(el) { el && el.classList.remove("is-invalid"); }
+
+        // ===== Show lỗi server/validation bằng SweetAlert =====
+        (function showServerErrors() {
+            const holder = document.getElementById("serverMessages");
+            if (!holder) return;
+
+            const err = holder.getAttribute("data-error");
+            const maErr = holder.getAttribute("data-ma-error");
+            const tenErr = holder.getAttribute("data-ten-error");
+
+            if (maErr && maErr.trim() !== "") {
+                markInvalid(maInput);
+                swalError(maErr);
+                return;
+            }
+
+            if (tenErr && tenErr.trim() !== "") {
+                markInvalid(tenInput);
+                swalError(tenErr);
+                return;
+            }
+
+            if (err && err !== "null" && err.trim() !== "") {
+                swalError(err);
+            }
+        })();
+
+        // ===== Validate =====
+        // Mã: chỉ A-Z0-9, 3-20 ký tự
+        const MA_REGEX = /^[A-Z0-9]{3,20}$/;
+
+        // Tên: chữ Unicode (có dấu) + số + khoảng trắng + &, -, ., '
+        const TEN_REGEX = /^[\p{L}\p{M}\p{N} .&'-]{2,100}$/u;
+
+        // Normalize tên: trim + gom nhiều space thành 1
+        function normalizeSpaces(s) {
+            return (s || "").replace(/\s+/g, " ").trim();
+        }
+
+        // ===== Mã thương hiệu: auto uppercase + loại ký tự lạ =====
+        if (maInput) {
+            maInput.addEventListener("input", function () {
+                this.value = this.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                clearInvalid(maInput);
+            });
+
+            maInput.addEventListener("blur", function () {
+                const v = (maInput.value || "").trim();
+                if (!v) return;
+
+                if (!MA_REGEX.test(v)) {
+                    markInvalid(maInput);
+                    swalError("Mã thương hiệu không hợp lệ. Chỉ được chứa chữ và số, độ dài 3-20 ký tự (không dấu, không khoảng trắng).");
+                }
+            });
+        }
+
+        // ===== Tên thương hiệu: cho phép dấu + số + khoảng trắng + & - . ' =====
+        if (tenInput) {
+            tenInput.addEventListener("input", function () {
+                clearInvalid(tenInput);
+            });
+
+            tenInput.addEventListener("blur", function () {
+                const v = normalizeSpaces(tenInput.value);
+                tenInput.value = v;
+
+                if (!v) return;
+
+                if (!TEN_REGEX.test(v)) {
+                    markInvalid(tenInput);
+                    swalError("Tên thương hiệu không hợp lệ. Chỉ được nhập chữ (có dấu), số, khoảng trắng và các ký tự: & - . '");
+                }
+            });
+        }
+
+        // ===== Submit: validate + SweetAlert confirm =====
+        if (form) {
+            let programmaticSubmit = false;
+
+            form.addEventListener("submit", async function (e) {
+                if (programmaticSubmit) return;
+
+                e.preventDefault();
+
+                // --- validate mã ---
+                const ma = (maInput?.value || "").trim();
+                if (!ma) {
+                    markInvalid(maInput);
+                    await swalError("Vui lòng nhập Mã thương hiệu.");
+                    maInput?.focus();
+                    return;
+                }
+                if (!MA_REGEX.test(ma)) {
+                    markInvalid(maInput);
+                    await swalError("Mã thương hiệu không hợp lệ. Chỉ được chứa chữ và số, độ dài 3-20 ký tự (không dấu, không khoảng trắng).");
+                    maInput?.focus();
+                    return;
+                }
+
+                // --- validate tên ---
+                const ten = normalizeSpaces(tenInput?.value || "");
+                tenInput.value = ten;
+
+                if (!ten) {
+                    markInvalid(tenInput);
+                    await swalError("Vui lòng nhập Tên thương hiệu.");
+                    tenInput?.focus();
+                    return;
+                }
+                if (!TEN_REGEX.test(ten)) {
+                    markInvalid(tenInput);
+                    await swalError("Tên thương hiệu không hợp lệ. Chỉ được nhập chữ (có dấu), số, khoảng trắng và các ký tự: & - . '");
+                    tenInput?.focus();
+                    return;
+                }
+
+                const ok = await swalConfirm("Xác nhận muốn thêm thương hiệu này?");
+                if (!ok) return;
+
+                programmaticSubmit = true;
+                form.submit();
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

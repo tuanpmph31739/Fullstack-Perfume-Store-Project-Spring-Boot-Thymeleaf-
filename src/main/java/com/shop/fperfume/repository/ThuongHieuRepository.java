@@ -20,6 +20,10 @@ public interface ThuongHieuRepository extends JpaRepository<ThuongHieu,Long> {
 
     List<ThuongHieu> findAllByOrderByTenThuongHieuAsc();
 
+    boolean existsBySlug(String slug);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
     @Query("""
         SELECT th
         FROM ThuongHieu th

@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     Optional<SanPham> findByTenNuocHoa(String tenNuocHoa);
 
+    long countByThuongHieu_Id(Long thuongHieuId);
+
     @Query("""
    SELECT DISTINCT s FROM SanPham s
    JOIN FETCH s.thuongHieu th
