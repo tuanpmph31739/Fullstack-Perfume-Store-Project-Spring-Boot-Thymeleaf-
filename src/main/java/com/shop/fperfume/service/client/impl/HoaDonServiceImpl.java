@@ -182,6 +182,11 @@ public class HoaDonServiceImpl implements HoaDonClientService {
         hoaDon.setHoaDonChiTiets(hoaDonChiTiets);
         HoaDon savedHoaDon = hoaDonRepo.save(hoaDon);
 
+        if (khachHang != null) {
+            gioHang.setGiamGia(null);      // xóa idGiamGia trong giỏ
+            gioHangRepo.save(gioHang);
+        }
+
         // Nếu không đang chờ thanh toán (ví dụ COD) -> giảm lượt voucher (nếu có)
         if (!isPendingPayment && giamGia != null) {
             GiamGia gg = giamGiaRepository.findById(giamGia.getId())
