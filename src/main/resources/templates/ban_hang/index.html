@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head th:replace="~{/admin/fragments/head :: head}"></head>
 
-<body>
+<body class="pos-page">
 <div class="wrapper">
 
     <!-- SIDEBAR -->
@@ -15,11 +15,17 @@
         <!-- NỘI DUNG CHÍNH -->
         <div class="page-content">
 
-            <!-- CSS RIÊNG CHO POS -->
+            <!-- CSS RIÊNG CHO POS (đã scope để không phá Bootstrap toàn trang) -->
             <style>
-                body {
+                /* scope cho trang POS */
+                .pos-page{
                     background-color: #f5f6fb;
                     font-size: 14px;
+                }
+
+                #posRoot{
+                    /* width cột sticky nút "Thêm" (dùng để tính right cho cột Số lượng) */
+                    --pos-add-col: 110px;
                 }
 
                 .pos-wrapper {
@@ -77,26 +83,119 @@
                     font-weight: 500;
                 }
 
-                .product-item:hover {
+                /* ======= LIST SẢN PHẨM (đổi class để không đụng client) ======= */
+                #posRoot .pos-product-list {
+                    max-height: 520px;
+                    overflow: auto;                 /* quan trọng: cho cả X và Y */
+                    -webkit-overflow-scrolling: touch;
+                    padding-right: 4px;
+                }
+
+                #posRoot .pos-product-item:hover {
                     background-color: #f9fafb;
                 }
 
-                .product-list {
-                    max-height: 520px;
-                    overflow-y: auto;
+                /* wrapper table để sticky hoạt động đúng + có scroll ngang */
+                #posRoot .pos-table-wrap{
+                    overflow-x: auto;
+                    position: relative;
+                    -webkit-overflow-scrolling: touch;
                 }
 
-                .cart-list {
+                /* table */
+                #posRoot .pos-table{
+                    /* có min-width để khi màn hẹp sẽ scroll ngang */
+                    min-width: 860px;
+                    margin-bottom: 0;
+                }
+
+                /* giảm padding cột cho gọn */
+                #posRoot .pos-table th,
+                #posRoot .pos-table td{
+                    vertical-align: middle;
+                    padding: .45rem .5rem;
+                    white-space: nowrap;
+                }
+
+                /* ======= Sticky 2 cột cuối: Số lượng + Thêm ======= */
+                #posRoot .pos-sticky-qty,
+                #posRoot .pos-sticky-add{
+                    position: sticky;
+                    background: #fff; /* tbody */
+                    z-index: 2;
+                }
+
+                /* cột nút "Thêm" dính sát phải */
+                #posRoot .pos-sticky-add{
+                    right: 0;
+                    width: var(--pos-add-col);
+                    min-width: var(--pos-add-col);
+                    z-index: 3;
+                    box-shadow: -10px 0 14px -14px rgba(15,23,42,.35);
+                }
+
+                /* cột "Số lượng" dính trước nút Thêm */
+                #posRoot .pos-sticky-qty{
+                    right: var(--pos-add-col);
+                    z-index: 2;
+                    box-shadow: -10px 0 14px -14px rgba(15,23,42,.25);
+                }
+
+                /* sticky header màu khác */
+                #posRoot thead .pos-sticky-qty,
+                #posRoot thead .pos-sticky-add{
+                    background: #f8f9fa;
+                    z-index: 5;
+                }
+
+                /* ======= GIỎ HÀNG ======= */
+                #posRoot .cart-list {
                     max-height: 260px;
                     overflow-y: auto;
                 }
 
-                .text-small {
+                #posRoot .text-small {
                     font-size: 12px;
                 }
 
-                .money {
+                #posRoot .money {
                     font-weight: 600;
+                }
+
+                /* ======= Responsive: màn nhỏ thì cột sát nhau hơn ======= */
+                @media (max-width: 992px){
+                    #posRoot .pos-table{
+                        min-width: 780px;
+                    }
+                    #posRoot .pos-table th,
+                    #posRoot .pos-table td{
+                        padding: .35rem .4rem;
+                    }
+                }
+
+                @media (max-width: 576px){
+                    #posRoot{
+                        --pos-add-col: 92px; /* nút Thêm nhỏ lại */
+                    }
+                    #posRoot .pos-table{
+                        min-width: 720px;
+                    }
+                    #posRoot .pos-table th,
+                    #posRoot .pos-table td{
+                        padding: .28rem .32rem;
+                        font-size: 12px;
+                    }
+                    #posRoot .btn.btn-sm{
+                        padding: .25rem .4rem;
+                    }
+                    #posRoot .form-control-sm{
+                        padding: .25rem .35rem;
+                    }
+                }
+
+                /* SweetAlert nổi trên header */
+                .swal2-container {
+                    z-index: 2000 !important;
                 }
             </style>
 
@@ -107,7 +206,7 @@
                          th:attr="data-order-id=${idHD}">
 
 
-                    <!-- HÀNG 1: TAB HÓA ĐƠN + TẠO ĐƠN -->
+                        <!-- HÀNG 1: TAB HÓA ĐƠN + TẠO ĐƠN -->
                         <div class="row mb-3">
                             <div class="col-12">
                                 <div class="pos-header-box py-2 px-3 d-flex justify-content-between align-items-center">
@@ -131,24 +230,19 @@
                                                 </button>
                                             </form>
                                         </div>
-
                                     </div>
-
 
                                     <!-- Nút thêm hóa đơn -->
                                     <div>
-                                        <!-- Khi CHƯA đạt 7 đơn -->
                                         <form method="post"
                                               th:action="@{/admin/ban-hang-tai-quay/tao-hoa-don}"
                                               th:if="${#lists.size(listHoaDon) < 7}"
                                               class="ajax-pos-form">
-                                        <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
+                                            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1">
                                                 <i class="bi bi-plus-circle"></i> Thêm đơn mới
                                             </button>
                                         </form>
 
-
-                                        <!-- Khi ĐÃ đạt 7 đơn -->
                                         <button class="btn btn-secondary d-flex align-items-center gap-1" type="button"
                                                 th:if="${#lists.size(listHoaDon) >= 7}" disabled>
                                             <i class="bi bi-exclamation-circle"></i>
@@ -172,7 +266,7 @@
                             </div>
                         </div>
 
-                        <!-- HÀNG 2: TRÁI = KHÁCH + SẢN PHẨM, PHẢI = GIỎ HÀNG + THANH TOÁN -->
+                        <!-- HÀNG 2 -->
                         <div class="row mt-2">
                             <!-- CỘT TRÁI -->
                             <div class="col-lg-8 mb-3">
@@ -195,7 +289,6 @@
 
                                         <div th:if="${idHD != null}">
                                             <div class="row g-2 align-items-center mb-1">
-                                                <!-- TÊN KHÁCH -->
                                                 <div class="col-md-6">
                                                     <label class="text-small text-muted mb-1">Tên khách hàng</label>
                                                     <input type="text"
@@ -209,7 +302,6 @@
                                                                    ? hoaDon.khachHang.hoTen
                                                                    : (hoTenTmp != null ? hoTenTmp : '')
                                                            }"/>
-
                                                 </div>
 
                                                 <div class="col-md-3">
@@ -230,8 +322,6 @@
                                                     <div id="posSdtError" class="text-danger text-small mt-1"></div>
                                                 </div>
 
-
-                                                <!-- EMAIL -->
                                                 <div class="col-md-3">
                                                     <label class="text-small text-muted mb-1">Email</label>
                                                     <input type="email"
@@ -249,7 +339,6 @@
                                             </div>
 
                                             <div class="row g-2 mt-1">
-                                                <!-- ĐỊA CHỈ -->
                                                 <div class="col-12">
                                                     <label class="text-small text-muted mb-1">Địa chỉ</label>
                                                     <input type="text"
@@ -302,12 +391,18 @@
                                         </div>
 
                                         <!-- DANH SÁCH SẢN PHẨM -->
-                                        <div class="product-list">
+                                        <div class="pos-product-list">
 
                                             <!-- Lặp theo từng sản phẩm cha -->
                                             <div th:each="entry : ${groupedProducts}"
-                                                 class="mb-2 product-item border rounded-3 p-2"
-                                                 th:attr="data-keywords=${entry.key.tenNuocHoa != null ? entry.key.tenNuocHoa.toLowerCase() : ''}">
+                                                 class="mb-2 pos-product-item border rounded-3 p-2"
+                                                 th:attr="data-keywords=${
+                                                     (entry.key.tenNuocHoa != null ? entry.key.tenNuocHoa.toLowerCase() : '')
+                                                     + ' ' +
+                                                     (entry.key.thuongHieu != null && entry.key.thuongHieu.tenThuongHieu != null
+                                                        ? entry.key.thuongHieu.tenThuongHieu.toLowerCase()
+                                                        : '')
+                                                 }">
 
                                                 <!-- Tên + thương hiệu -->
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -325,18 +420,18 @@
                                                 </div>
 
                                                 <!-- Các dung tích / size bên trong -->
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm align-middle mb-0">
+                                                <div class="pos-table-wrap table-responsive">
+                                                    <table class="table table-sm align-middle pos-table">
                                                         <thead class="table-light">
                                                         <tr class="text-small">
-                                                            <th style="width: 120px;">Ảnh</th>
+                                                            <th style="width: 110px;">Ảnh</th>
                                                             <th style="width: 120px;">Mã SKU</th>
                                                             <th style="width: 120px;">Dung tích</th>
                                                             <th style="width: 90px;">Nồng độ</th>
                                                             <th style="width: 120px;">Giá bán</th>
                                                             <th style="width: 70px;">Tồn</th>
-                                                            <th style="width: 130px;">Số lượng</th>
-                                                            <th style="width: 110px;"></th>
+                                                            <th class="pos-sticky-qty" style="width: 130px;">Số lượng</th>
+                                                            <th class="pos-sticky-add"></th>
                                                         </tr>
                                                         </thead>
                                                         <tbody>
@@ -348,15 +443,11 @@
                                                                 <span th:unless="${spct.hinhAnh}">---</span>
                                                             </td>
                                                             <td th:text="${spct.maSKU}">SKU-001</td>
-                                                            <td th:text="${spct.dungTich != null ? spct.dungTich.soMl + ' ml' : 'Chuẩn'}">
-                                                                50 ml
-                                                            </td>
+                                                            <td th:text="${spct.dungTich != null ? spct.dungTich.soMl + ' ml' : 'Chuẩn'}">50 ml</td>
                                                             <td th:text="${spct.nongDo != null ? spct.nongDo.tenNongDo : 'N/A'}">EDP</td>
-                                                            <td th:text="${#numbers.formatDecimal(spct.giaBan, 0, 'POINT', 0, 'NONE')} + ' đ'">
-                                                                1.000.000 đ
-                                                            </td>
+                                                            <td th:text="${#numbers.formatDecimal(spct.giaBan, 0, 'POINT', 0, 'NONE')} + ' đ'">1.000.000 đ</td>
+
                                                             <td>
-                                                                <!-- Ưu tiên hiển thị Ngừng KD nếu trạng thái false/null -->
                                                                 <span th:if="${spct.trangThai == null or !spct.trangThai}"
                                                                       class="badge bg-secondary-subtle text-secondary badge-stock">
                                                                     Ngừng KD
@@ -373,7 +464,7 @@
                                                                 </span>
                                                             </td>
 
-                                                            <td>
+                                                            <td class="pos-sticky-qty">
                                                                 <form th:id="'form-add-' + ${spct.id}"
                                                                       th:action="@{/admin/ban-hang-tai-quay/add-san-pham}"
                                                                       method="post"
@@ -381,7 +472,6 @@
                                                                     <input type="hidden" name="idHD" th:value="${idHD}"/>
                                                                     <input type="hidden" name="idSanPhamChiTiet" th:value="${spct.id}"/>
 
-                                                                    <!-- Hidden để mang thông tin khách lên server -->
                                                                     <input type="hidden" name="hoTen">
                                                                     <input type="hidden" name="sdt">
                                                                     <input type="hidden" name="email">
@@ -392,7 +482,8 @@
                                                                            th:disabled="${spct.trangThai == null or !spct.trangThai or spct.soLuongTon <= 0}"/>
                                                                 </form>
                                                             </td>
-                                                            <td>
+
+                                                            <td class="pos-sticky-add">
                                                                 <button type="submit"
                                                                         th:form="'form-add-' + ${spct.id}"
                                                                         class="btn btn-sm w-100"
@@ -408,16 +499,14 @@
                                                                             : ' btn-outline-primary'">
                                                                     <i class="bi bi-cart-plus"></i> Thêm
                                                                 </button>
-
                                                             </td>
-
                                                         </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
 
                                             </div>
-                                            <!-- /product-item -->
+                                            <!-- /pos-product-item -->
 
                                             <div th:if="${#lists.isEmpty(groupedProducts)}"
                                                  class="text-center text-muted py-4">
@@ -481,7 +570,6 @@
                                                                 <input type="hidden" name="idHDCT" th:value="${item.id}"/>
                                                                 <input type="hidden" name="idHD" th:value="${idHD}"/>
 
-                                                                <!-- Hidden thông tin khách -->
                                                                 <input type="hidden" name="hoTen">
                                                                 <input type="hidden" name="sdt">
                                                                 <input type="hidden" name="email">
@@ -494,12 +582,12 @@
                                                             </form>
 
                                                             <span class="mx-2" th:text="${item.soLuong}">1</span>
+
                                                             <form th:action="@{/admin/ban-hang-tai-quay/tang-so-luong}"
                                                                   method="post" class="m-0 sync-customer-form">
                                                                 <input type="hidden" name="idHDCT" th:value="${item.id}"/>
                                                                 <input type="hidden" name="idHD" th:value="${idHD}"/>
 
-                                                                <!-- Hidden thông tin khách -->
                                                                 <input type="hidden" name="hoTen">
                                                                 <input type="hidden" name="sdt">
                                                                 <input type="hidden" name="email">
@@ -510,7 +598,6 @@
                                                                     +
                                                                 </button>
                                                             </form>
-
                                                         </div>
                                                     </td>
                                                     <td style="width: 32px;">
@@ -519,7 +606,6 @@
                                                             <input type="hidden" name="idHDCT" th:value="${item.id}"/>
                                                             <input type="hidden" name="idHD" th:value="${idHD}"/>
 
-                                                            <!-- Hidden thông tin khách -->
                                                             <input type="hidden" name="hoTen">
                                                             <input type="hidden" name="sdt">
                                                             <input type="hidden" name="email">
@@ -530,7 +616,6 @@
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
-
                                                     </td>
                                                 </tr>
                                                 </tbody>
@@ -552,7 +637,6 @@
                                         </div>
 
                                         <div th:if="${hoaDon != null}">
-                                            <!-- Phương thức thanh toán (demo, hiện tại fix Tiền mặt) -->
                                             <div class="mb-2">
                                                 <label class="text-small text-muted mb-1">Phương thức thanh toán</label>
                                                 <input type="text" class="form-control form-control-sm bg-light"
@@ -562,19 +646,16 @@
                                             <div class="mb-2">
                                                 <label class="text-small text-muted mb-1">Phiếu giảm giá</label>
                                                 <div class="d-flex gap-2">
-
                                                     <form th:action="@{/admin/ban-hang-tai-quay/apply-voucher}"
                                                           method="post"
                                                           class="d-flex flex-grow-1 gap-2 sync-customer-form">
-                                                    <input type="hidden" name="idHD" th:value="${idHD}"/>
+                                                        <input type="hidden" name="idHD" th:value="${idHD}"/>
 
-                                                        <!-- Hidden để sync info khách (nếu muốn gửi kèm) -->
                                                         <input type="hidden" name="hoTen">
                                                         <input type="hidden" name="sdt">
                                                         <input type="hidden" name="email">
                                                         <input type="hidden" name="diaChi">
 
-                                                        <!-- Ô nhập / chọn mã giảm giá -->
                                                         <input type="text"
                                                                name="maGiamGia"
                                                                class="form-control form-control-sm"
@@ -582,7 +663,6 @@
                                                                list="voucherSuggestions"
                                                                th:value="${hoaDon.giamGia?.ma}"/>
 
-                                                        <!-- Dropdown gợi ý các voucher phù hợp -->
                                                         <datalist id="voucherSuggestions">
                                                             <option th:each="vc : ${listVoucherPhuHop}"
                                                                     th:value="${vc.ma}"
@@ -594,8 +674,6 @@
                             : ' [Toàn cửa hàng]')}">
                                                             </option>
                                                         </datalist>
-
-
 
                                                         <button type="submit" class="btn btn-primary btn-sm">
                                                             Áp dụng
@@ -622,7 +700,6 @@
 
                                             <hr>
 
-                                            <!-- TỔNG TIỀN -->
                                             <div class="d-flex justify-content-between text-small mb-1">
                                                 <span>Tổng tiền hàng</span>
                                                 <span class="money"
@@ -646,21 +723,18 @@
                                                 </span>
                                             </div>
 
-                                            <!-- FORM THANH TOÁN -->
                                             <form th:action="@{/admin/ban-hang-tai-quay/thanh-toan}"
                                                   method="post"
                                                   id="formThanhToan"
                                                   onsubmit="return confirm('Xác nhận thanh toán hóa đơn này?')">
                                                 <input type="hidden" name="idHD" th:value="${idHD}"/>
 
-                                                <!-- Nếu muốn thêm Tiền khách đưa / phí ship, thêm input ở đây -->
-
                                                 <button type="submit"
                                                         class="btn btn-success w-100 py-2 fw-semibold" style="margin-bottom: 3px"
                                                         th:disabled="${gioHang == null or gioHang.isEmpty()}">
                                                     Xác nhận đơn hàng
                                                 </button>
-                                                <!-- Nút in tạm tính: in được kể cả khi hóa đơn chưa HOÀN THÀNH -->
+
                                                 <a th:if="${hoaDon != null}"
                                                    th:href="@{/admin/hoa-don/print/{id}(id=${hoaDon.id})}"
                                                    target="_blank"
@@ -689,6 +763,9 @@
 <!-- SCRIPT CHUNG ADMIN -->
 <div th:replace="~{/admin/fragments/script :: script}"></div>
 
+<!-- SweetAlert2 (để Swal không undefined) -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- MODAL TÌM KIẾM & CHỌN KHÁCH HÀNG -->
 <div class="modal fade" id="customerModal" tabindex="-1"
      aria-labelledby="customerModalLabel" aria-hidden="true">
@@ -703,8 +780,6 @@
             </div>
 
             <div class="modal-body">
-
-                <!-- Form tìm kiếm khách hàng -->
                 <form th:action="@{/admin/ban-hang-tai-quay}" method="get"
                       class="d-flex gap-2 mb-3">
                     <input type="hidden" name="idHD" th:value="${idHD}"/>
@@ -716,7 +791,6 @@
                     </button>
                 </form>
 
-                <!-- Danh sách khách hàng -->
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -766,6 +840,7 @@
         </div>
     </div>
 </div>
+
 <script th:src="@{/assets/assets/compiled/js/pos.js}"></script>
 
 <script th:inline="javascript">
@@ -773,15 +848,26 @@
     const printId = /*[[${printId}]]*/ null;
 
     if (printId !== null && printId !== 0) {
-        // Build URL in hóa đơn, kèm autoPrint=true để bên print-invoice tự window.print()
         const printUrl = /*[[@{/admin/hoa-don/print/{id}(id=${printId})}]]*/ '';
         const finalUrl = printUrl + '?autoPrint=true';
-
-        // Mở tab mới
         window.open(finalUrl, '_blank');
     }
 </script>
 
+<!-- Filter sản phẩm: dùng class mới -->
+<script>
+    function filterProducts(){
+        const input = document.getElementById('productSearchInput');
+        const kw = (input?.value || '').toLowerCase().trim();
+
+        document.querySelectorAll('#posRoot .pos-product-item').forEach(item => {
+            const keys = (item.getAttribute('data-keywords') || '').toLowerCase();
+            item.style.display = (!kw || keys.includes(kw)) ? '' : 'none';
+        });
+    }
+</script>
+
+<!-- SweetAlert huỷ đơn -->
 <script>
     (function () {
         function initDeleteInvoiceSweetAlert() {
@@ -793,13 +879,6 @@
 
                 const ma = form.getAttribute('data-ma') || 'hóa đơn này';
 
-                if (typeof Swal === 'undefined') {
-                    console.error('SweetAlert2 chưa được load (Swal is undefined).');
-                    // fallback: vẫn cho submit để khỏi “kẹt”
-                    if (confirm(`Bạn chắc chắn muốn huỷ ${ma}?`)) form.submit();
-                    return;
-                }
-
                 Swal.fire({
                     title: 'Xác nhận huỷ đơn?',
                     text: `Bạn chắc chắn muốn huỷ ${ma}?`,
@@ -809,7 +888,7 @@
                     cancelButtonText: 'Không',
                     confirmButtonColor: '#dc3545'
                 }).then((result) => {
-                    if (result.isConfirmed) form.submit(); // submit thật (không trigger submit event)
+                    if (result.isConfirmed) form.submit();
                 });
             }, true);
         }
