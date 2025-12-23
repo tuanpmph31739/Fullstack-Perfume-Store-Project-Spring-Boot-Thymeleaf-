@@ -13,9 +13,9 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Danh sách Giới tính</h5>
-                        <a th:href="@{/admin/loai-nuoc-hoa/add}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Thêm giới tính
-                        </a>
+<!--                        <a th:href="@{/admin/loai-nuoc-hoa/add}" class="btn btn-primary">-->
+<!--                            <i class="bi bi-plus-circle"></i> Thêm giới tính-->
+<!--                        </a>-->
                     </div>
                     <div class="card-body">
                         <table class="table table-striped table-fixed align-middle">
@@ -43,10 +43,10 @@
                                     <a th:href="@{/admin/loai-nuoc-hoa/edit/{id}(id=${lnh.id})}" class="btn btn-warning btn-sm" title="Sửa giới tính">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a th:href="@{/admin/loai-nuoc-hoa/delete/{id}(id=${lnh.id})}" class="btn btn-danger btn-sm" title="Xóa giới tính"
-                                       onclick="return confirm('Bạn có chắc muốn xóa giới tính này?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+<!--                                    <a th:href="@{/admin/loai-nuoc-hoa/delete/{id}(id=${lnh.id})}" class="btn btn-danger btn-sm" title="Xóa giới tính"-->
+<!--                                       onclick="return confirm('Bạn có chắc muốn xóa giới tính này?')">-->
+<!--                                        <i class="bi bi-trash"></i>-->
+<!--                                    </a>-->
                                 </td>
                             </tr>
                             <tr th:if="${page.data == null or #lists.isEmpty(page.data)}">
